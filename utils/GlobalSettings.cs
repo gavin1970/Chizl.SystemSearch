@@ -1,0 +1,160 @@
+﻿using Chizl.ThreadSupport;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Chizl.SystemSearch
+{
+    internal static class GlobalSettings
+    {
+        internal static string SavePath { get { return GetCachedJson(); } }
+        internal static readonly object _lockPath = new object();
+
+        private static string _savePath = ".\\FileDatails\\";
+        private static long _shutDown = 0;
+        private static long _fullScanCompleted = 0;
+        private static SystemScan _scanner = new SystemScan();
+        private static Bool IsRefreshing = new Bool();
+
+        static GlobalSettings()
+        {
+            lock (_lockPath)
+            {
+                var dir = new DirectoryInfo(SavePath);
+                if (!dir.Exists)
+                    dir.Create();
+
+                _savePath = dir.FullName;
+            }
+        }
+        public static ScanProperties ScanSettings { get; } = new ScanProperties();
+
+        /// <summary>
+        /// Scan options to be set from the parent application or use defaults.
+        /// </summary>
+        public static ConcurrentDictionary<string, bool> RefreshFolder { get; } = new ConcurrentDictionary<string, bool>();
+
+        #region Shortcut Methods
+        public static bool AllowDir(string path) => ScanSettings.AllowDir(path);
+        public static void AddRemove(string dir, bool add)
+        {
+            if (!IgnoreChange)
+            {
+                if (RefreshFolder.TryAdd(dir, add))
+                {
+                    SearchMessage.SendMsg(SearchMessageType.UpdateInprogress, $"Updating cache by '{(add ? "Adding" : "Removing")}' entries associated to '{dir}'.  Please wait...");
+                    //set to true, if previous was false, lets Task.Run().
+                    if (!IsRefreshing.SetVal(true))
+                    {
+                        Task.Run(() =>
+                        {
+                            CheckRefresh();
+                        })
+                        .ContinueWith(previousTask =>
+                        {
+                            IsRefreshing.SetFalse();
+                        }).Wait();
+                    }
+                }
+            }
+        }
+        #endregion
+
+        //Volatile.Read vs Interlocked.Read (deeper and more precise)
+        #region Shortcut Properties
+        /// <summary>
+        /// Thread safe boolean.
+        /// </summary>
+        public static bool FullScanCompleted
+        {
+            get => Interlocked.Read(ref _fullScanCompleted) == 1;
+            set => Interlocked.Exchange(ref _fullScanCompleted, (value ? 1 : 0));
+        }
+        public static LookupStatus CurrentStatus { get; set; } = LookupStatus.NotStarted;
+        public static string[] DriveList { get; } = DriveInfo.GetDrives().Select(s => CheckDriveName(s.Name)).ToArray();
+        public static void Startup(LookupStatus status = LookupStatus.NotStarted) { HasShutdown = false; CurrentStatus = status; }
+        public static void Ended(LookupStatus status = LookupStatus.Completed) { CurrentStatus = status; }
+        public static void Shutdown() 
+        {
+            HasShutdown = true;
+            CurrentStatus = LookupStatus.Aborted;
+            Internals.AutoEvents[AutoEvent.Shutdown].Set();
+        }
+        public static bool HasShutdown 
+        {
+            get => Interlocked.Read(ref _shutDown) == 1;
+            set => Interlocked.Exchange(ref _shutDown, (value ? 1 : 0));
+        }
+        public static bool IgnoreChange => ScanSettings.IgnoreChange;
+        private static string CheckDriveName(string driveName) => driveName.EndsWith("\\") ? driveName : $"{driveName}\\";
+        private static string GetCachedJson()
+        {
+            if (_savePath.StartsWith("."))
+            {
+                lock (_lockPath)
+                {
+                    var dir = new DirectoryInfo(_savePath);
+                    if (!dir.Exists)
+                        dir.Create();
+
+                    _savePath = dir.FullName;
+                }
+            }
+            return _savePath;
+        }
+        #endregion
+
+        internal static Task CheckRefresh()
+        {
+            if (IgnoreChange || RefreshFolder.IsEmpty)
+            {
+                IsRefreshing.SetFalse();
+                return Task.CompletedTask;
+            }
+            
+            Startup(LookupStatus.Running);
+            //SearchMessage.SendMsg(SearchMessageType.UpdateInprogress, $"Updating cache, please wait...");
+            List<Task> queTasks = new List<Task>();
+
+            return Task.Run(async () =>
+            {
+                //wait 5 seconds, because we need startup to refresh many folders before we start processing.
+                //Tools.Sleep(5);
+                var addList = RefreshFolder.Where(w => w.Value).Select(s => s.Key).ToArray();
+                var deleteList = RefreshFolder.Where(w => !w.Value).Select(s => s.Key).ToArray();
+
+                //if (hasAdds)
+                foreach (var actionFolder in addList)
+                {
+                    RefreshFolder.TryRemove(actionFolder, out _);
+                    //add that specific folder, without subfolders.
+                    queTasks.Add(_scanner.ScanFolder(actionFolder, true));
+                    //add all subfolders with each in their own thread task.
+                    queTasks.AddRange(_scanner.ScanSubFolders(Directory.GetDirectories(actionFolder)));
+                }
+
+                foreach (var actionFolder in deleteList)
+                {
+                    RefreshFolder.TryRemove(actionFolder, out _);
+                    queTasks.AddRange(_scanner.RemoveRootFolder(actionFolder));
+                }
+
+                //wait for all thread/tasks to complete.
+                Task.WaitAll(queTasks.ToArray());
+                queTasks.Clear();
+                //send complete message to UI
+                SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
+                //wait 0.10 sec
+                await Tools.Delay(100, SleepType.Milliseconds);
+
+                SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
+                Ended();
+
+                IsRefreshing.SetFalse();
+            });
+        }
+    }
+}
