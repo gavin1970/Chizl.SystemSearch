@@ -100,15 +100,11 @@ namespace Chizl.SearchSystemUI
                 var appendMsg = _scanAborted ? "before being aborted by user." : "and completed successfully.";
                 ShowMsg(SearchMessageType.StatusMessage, $"Scanned for '{diff}' {appendMsg}");
                 
-                _unfilteredItemsList.Clear();
                 if (ResultsList.Items.Count > 0)
                 {
                     _driveFilterOn.SetVal(false);
                     _extFilterOn.SetVal(false);
                     _customFilterOn.SetVal(false);
-                    foreach (var item in ResultsList.Items)
-                        _unfilteredItemsList.Add(item.ToString());
-                    //ResultsList.Items.CopyTo(_unfilteredItemsList, 0);
                 }
             }
         }
@@ -176,9 +172,14 @@ namespace Chizl.SearchSystemUI
                         case SearchMessageType.SearchResults:
                             if (_scanAborted)
                                 break;
-
                             if (e.Message.Contains("\n"))
-                                this.ResultsList.Items.AddRange(e.Message.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries));
+                            {
+                                var unfiltList = e.Message.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                                _unfilteredItemsList.Clear();
+                                _unfilteredItemsList.AddRange(unfiltList);
+                                this.ResultsList.Items.AddRange(unfiltList);
+                                ScanStarted();
+                            }
                             else
                                 this.ResultsList.Items.Add(e.Message);
                             this.ResultsList.SelectedIndex = this.ResultsList.Items.Count - 1;
@@ -359,6 +360,10 @@ namespace Chizl.SearchSystemUI
                 {
                     ShowMsg(e);
                     refreshCnt = resetRefreshCnt;
+                    //something is wrong, this should be set, if we have file scans coming in.
+                    if (_finder.CurrentStatus.Equals(LookupStatus.Running) && 
+                        !BtnStartStopScan.Text.Equals(_stopScanText))
+                        ScanStarted();
                 }
             }
             else
@@ -678,33 +683,30 @@ namespace Chizl.SearchSystemUI
         {
             if (GetSelectedItem(out string selectedItem))
             {
-                List<int> removeItem = new List<int>();
                 SubFilterOptions subFilter = new SubFilterOptions(selectedItem);
 
                 if (subFilter.ShowDialog(this) == DialogResult.OK)
                 {
+                    var removeStrItem = new List<string>();
                     var exItems = subFilter.ExcludeItems;
-                    var loc = 0;
 
                     foreach (var item in ResultsList.Items)
                     {
                         foreach (var ex in exItems) 
                         {
-                            if (item.ToString().Contains(ex)) 
-                            {
-                                removeItem.Add(loc);
-                            }
+                            if (item.ToString().Contains(ex))
+                                removeStrItem.Add(item.ToString());
                         }
-                        loc++;
                     }
 
-                    for (int i = removeItem.Count - 1; i >= 0; i--)
-                        ResultsList.Items.RemoveAt(removeItem[i]);
+                    foreach (var item in removeStrItem)
+                        ResultsList.Items.Remove(item);
 
-                    if (removeItem.Count > 0)
+                    if (removeStrItem.Count > 0)
                     {
                         _customFilterOn.SetVal(true);
                         SetFilterStatus();
+                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsList.Items.Count}, {_lastFilteringStatus}");
                     }
                 }
             }            
