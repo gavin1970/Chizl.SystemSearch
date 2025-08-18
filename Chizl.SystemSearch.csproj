@@ -2,16 +2,32 @@
 
   <PropertyGroup>
 			<TargetFrameworks>netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
-  </PropertyGroup>
+			<ImplicitUsings>disable</ImplicitUsings>
+			<Nullable>disable</Nullable>
+			<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+			<GenerateDocumentationFile>False</GenerateDocumentationFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="demos\**" />
-    <EmbeddedResource Remove="demos\**" />
-    <None Remove="demos\**" />
-  </ItemGroup>
+		<PropertyGroup>
+				<Authors>Chizl</Authors>
+				<PackageId>Chizl.SystemSearch</PackageId>
+				<Company>Chizl.com</Company>
+				<Copyright>© 2025 chizl.com</Copyright>
+				<PackageTags>file-search;library;in-console;on-desktop;standard;framework;no-deps</PackageTags>
+				<FileVersion>5.08.18.1430</FileVersion>
+				<Version>5.08.18.0</Version>
+				<AssemblyVersion>5.08.0.0</AssemblyVersion>
+				<PackageReadmeFile>README.md</PackageReadmeFile>
+		</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
+		<ItemGroup>
+				<None Include="docs\README.md" Pack="true" PackagePath="\" />
+		</ItemGroup>
+
+		<ItemGroup>
+				<Compile Remove="demos\**" />
+				<EmbeddedResource Remove="demos\**" />
+				<None Remove="demos\**" />
+		</ItemGroup>
 
 </Project>
