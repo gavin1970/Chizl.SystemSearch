@@ -52,14 +52,18 @@ namespace Chizl.SearchSystemUI
         static DateTime _startDate = DateTime.MinValue;
         static DateTime _endDate = DateTime.MinValue;
 
+        private static ListViewHitTestInfo _listViewHitTest = new ListViewHitTestInfo(null, null, ListViewHitTestLocations.None);
         private static readonly ConcurrentQueue<SearchEventArgs> _msgQueue = new ConcurrentQueue<SearchEventArgs>();
-        private static List<string> _unfilteredItemsList = new List<string> { };
+        private static List<ListViewItem> _unfilteredItemsList = new List<ListViewItem> { };
 
         private static IOFinder _finder = GlobalSetup.Finder;
         private static ScanProperties _criterias = _finder.Criteria;
 
         delegate void MessageDelegateEvent(SearchEventArgs e);
         delegate void NoParmDelegateEvent();
+
+        private readonly ListViewHelper _lViewHelper = new ListViewHelper();
+        private static List<ColumnHeader> _listViewColumns { get; set; } = null;
 
         public Starter()
         {
@@ -99,8 +103,8 @@ namespace Chizl.SearchSystemUI
                 BtnStartStopScan.Text = _scanAborted ? _startScanText : fullScanned ? _scannedText : _startScanText;
                 var appendMsg = _scanAborted ? "before being aborted by user." : "and completed successfully.";
                 ShowMsg(SearchMessageType.StatusMessage, $"Scanned for '{diff}' {appendMsg}");
-                
-                if (ResultsList.Items.Count > 0)
+
+                if (ResultsListView.Items.Count > 0)
                 {
                     _driveFilterOn.SetVal(false);
                     _extFilterOn.SetVal(false);
@@ -124,7 +128,7 @@ namespace Chizl.SearchSystemUI
 
             BtnStartStopScan.Text = _stopScanText;
             TxtSearchName.Text = TxtSearchName.Text.Trim();
-            ResultsList.Items.Clear();
+            ResultsListView.Items.Clear();
 
             _startDate = DateTime.UtcNow;
             _endDate = _startDate;
@@ -152,7 +156,11 @@ namespace Chizl.SearchSystemUI
                     {
                         case SearchMessageType.Exception:
                         case SearchMessageType.Error:
-                            this.ErrorList.Items.Add($"[{e.MessageType}] {e.Message}");
+                            var msg = e.Message;
+                            if (e.Message.Contains("Access to the"))
+                                this.ErrorList.Items.Add($"{e.Message}");
+                            else
+                                this.ErrorList.Items.Add($"[{e.MessageType}] {e.Message}");
                             this.ErrorList.SelectedIndex = this.ErrorList.Items.Count - 1;
                             break;
                         case SearchMessageType.Warning:
@@ -172,17 +180,21 @@ namespace Chizl.SearchSystemUI
                         case SearchMessageType.SearchResults:
                             if (_scanAborted)
                                 break;
+                            _unfilteredItemsList.Clear();
+                            ListViewItem[] unfileInfoList;
                             if (e.Message.Contains("\n"))
                             {
                                 var unfiltList = e.Message.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                                _unfilteredItemsList.Clear();
-                                _unfilteredItemsList.AddRange(unfiltList);
-                                this.ResultsList.Items.AddRange(unfiltList);
-                                ScanStarted();
+                                unfileInfoList = GetFileInfo(unfiltList);
                             }
                             else
-                                this.ResultsList.Items.Add(e.Message);
-                            this.ResultsList.SelectedIndex = this.ResultsList.Items.Count - 1;
+                                unfileInfoList = GetFileInfo(new string[] { e.Message });
+
+                            _unfilteredItemsList.AddRange(unfileInfoList);
+                            this.ResultsListView.Items.AddRange(unfileInfoList);
+                            ResultsListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+                            this.ResultsListView.Columns[1].Width = 0;
+                            this.ResultsListView.SelectedItems[this.ResultsListView.Items.Count - 1].Selected = true;
                             break;
                         case SearchMessageType.StatusMessage:
                             this.StatusToolStripStatusLabel.Text = $"[{e.MessageType}] {e.Message}";
@@ -205,9 +217,28 @@ namespace Chizl.SearchSystemUI
                 }
             }
         }
+        private ListViewItem[] GetFileInfo(string[] unfiltList)
+        {
+            var listViewItems = new List<ListViewItem>();
+            foreach(var filePath in unfiltList)
+            {
+                var fi = new FileInfo(filePath);
+                var liv = new ListViewItem(fi.Name);
+                liv.SubItems.Add(fi.Length.ToString());
+                liv.SubItems.Add($"{fi.Length.FormatByteSize()}");
+                liv.SubItems.Add(fi.CreationTime.ToString("MM/dd/yyyy HH:mm:ss"));
+                liv.SubItems.Add(fi.LastWriteTime.ToString("MM/dd/yyyy HH:mm:ss"));
+                liv.SubItems.Add(fi.FullName);
+
+                listViewItems.Add(liv);
+            }
+
+            return listViewItems.ToArray();
+        }
         private void SetupForm()
         {
             LoadConfig();
+            SetupListView(ResultsListView);
         }
         private void LoadConfig()
         {
@@ -294,10 +325,12 @@ namespace Chizl.SearchSystemUI
         private bool GetSelectedItem(out string selectedItem)
         {
             selectedItem = string.Empty;
-            if (ResultsList.SelectedIndex < 0)
+            //if (ResultsList.SelectedIndex < 0)
+            if (ResultsListView.SelectedItems.Count.Equals(0))
                 return false;
 
-            selectedItem = ResultsList.Items[ResultsList.SelectedIndex].ToString();
+            //selectedItem = ResultsList.Items[ResultsList.SelectedIndex].ToString();
+            selectedItem = ResultsListView.SelectedItems[0].SubItems[5].Text;
 
             return true;
         }
@@ -312,25 +345,38 @@ namespace Chizl.SearchSystemUI
         }
         private void SetFilterStatus()
         {
-            if (_extFilterOn || _driveFilterOn || _customFilterOn)
-                ToolStripStatusFilterLabel.Visible = true;
-            else
-                ToolStripStatusFilterLabel.Visible = false;
+            if (InvokeRequired)
+            {
+                var d = new NoParmDelegateEvent(SetFilterStatus);
+                if (!Disposing && !IsDisposed)
+                {
+                    try { Invoke(d); }
+                    catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
+                    catch { /* Ingore, shutting down. */ }
+                }
+            }
+            else if (!Disposing && !IsDisposed)
+            {
+                if (_extFilterOn || _driveFilterOn || _customFilterOn)
+                    ToolStripStatusFilterLabel.Visible = true;
+                else
+                    ToolStripStatusFilterLabel.Visible = false;
 
-            if (_driveFilterOn)
-                StatusToolStripDriveFiltered.Visible = true;
-            else
-                StatusToolStripDriveFiltered.Visible = false;
+                if (_driveFilterOn)
+                    StatusToolStripDriveFiltered.Visible = true;
+                else
+                    StatusToolStripDriveFiltered.Visible = false;
 
-            if (_extFilterOn)
-                StatusToolStripExtFiltered.Visible = true;
-            else
-                StatusToolStripExtFiltered.Visible = false;
+                if (_extFilterOn)
+                    StatusToolStripExtFiltered.Visible = true;
+                else
+                    StatusToolStripExtFiltered.Visible = false;
 
-            if (_customFilterOn)
-                StatusToolStripSubFiltered.Visible = true;
-            else
-                StatusToolStripSubFiltered.Visible = false;
+                if (_customFilterOn)
+                    StatusToolStripSubFiltered.Visible = true;
+                else
+                    StatusToolStripSubFiltered.Visible = false;
+            }
         }
         private void SetMenuOptions()
         {
@@ -469,9 +515,6 @@ namespace Chizl.SearchSystemUI
         {
             CMenuOptions.Show(BtnOptions, new Point(0, 0));
         }
-        /// <summary>
-        /// All BtnOptions Checkbox Events
-        /// </summary>
         private void Options_CheckedChanged(object sender, EventArgs e)
         {
             var chkBox = sender as ToolStripMenuItem;
@@ -541,47 +584,49 @@ namespace Chizl.SearchSystemUI
         {
             if (GetSelectedItem(out string selectedItem))
             {
-                var count = ResultsList.Items.Count;
+                var count = ResultsListView.Items.Count;
                 var drive = selectedItem.Substring(0, 2).ToUpper();
-                string[] items = new string[count];
-                ResultsList.Items.CopyTo(items, 0);
+                //string[] items = new string[count];
+                ListViewItem[] items = new ListViewItem[count];
+                ResultsListView.Items.CopyTo(items, 0);
 
                 foreach (var item in items)
                 {
-                    if (!item.ToString().ToUpper().StartsWith(drive))
-                        ResultsList.Items.Remove(item);
+                    if (!item.SubItems[5].Text.ToUpper().StartsWith(drive))
+                        ResultsListView.Items.Remove(item);
                 }
 
                 _driveFilterOn.SetVal(true);
                 SetFilterStatus();
-                ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsList.Items.Count}, {_lastFilteringStatus}");
+                ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
             }
         }
         private void ListMenuFilterFileExtension_Click(object sender, EventArgs e)
         {
             if (GetSelectedItem(out string selectedItem))
             {
-                var count = ResultsList.Items.Count;
+                var count = ResultsListView.Items.Count;
                 var ext = Path.GetExtension(selectedItem).ToLower();
-                string[] items = new string[count];
-                ResultsList.Items.CopyTo(items, 0);
+                //string[] items = new string[count];
+                ListViewItem[] items = new ListViewItem[count];
+                ResultsListView.Items.CopyTo(items, 0);
 
                 foreach (var item in items)
                 {
-                    if (!item.ToString().ToLower().EndsWith(ext))
-                        ResultsList.Items.Remove(item);
+                    if (!item.Text.ToLower().EndsWith(ext))
+                        ResultsListView.Items.Remove(item);
                 }
 
                 _extFilterOn.SetVal(true);
                 SetFilterStatus();
-                ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsList.Items.Count}, {_lastFilteringStatus}");
+                ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
             }
             //ListMenuFilterClear
         }
         private void ListMenuFilterClear_Click(object sender, EventArgs e)
         {
-            ResultsList.Items.Clear();
-            ResultsList.Items.AddRange(_unfilteredItemsList.ToArray());
+            ResultsListView.Items.Clear();
+            ResultsListView.Items.AddRange(_unfilteredItemsList.ToArray());
             _driveFilterOn.SetVal(false);
             _extFilterOn.SetVal(false);
             _customFilterOn.SetVal(false);
@@ -591,27 +636,27 @@ namespace Chizl.SearchSystemUI
         }
         private void ListMenuClearList_Click(object sender, EventArgs e)
         {
-            ResultsList.Items.Clear();
-            ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsList.Items.Count}");
+            ResultsListView.Items.Clear();
+            ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}");
         }
         #endregion
 
         #region All ListBox, Mouse Down Events
-        private void ResultsList_MouseDown(object sender, MouseEventArgs e)
+        private void ResultsListView_MouseUp(object sender, MouseEventArgs e)
         {
-            var id = ResultsList.IndexFromPoint(e.Location);
-            if (id >= 0)
-                ResultsList.SelectedIndex = id;
+            _listViewHitTest = ResultsListView.HitTest(e.Location);
 
-            if (ResultsList.Items.Count.Equals(0))
+            if (ResultsListView.Items.Count.Equals(0))
                 ListMenuClearList.Enabled = false;
             else
                 ListMenuClearList.Enabled = true;
 
-            if (id >= 0 && GetSelectedItem(out string selectedItem))
+            //var selItem = GetSelectedItem(out string selectedItem);
+
+            if (_listViewHitTest?.Item != null)
             {
                 CMenuList.Enabled = true;
-                if (ResultsList.Items.Count.Equals(_unfilteredItemsList.Count))
+                if (ResultsListView.Items.Count.Equals(_unfilteredItemsList.Count))
                     ListMenuFilterClear.Enabled = false;
                 else
                     ListMenuFilterClear.Enabled = true;
@@ -630,6 +675,40 @@ namespace Chizl.SearchSystemUI
             {
                 CMenuList.Enabled = false;
             }
+        }
+        private void ResultsListView_MouseDown(object sender, MouseEventArgs e)
+        {
+            //var hitTest = ResultsListView.HitTest(e.Location);
+
+            //if (ResultsListView.Items.Count.Equals(0))
+            //    ListMenuClearList.Enabled = false;
+            //else
+            //    ListMenuClearList.Enabled = true;
+
+            //var selItem = GetSelectedItem(out string selectedItem);
+
+            //if (hitTest?.Item != null && selItem)
+            //{
+            //    CMenuList.Enabled = true;
+            //    if (ResultsListView.Items.Count.Equals(_unfilteredItemsList.Count))
+            //        ListMenuFilterClear.Enabled = false;
+            //    else
+            //        ListMenuFilterClear.Enabled = true;
+
+            //    if (_driveFilterOn)
+            //        ListMenuFilterDrive.Enabled = false;
+            //    else
+            //        ListMenuFilterDrive.Enabled = true;
+
+            //    if (_extFilterOn)
+            //        ListMenuFilterFileExtension.Enabled = false;
+            //    else
+            //        ListMenuFilterFileExtension.Enabled = true;
+            //}
+            //else
+            //{
+            //    CMenuList.Enabled = false;
+            //}
         }
         private void InfoError_MouseDown(object sender, MouseEventArgs e)
         {
@@ -679,6 +758,160 @@ namespace Chizl.SearchSystemUI
         }
         #endregion
 
+        #region ListView Setup/Controls
+        private void ListView_Checked(object sender, ItemCheckedEventArgs e)
+        {
+            var lv = sender as ListView;
+            var isChecked = e.Item.Checked ? 1 : 0;
+            var id = e.Item.SubItems[e.Item.SubItems.Count-1].Text;
+            //TODO: What is needed if I use Checked.
+        }
+        private void ListView_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            var lv = (ListView)sender;
+            ColumnClickEventArgs colClickEvtArgs = e;
+
+            if (e.Column == 2)
+                colClickEvtArgs = new ColumnClickEventArgs(1); 
+
+            _lViewHelper.ListView_Column_Sort(lv, colClickEvtArgs);
+        }
+        private void ListView_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
+        {
+            if (!_loaded)
+                return;
+            _loaded = false;
+
+            var lv = (ListView)sender;
+            if (lv.Columns.Count > 0 && e.ColumnIndex != lv.Columns.Count - 1)
+            {
+                lv.Columns[1].Width = 0;
+                lv.AutoResizeColumn(lv.Columns.Count - 1, ColumnHeaderAutoResizeStyle.HeaderSize);
+            }
+
+            _loaded = true;
+        }
+        private void SetupListView(ListView lv)
+        {
+            if (lv.View != View.Details)
+            {
+                //if checked, save to data.
+                //lv.ItemChecked += ListView_Checked;
+                //double click for copy to clipboard.
+                //lv.MouseDown += ListView_MouseDoubleClick;
+                //lv.MouseDoubleClick += ListView_MouseDoubleClick;
+
+                //setup for sorting..
+                lv.HeaderStyle = ColumnHeaderStyle.Clickable;
+                //more sorting
+
+                _lViewHelper.LvColumnSorter = new ListViewColumnSorter();
+                lv.ListViewItemSorter = _lViewHelper.LvColumnSorter;
+
+                //sort based on column click
+                lv.ColumnClick += ListView_ColumnClick;
+
+                //resizes last column, when any other columns are changed.
+                lv.ColumnWidthChanged += ListView_ColumnWidthChanged;
+
+                // allow scrolls
+                lv.Scrollable = true;
+                // Set the view to show details.
+                lv.View = View.Details;
+                // Allow the user to edit item text.
+                lv.LabelEdit = false;
+                // Allow the user to rearrange columns.
+                lv.AllowColumnReorder = false;
+                // Display check boxes.
+                lv.CheckBoxes = true;
+                // Select the item and subitems when selection is made.
+                lv.FullRowSelect = true;
+                // Display grid lines.
+                lv.GridLines = true;
+                // Sort the items in the list in ascending order.
+                lv.Sorting = SortOrder.Descending;
+                // Text color
+                lv.ForeColor = Color.Black;
+                // Default Background color
+                //lv.BackColor = Color.FromArgb(128, 128, 128);
+            }
+
+            if (lv.Columns.Count == 0)
+            {
+                lv.CheckBoxes = false;
+                List<ColumnHeader> cols = LiveViewColumns();
+
+                //lv.Columns.AddRange(cols.ToArray());
+                foreach (ColumnHeader header in cols)
+                {
+                    header.AutoResize(ColumnHeaderAutoResizeStyle.HeaderSize);
+                    if (header.Text != "")
+                    {
+                        if (string.IsNullOrWhiteSpace(header.Name))
+                            header.Name = header.Text;
+
+                        lv.Columns.Add(header);
+                    }
+                }
+                lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+                this.ResultsListView.Columns[1].Width = 0;
+            }
+        }
+        internal List<ColumnHeader> LiveViewColumns()
+        {
+            if (_listViewColumns != null)
+                return _listViewColumns;
+
+            List<ColumnHeader> cols = new List<ColumnHeader>
+            {
+                new ColumnHeader
+                {
+                    Name = "FileName",
+                    Text = "File Name",
+                    Width = 100,
+                    TextAlign = HorizontalAlignment.Left,
+                },
+                new ColumnHeader
+                {
+                    Name = "SizeSort",
+                    Text = "Size Bytes",
+                    Width = 0,
+                },
+                new ColumnHeader
+                {
+                    Name = "Size",
+                    Text = "Size",
+                    Width = 30,
+                    TextAlign = HorizontalAlignment.Left,
+                },
+                new ColumnHeader
+                {
+                    Name = "CreatedDate",
+                    Text = "Created",
+                    Width = 30,
+                    TextAlign = HorizontalAlignment.Left,
+                },
+                new ColumnHeader
+                {
+                    Name = "ModifiedDate",
+                    Text = "Modified",
+                    Width = 30,
+                    TextAlign = HorizontalAlignment.Left,
+                },
+                new ColumnHeader
+                {
+                    Name = "FullFilePath",
+                    Text = "Full Path",
+                    Width = 150,
+                    TextAlign = HorizontalAlignment.Left,
+                },
+            };
+
+            _listViewColumns = cols;
+            return cols;
+        }
+        #endregion
+
         private void ListMenuExclude_Click(object sender, EventArgs e)
         {
             if (GetSelectedItem(out string selectedItem))
@@ -687,26 +920,30 @@ namespace Chizl.SearchSystemUI
 
                 if (subFilter.ShowDialog(this) == DialogResult.OK)
                 {
-                    var removeStrItem = new List<string>();
+                    //var removeStrItem = new List<string>();
+                    var removeStrItem = new List<ListViewItem>();
                     var exItems = subFilter.ExcludeItems;
 
-                    foreach (var item in ResultsList.Items)
+                    //foreach (var item in ResultsListView.Items)
+                    foreach (ListViewItem item in ResultsListView.Items) 
                     {
                         foreach (var ex in exItems) 
                         {
-                            if (item.ToString().Contains(ex))
-                                removeStrItem.Add(item.ToString());
+                            if (item.SubItems[5].Text.Contains(ex))
+                                removeStrItem.Add(item);
+                            //if (item.ToString().Contains(ex))
+                            //    removeStrItem.Add(item.ToString());
                         }
                     }
 
                     foreach (var item in removeStrItem)
-                        ResultsList.Items.Remove(item);
+                        ResultsListView.Items.Remove(item);
 
                     if (removeStrItem.Count > 0)
                     {
                         _customFilterOn.SetVal(true);
                         SetFilterStatus();
-                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsList.Items.Count}, {_lastFilteringStatus}");
+                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
                     }
                 }
             }            

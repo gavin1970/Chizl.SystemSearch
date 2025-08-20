@@ -40,8 +40,6 @@ namespace Chizl.SystemSearch
 
     internal static class SearchExt
     {
-        static readonly string[] suffixes = { "Bytes", "KB", "MB", "GB", "TB", "PB" };
-
         /// <summary>
         ///     Ended = Completed | Aborted - Dec: 12
         /// </summary>
@@ -105,6 +103,11 @@ namespace Chizl.SystemSearch
 
             return retVal.ToArray();
         }
+    }
+
+    public static class PublicExt
+    {
+        internal static readonly string[] suffixes = { "Bytes", "KB", "MB", "GB", "TB", "PB" };
 
         public static string FormatByComma(this int inSize) => inSize.ToString("N0");
         public static string FormatByComma(this long inSize) => inSize.ToString("N0");

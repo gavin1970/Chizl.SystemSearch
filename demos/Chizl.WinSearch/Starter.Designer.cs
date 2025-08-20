@@ -47,7 +47,7 @@
             this.CMenuInfoErrRemoveType = new System.Windows.Forms.ToolStripMenuItem();
             this.CMenuInfoErrIgnore = new System.Windows.Forms.ToolStripMenuItem();
             this.ResultsPanel = new System.Windows.Forms.Panel();
-            this.ResultsList = new System.Windows.Forms.ListBox();
+            this.ResultsListView = new System.Windows.Forms.ListView();
             this.CMenuList = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ListMenuFilters = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuFilterClear = new System.Windows.Forms.ToolStripMenuItem();
@@ -266,7 +266,7 @@
             // ResultsPanel
             // 
             this.ResultsPanel.BackColor = System.Drawing.Color.DarkGray;
-            this.ResultsPanel.Controls.Add(this.ResultsList);
+            this.ResultsPanel.Controls.Add(this.ResultsListView);
             this.ResultsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ResultsPanel.Location = new System.Drawing.Point(0, 54);
             this.ResultsPanel.Name = "ResultsPanel";
@@ -274,19 +274,17 @@
             this.ResultsPanel.Size = new System.Drawing.Size(1154, 389);
             this.ResultsPanel.TabIndex = 14;
             // 
-            // ResultsList
+            // ResultsListView
             // 
-            this.ResultsList.ContextMenuStrip = this.CMenuList;
-            this.ResultsList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ResultsList.FormattingEnabled = true;
-            this.ResultsList.HorizontalScrollbar = true;
-            this.ResultsList.Location = new System.Drawing.Point(5, 5);
-            this.ResultsList.Name = "ResultsList";
-            this.ResultsList.ScrollAlwaysVisible = true;
-            this.ResultsList.Size = new System.Drawing.Size(1144, 379);
-            this.ResultsList.Sorted = true;
-            this.ResultsList.TabIndex = 1;
-            this.ResultsList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ResultsList_MouseDown);
+            this.ResultsListView.ContextMenuStrip = this.CMenuList;
+            this.ResultsListView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ResultsListView.HideSelection = false;
+            this.ResultsListView.Location = new System.Drawing.Point(5, 5);
+            this.ResultsListView.Name = "ResultsListView";
+            this.ResultsListView.Size = new System.Drawing.Size(1144, 379);
+            this.ResultsListView.TabIndex = 2;
+            this.ResultsListView.UseCompatibleStateImageBehavior = false;
+            this.ResultsListView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ResultsListView_MouseUp);
             // 
             // CMenuList
             // 
@@ -707,7 +705,6 @@
         private System.Windows.Forms.Panel EventPanel;
         private System.Windows.Forms.ListBox EventList;
         private System.Windows.Forms.Panel ResultsPanel;
-        private System.Windows.Forms.ListBox ResultsList;
         private System.Windows.Forms.ToolStripMenuItem ChkSystemFolder;
         private System.Windows.Forms.ContextMenuStrip CMenuOptions;
         private System.Windows.Forms.ToolStripMenuItem ChkFilename;
@@ -757,6 +754,7 @@
         private System.Windows.Forms.ComboBox CbGtLtEq;
         private System.Windows.Forms.ToolStripMenuItem ListMenuExclude;
         private System.Windows.Forms.ToolStripStatusLabel StatusToolStripSubFiltered;
+        private System.Windows.Forms.ListView ResultsListView;
     }
 }
 

@@ -66,6 +66,7 @@
     <Compile Include="utils\About.cs" />
     <Compile Include="utils\ConfigData.cs" />
     <Compile Include="utils\GlobalSetup.cs" />
+    <Compile Include="utils\ListViewHelper.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
