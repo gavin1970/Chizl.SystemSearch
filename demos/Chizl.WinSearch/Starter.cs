@@ -63,7 +63,7 @@ namespace Chizl.SearchSystemUI
         delegate void NoParmDelegateEvent();
 
         private readonly ListViewHelper _lViewHelper = new ListViewHelper();
-        private static List<ColumnHeader> _listViewColumns { get; set; } = null;
+        private static ColumnHeader[] _listViewColumns = new ColumnHeader[0];
 
         public Starter()
         {
@@ -239,6 +239,7 @@ namespace Chizl.SearchSystemUI
         {
             LoadConfig();
             SetupListView(ResultsListView);
+            //this.ResultsListView.Columns[1].Width = 0;
         }
         private void LoadConfig()
         {
@@ -508,8 +509,6 @@ namespace Chizl.SearchSystemUI
                 BtnStartStopScan.BackColor = _gray;
             else
                 BtnStartStopScan.BackColor = _red;
-
-            //BtnStartStopScan.Enabled = !BtnStartStopScan.Text.Equals(_scannedText);
         }
         private void BtnOptions_Click(object sender, EventArgs e)
         {
@@ -564,13 +563,9 @@ namespace Chizl.SearchSystemUI
             if (MessageBox.Show("Are you sure you want to exit?", About.TitleWithFileVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 this.Close();
         }
-        private void SetupToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            //nothing here yet.
-        }
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //nothing here yet.
+            MessageBox.Show(this, "Not Implemented Yet.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         #endregion
 
@@ -586,7 +581,6 @@ namespace Chizl.SearchSystemUI
             {
                 var count = ResultsListView.Items.Count;
                 var drive = selectedItem.Substring(0, 2).ToUpper();
-                //string[] items = new string[count];
                 ListViewItem[] items = new ListViewItem[count];
                 ResultsListView.Items.CopyTo(items, 0);
 
@@ -607,7 +601,6 @@ namespace Chizl.SearchSystemUI
             {
                 var count = ResultsListView.Items.Count;
                 var ext = Path.GetExtension(selectedItem).ToLower();
-                //string[] items = new string[count];
                 ListViewItem[] items = new ListViewItem[count];
                 ResultsListView.Items.CopyTo(items, 0);
 
@@ -621,7 +614,6 @@ namespace Chizl.SearchSystemUI
                 SetFilterStatus();
                 ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
             }
-            //ListMenuFilterClear
         }
         private void ListMenuFilterClear_Click(object sender, EventArgs e)
         {
@@ -675,40 +667,6 @@ namespace Chizl.SearchSystemUI
             {
                 CMenuList.Enabled = false;
             }
-        }
-        private void ResultsListView_MouseDown(object sender, MouseEventArgs e)
-        {
-            //var hitTest = ResultsListView.HitTest(e.Location);
-
-            //if (ResultsListView.Items.Count.Equals(0))
-            //    ListMenuClearList.Enabled = false;
-            //else
-            //    ListMenuClearList.Enabled = true;
-
-            //var selItem = GetSelectedItem(out string selectedItem);
-
-            //if (hitTest?.Item != null && selItem)
-            //{
-            //    CMenuList.Enabled = true;
-            //    if (ResultsListView.Items.Count.Equals(_unfilteredItemsList.Count))
-            //        ListMenuFilterClear.Enabled = false;
-            //    else
-            //        ListMenuFilterClear.Enabled = true;
-
-            //    if (_driveFilterOn)
-            //        ListMenuFilterDrive.Enabled = false;
-            //    else
-            //        ListMenuFilterDrive.Enabled = true;
-
-            //    if (_extFilterOn)
-            //        ListMenuFilterFileExtension.Enabled = false;
-            //    else
-            //        ListMenuFilterFileExtension.Enabled = true;
-            //}
-            //else
-            //{
-            //    CMenuList.Enabled = false;
-            //}
         }
         private void InfoError_MouseDown(object sender, MouseEventArgs e)
         {
@@ -795,25 +753,15 @@ namespace Chizl.SearchSystemUI
         {
             if (lv.View != View.Details)
             {
-                //if checked, save to data.
-                //lv.ItemChecked += ListView_Checked;
-                //double click for copy to clipboard.
-                //lv.MouseDown += ListView_MouseDoubleClick;
-                //lv.MouseDoubleClick += ListView_MouseDoubleClick;
-
                 //setup for sorting..
                 lv.HeaderStyle = ColumnHeaderStyle.Clickable;
-                //more sorting
-
-                _lViewHelper.LvColumnSorter = new ListViewColumnSorter();
-                lv.ListViewItemSorter = _lViewHelper.LvColumnSorter;
-
                 //sort based on column click
                 lv.ColumnClick += ListView_ColumnClick;
-
                 //resizes last column, when any other columns are changed.
                 lv.ColumnWidthChanged += ListView_ColumnWidthChanged;
 
+                // removed multi-select
+                lv.MultiSelect = false;
                 // allow scrolls
                 lv.Scrollable = true;
                 // Set the view to show details.
@@ -823,7 +771,7 @@ namespace Chizl.SearchSystemUI
                 // Allow the user to rearrange columns.
                 lv.AllowColumnReorder = false;
                 // Display check boxes.
-                lv.CheckBoxes = true;
+                lv.CheckBoxes = false;
                 // Select the item and subitems when selection is made.
                 lv.FullRowSelect = true;
                 // Display grid lines.
@@ -832,16 +780,16 @@ namespace Chizl.SearchSystemUI
                 lv.Sorting = SortOrder.Descending;
                 // Text color
                 lv.ForeColor = Color.Black;
-                // Default Background color
-                //lv.BackColor = Color.FromArgb(128, 128, 128);
+
+                //more sorting
+                _lViewHelper.LvColumnSorter = new ListViewColumnSorter();
+                lv.ListViewItemSorter = _lViewHelper.LvColumnSorter;
             }
 
             if (lv.Columns.Count == 0)
             {
-                lv.CheckBoxes = false;
-                List<ColumnHeader> cols = LiveViewColumns();
-
-                //lv.Columns.AddRange(cols.ToArray());
+                /*
+                List<ColumnHeader> cols = ListViewColumns();
                 foreach (ColumnHeader header in cols)
                 {
                     header.AutoResize(ColumnHeaderAutoResizeStyle.HeaderSize);
@@ -849,20 +797,21 @@ namespace Chizl.SearchSystemUI
                     {
                         if (string.IsNullOrWhiteSpace(header.Name))
                             header.Name = header.Text;
-
                         lv.Columns.Add(header);
                     }
                 }
+                /**/
+
+                lv.Columns.AddRange(ListViewColumns());
                 lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
-                this.ResultsListView.Columns[1].Width = 0;
             }
         }
-        internal List<ColumnHeader> LiveViewColumns()
+        internal ColumnHeader[] ListViewColumns()
         {
-            if (_listViewColumns != null)
+            if (_listViewColumns != null && _listViewColumns.Count()>0)
                 return _listViewColumns;
 
-            List<ColumnHeader> cols = new List<ColumnHeader>
+            ColumnHeader[] cols = new ColumnHeader[]
             {
                 new ColumnHeader
                 {
