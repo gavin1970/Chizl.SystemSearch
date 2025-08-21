@@ -252,21 +252,20 @@ namespace Chizl.SystemSearch
             Tools.Sleep(100, SleepType.Milliseconds);
 
             var dirWithSlash = e.FullPath.EndsWith("\\") ? e.FullPath : $"{e.FullPath}\\";
-            var isDir = Scanner.IsDirectory(dirWithSlash);
-            var isFile = Scanner.IsFile(e.FullPath);
+            var isDir = false;
+            var isFile = false;
+            if (Scanner.IsDirectory(dirWithSlash))
+                isDir = true;
+            else
+                isFile = true;
 
-            if (!isDir && !isFile)
-                return;
-           
             if (isDir)
                 removeList.AddRange(Scanner.RemoveRootFolder(dirWithSlash));
             else if (isFile)
                 removeList.Add(Task.Run(() => { Scanner.RemoveFile(e.FullPath); return Task.CompletedTask; }));
 
-            if (removeList.Count > 0)
-                SearchMessage.SendMsg(SearchMessageType.Info, $"Removing: [{removeList.Count.FormatByComma()}] Files and/or Folders");
-
             Task.WaitAll(removeList.ToArray());
+
             SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
         }
         private void OnRenamed(object sender, RenamedEventArgs e)
@@ -286,9 +285,9 @@ namespace Chizl.SystemSearch
             List<Task> renameList = new List<Task>();
 
             if (isDir)
-                renameList.AddRange(Scanner.RemoveRootFolder(e.OldFullPath));
+                renameList.AddRange(Scanner.RemoveRootFolder(e.OldFullPath, false));
             else
-                renameList.Add(Task.Run(() => { Scanner.RemoveFile(e.OldFullPath); return Task.CompletedTask; }));
+                renameList.Add(Task.Run(() => { Scanner.RemoveFile(e.OldFullPath, false); return Task.CompletedTask; }));
             
             removedFolders = renameList.Count;
             fileGoodToGo = removedFolders > 0;
@@ -303,9 +302,9 @@ namespace Chizl.SystemSearch
 
             if (fileGoodToGo)
             {
-                var info = removedFolders == 1 ? $"[{e.OldFullPath}]  ->  [{e.FullPath}]" : $"[{removedFolders.FormatByComma()}] Files";
+                var info = $"[{e.OldFullPath}]  ->  [{e.FullPath}]";
                 var vInfo = info.SplitByStr("->");
-                if (info.Length > 100 && vInfo.Length == 2)
+                if (e.FullPath.Length > 100 && vInfo.Length == 2)
                 {
                     SearchMessage.SendMsg(SearchMessageType.Info, $"Renamed: {vInfo[0].Trim()}");
                     SearchMessage.SendMsg(SearchMessageType.Info, $"To   ->: {vInfo[1].Trim()}");

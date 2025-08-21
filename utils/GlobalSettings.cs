@@ -1,10 +1,10 @@
-﻿using Chizl.ThreadSupport;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading;
+using Chizl.ThreadSupport;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace Chizl.SystemSearch
 {
@@ -64,6 +64,7 @@ namespace Chizl.SystemSearch
         #endregion
 
         //Volatile.Read vs Interlocked.Read (deeper and more precise)
+
         #region Shortcut Properties
         /// <summary>
         /// Thread safe boolean.
@@ -116,17 +117,13 @@ namespace Chizl.SystemSearch
             }
             
             Startup(LookupStatus.Running);
-            //SearchMessage.SendMsg(SearchMessageType.UpdateInprogress, $"Updating cache, please wait...");
             List<Task> queTasks = new List<Task>();
 
             return Task.Run(async () =>
             {
-                //wait 5 seconds, because we need startup to refresh many folders before we start processing.
-                //Tools.Sleep(5);
                 var addList = RefreshFolder.Where(w => w.Value).Select(s => s.Key).ToArray();
                 var deleteList = RefreshFolder.Where(w => !w.Value).Select(s => s.Key).ToArray();
 
-                //if (hasAdds)
                 foreach (var actionFolder in addList)
                 {
                     RefreshFolder.TryRemove(actionFolder, out _);

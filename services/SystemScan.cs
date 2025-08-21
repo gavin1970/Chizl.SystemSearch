@@ -233,19 +233,18 @@ namespace Chizl.SystemSearch
 
             return taskList;
         }
-        internal List<Task> RemoveRootFolder(string folder)
+        internal List<Task> RemoveRootFolder(string folder, bool sendInfoMsg = true)
         {
+            folder = folder.Trim().ToLower();
+
             if (!folder.EndsWith(@"\"))
                 folder += "\\";
 
             List<Task> removeTaskList = new List<Task>();
+            var fileKeys = _fileDictionary.Keys.Where(w => w.ToLower().StartsWith(folder)).ToList();
+            var folderKeys = _folderDictionary.Keys.Where(w => w.ToLower().StartsWith(folder)).ToList();
 
-            var fileKeys = _fileDictionary.Keys.Where(w => w.StartsWith(folder)).ToList();
-            var folderKeys = _folderDictionary.Keys.Where(w => w.StartsWith(folder)).ToList();
             SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"Deleting '{fileKeys.Count}' file entries and '{folderKeys.Count}' folder entries from cache. - Please wait.");
-
-            //Interlocked.Add(ref _scannedFiles, -fileKeys.Count);
-            //Interlocked.Add(ref _scannedFolders, -folderKeys.Count);
 
             foreach (var key in fileKeys)
             {
@@ -254,7 +253,11 @@ namespace Chizl.SystemSearch
                     Task.Run(() =>
                     {
                         if (_fileDictionary.TryRemove(key, out _))
+                        {
                             Interlocked.Decrement(ref _scannedFiles);
+                            if (sendInfoMsg)
+                                SearchMessage.SendMsg(SearchMessageType.Info, $"Removed '{key}' from cache.");
+                        }
                     })
                 );
             }
@@ -265,8 +268,11 @@ namespace Chizl.SystemSearch
                 removeTaskList.Add(
                     Task.Run(() =>
                     {
-                        if(_folderDictionary.TryRemove(key, out _))
+                        if (_folderDictionary.TryRemove(key, out _))
+                        {
                             Interlocked.Decrement(ref _scannedFolders);
+                            SearchMessage.SendMsg(SearchMessageType.Info, $"Removed '{key}' from cache.");
+                        }
                     })
                 );
             }
@@ -390,12 +396,14 @@ namespace Chizl.SystemSearch
             else
                 return false;
         }
-        internal bool RemoveFile(string fileName)
+        internal bool RemoveFile(string fileName, bool sendInfoMsg = true)
         {
             //verifies root folder of file and determines if it should continue.
             if (_fileDictionary.TryRemove(fileName, out _))
             {
                 Interlocked.Decrement(ref _scannedFiles);
+                if (sendInfoMsg)
+                    SearchMessage.SendMsg(SearchMessageType.Info, $"Removed '{fileName}' from cache.");
                 return true;
             }
             else
