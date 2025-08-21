@@ -12,6 +12,7 @@ namespace Chizl.SystemSearch
 {
     internal class SystemScan : IDisposable
     {
+        const int _maxSendInfoMsg = 5;
         private static long _scannedFolders;
         private static long _fastPullScannedFolders;
         private static long _scannedFiles;
@@ -235,16 +236,31 @@ namespace Chizl.SystemSearch
         }
         internal List<Task> RemoveRootFolder(string folder, bool sendInfoMsg = true)
         {
+            int toFileSentMsg = 0;
+            int toFolderSentMsg = 0;
             folder = folder.Trim().ToLower();
-
             if (!folder.EndsWith(@"\"))
                 folder += "\\";
 
             List<Task> removeTaskList = new List<Task>();
+
+            //sending too many sent messages from the following loops, slows down the UI.
+            //lets max mount of sends within each loop.
+            Interlocked.Exchange(ref toFileSentMsg, _maxSendInfoMsg);
+            Interlocked.Exchange(ref toFolderSentMsg, _maxSendInfoMsg);
+
+            //get all files under folder path.
             var fileKeys = _fileDictionary.Keys.Where(w => w.ToLower().StartsWith(folder)).ToList();
+            //get all folders under folder path.
             var folderKeys = _folderDictionary.Keys.Where(w => w.ToLower().StartsWith(folder)).ToList();
 
+            //send a quick message
             SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"Deleting '{fileKeys.Count}' file entries and '{folderKeys.Count}' folder entries from cache. - Please wait.");
+
+            if (fileKeys.Count > _maxSendInfoMsg)
+                SearchMessage.SendMsg(SearchMessageType.Info, $"Showing the first '{_maxSendInfoMsg} of {fileKeys.Count}' files removed from cache related to '{folder}'.");
+            else
+                SearchMessage.SendMsg(SearchMessageType.Info, $"'{fileKeys.Count}' files are being removed from cache related to '{folder}'.");
 
             foreach (var key in fileKeys)
             {
@@ -255,12 +271,17 @@ namespace Chizl.SystemSearch
                         if (_fileDictionary.TryRemove(key, out _))
                         {
                             Interlocked.Decrement(ref _scannedFiles);
-                            if (sendInfoMsg)
-                                SearchMessage.SendMsg(SearchMessageType.Info, $"Removed '{key}' from cache.");
+                            if (sendInfoMsg && Interlocked.Exchange(ref toFileSentMsg, --toFileSentMsg) >= 0)
+                                SearchMessage.SendMsg(SearchMessageType.Info, $"{toFileSentMsg}: Removed '{key}' file from cache.");
                         }
                     })
                 );
             }
+
+            if (folderKeys.Count > _maxSendInfoMsg)
+                SearchMessage.SendMsg(SearchMessageType.Info, $"Showing the first '{_maxSendInfoMsg} of {folderKeys.Count}' folders removed from cache related to '{folder}'.");
+            else
+                SearchMessage.SendMsg(SearchMessageType.Info, $"'{folderKeys.Count}' folders are being removed from cache related to '{folder}'.");
 
             foreach (var key in folderKeys)
             {
@@ -271,7 +292,8 @@ namespace Chizl.SystemSearch
                         if (_folderDictionary.TryRemove(key, out _))
                         {
                             Interlocked.Decrement(ref _scannedFolders);
-                            SearchMessage.SendMsg(SearchMessageType.Info, $"Removed '{key}' from cache.");
+                            if (sendInfoMsg && Interlocked.Exchange(ref toFolderSentMsg, --toFolderSentMsg) >= 0)
+                                SearchMessage.SendMsg(SearchMessageType.Info, $"{toFolderSentMsg}: Removed '{key}' folder from cache.");
                         }
                     })
                 );

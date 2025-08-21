@@ -40,7 +40,8 @@ namespace Chizl.SearchSystemUI
         private static Bool _extFilterOn = new Bool();
         private static Bool _customFilterOn = new Bool();
 
-        private static Bool _scanAborted = new Bool();
+        private static Bool _scanAborted = new Bool(false);
+        private static Bool _scanStarted = new Bool(false);
 
         private static string _lastFilteringStatus = string.Empty;
 
@@ -89,6 +90,8 @@ namespace Chizl.SearchSystemUI
                 if ((_finder.CurrentStatus & LookupStatus.Ended) == 0)
                     return;
 
+                _scanStarted.SetFalse();
+
                 //this allows all messages to be posted, only
                 //need this setup during scan, which is too intense.
                 resetRefreshCnt = 0;
@@ -99,9 +102,12 @@ namespace Chizl.SearchSystemUI
                 BtnFind.Enabled = !string.IsNullOrWhiteSpace(TxtSearchName.Text);
                 BtnOptions.Enabled = true;
                 TxtSearchName.ReadOnly = false;
+
                 var fullScanned = _finder.FullScanCompleted;
                 BtnStartStopScan.Text = _scanAborted ? _startScanText : fullScanned ? _scannedText : _startScanText;
+
                 var appendMsg = _scanAborted ? "before being aborted by user." : "and completed successfully.";
+
                 ShowMsg(SearchMessageType.StatusMessage, $"Scanned for '{diff}' {appendMsg}");
 
                 if (ResultsListView.Items.Count > 0)
@@ -114,26 +120,39 @@ namespace Chizl.SearchSystemUI
         }
         private void ScanStarted()
         {
-            if (BtnStartStopScan.Text.Equals(_stopScanText))
-                return;
 
-            _scanAborted.SetVal(false);
+            if (InvokeRequired)
+            {
+                var d = new NoParmDelegateEvent(ScanStarted);
+                if (!Disposing && !IsDisposed)
+                {
+                    try { Invoke(d); }
+                    catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
+                    catch { /* Ingore, shutting down. */ }
+                }
+            }
+            else if (!Disposing && !IsDisposed)
+            {
+                if (_scanStarted.SetVal(true))
+                    return;
+                else
+                    _scanAborted.SetFalse();
 
-            //set refresh for folder/file count information to max setting for refeshes.
-            resetRefreshCnt = maxRefreshCnt;
-            refreshCnt = 0;
-            BtnFind.Enabled = false;
-            BtnOptions.Enabled = false;
-            TxtSearchName.ReadOnly = true;
+                //set refresh for folder/file count information to max setting for refeshes.
+                resetRefreshCnt = maxRefreshCnt;
+                refreshCnt = 0;
+                BtnFind.Enabled = false;
+                BtnOptions.Enabled = false;
+                TxtSearchName.ReadOnly = true;
 
-            BtnStartStopScan.Text = _stopScanText;
-            TxtSearchName.Text = TxtSearchName.Text.Trim();
-            ResultsListView.Items.Clear();
+                BtnStartStopScan.Text = _stopScanText;
+                TxtSearchName.Text = TxtSearchName.Text.Trim();
+                ResultsListView.Items.Clear();
 
-            _startDate = DateTime.UtcNow;
-            _endDate = _startDate;
-
-            StartupTimer.Enabled = true;
+                _startDate = DateTime.UtcNow;
+                _endDate = _startDate;
+                StartupTimer.Enabled = true;
+            }
         }
         private void ShowMsg(SearchMessageType messageType, string msg) => ShowMsg(new SearchEventArgs(messageType, msg));
         private void ShowMsg(SearchEventArgs e)
@@ -180,6 +199,7 @@ namespace Chizl.SearchSystemUI
                         case SearchMessageType.SearchResults:
                             if (_scanAborted)
                                 break;
+
                             _unfilteredItemsList.Clear();
                             ListViewItem[] unfileInfoList;
                             if (e.Message.Contains("\n"))
@@ -195,6 +215,8 @@ namespace Chizl.SearchSystemUI
                             ResultsListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
                             this.ResultsListView.Columns[1].Width = 0;
                             this.ResultsListView.SelectedItems[this.ResultsListView.Items.Count - 1].Selected = true;
+
+                            _scanStarted.SetFalse();
                             break;
                         case SearchMessageType.StatusMessage:
                             this.StatusToolStripStatusLabel.Text = $"[{e.MessageType}] {e.Message}";
