@@ -86,6 +86,7 @@
             this.StartupTimer = new System.Windows.Forms.Timer(this.components);
             this.ErrorPanel = new System.Windows.Forms.Panel();
             this.ErrorList = new System.Windows.Forms.ListBox();
+            this.LastScanTimer = new System.Windows.Forms.Timer(this.components);
             this.PanelSearchText.SuspendLayout();
             this.PanelSearchAttrib.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
@@ -488,7 +489,7 @@
             // 
             this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
             this.ExitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.X)));
-            this.ExitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.ExitToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
             this.ExitToolStripMenuItem.Text = "E&xit";
             this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
@@ -636,6 +637,11 @@
             this.ErrorList.TabIndex = 0;
             this.ErrorList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.InfoError_MouseDown);
             // 
+            // LastScanTimer
+            // 
+            this.LastScanTimer.Interval = 10000;
+            this.LastScanTimer.Tick += new System.EventHandler(this.LastScanTimer_Tick);
+            // 
             // Starter
             // 
             this.AcceptButton = this.BtnFind;
@@ -737,6 +743,7 @@
         private System.Windows.Forms.ToolStripMenuItem ListMenuExclude;
         private System.Windows.Forms.ToolStripStatusLabel StatusToolStripSubFiltered;
         private System.Windows.Forms.ListView ResultsListView;
+        private System.Windows.Forms.Timer LastScanTimer;
     }
 }
 

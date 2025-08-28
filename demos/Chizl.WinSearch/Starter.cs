@@ -43,6 +43,7 @@ namespace Chizl.SearchSystemUI
         private static Bool _scanAborted = new Bool(false);
         private static Bool _scanStarted = new Bool(false);
 
+        private static TimeSpan _scanTime = TimeSpan.Zero;
         private static string _lastFilteringStatus = string.Empty;
 
         //button background color
@@ -71,7 +72,6 @@ namespace Chizl.SearchSystemUI
             InitializeComponent();
             DoubleBuffered = true;
         }
-
         #region Helper Methods
         private void ScanEnded()
         {
@@ -108,7 +108,13 @@ namespace Chizl.SearchSystemUI
 
                 var appendMsg = _scanAborted ? "before being aborted by user." : "and completed successfully.";
 
+                if (!_scanAborted && _scanTime.Equals(TimeSpan.Zero))
+                    _scanTime = diff;
+
                 ShowMsg(SearchMessageType.StatusMessage, $"Scanned for '{diff}' {appendMsg}");
+
+                LastScanTimer.Enabled = true;
+                LastScanTimer.Start();
 
                 if (ResultsListView.Items.Count > 0)
                 {
@@ -506,7 +512,11 @@ namespace Chizl.SearchSystemUI
                         About.Title, MessageBoxButtons.YesNo, 
                         MessageBoxIcon.Question) == DialogResult.No)
                         return;
-                 
+
+                //start over
+                LastScanTimer.Stop();
+                _scanTime = TimeSpan.Zero;
+
                 _finder.ScanToCache()
                     .ContinueWith(t =>
                     {
@@ -918,6 +928,15 @@ namespace Chizl.SearchSystemUI
                     }
                 }
             }            
+        }
+
+        private void LastScanTimer_Tick(object sender, EventArgs e)
+        {
+            if (!_scanTime.Equals(TimeSpan.Zero))
+            {
+                ShowMsg(SearchMessageType.StatusMessage, $"Last full scan completed in {_scanTime.TotalSeconds} sec."); 
+                LastScanTimer.Stop();
+            }
         }
     }
 }
