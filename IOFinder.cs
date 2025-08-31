@@ -39,43 +39,15 @@ namespace Chizl.SystemSearch
         #region Private
         internal SystemScan Scanner => new SystemScan();
         public ScanProperties Criteria => GlobalSettings.ScanSettings;
-        //public ScanPaths ScanPaths
-        //{
-        //    get
-        //    {
-        //        //try
-        //        //{
-        //            //var md5 = Tools.CreateMD5("Gavin");
-        //            //md5 = Tools.CreateMD5("if (!GlobalSettings.IgnoreChange && !GlobalSettings.RefreshFolder.IsEmpty)");
-        //            //global static settings.
-        //            return GlobalSettings.ScanPaths;
-        //        //}
-        //        //finally
-        //        //{
-        //        //    if (!GlobalSettings.IgnoreChange && !GlobalSettings.RefreshFolder.IsEmpty)
-        //        //    {
-        //        //        //options change, then lets check to see
-        //        //        //if we need to add or removed from cache.
-        //        //        Task.Run(async () =>
-        //        //        {
-        //        //            CheckRefresh().Wait();
-        //        //            await Tools.Delay(1, SleepType.Milliseconds);
-        //        //            return;
-        //        //        });
-        //        //    }
-        //        //}
-        //    }
-        //}
-
-        private Task Scan(string[] drives, bool sendMsg = true) => Scanner.ScanDrives(drives, sendMsg);
-        private Task Search(string[] drives, string searchCriteria)
+        private Task Scan(string[] drives, bool sendMsg = true, bool isRescan = true) => Scanner.ScanDrives(drives, sendMsg, isRescan);
+        private Task Search(string[] drives, string searchCriteria, bool isRescan = false)
         {
             var searchTask = Task.Run(async () =>
             {
                 if (!GlobalSettings.FullScanCompleted)
                 {
                     SearchMessage.SendMsg(SearchMessageType.UpdateInprogress, $"Full scan hasn't been completed. Please wait...");
-                    await Scan(drives, false);
+                    await Scan(drives, false, isRescan);
                 }
             })
             .ContinueWith(previousTask =>
@@ -90,7 +62,7 @@ namespace Chizl.SystemSearch
         {
             var retVal = false;
 
-            if(string.IsNullOrWhiteSpace(searchCriteria))
+            if (string.IsNullOrWhiteSpace(searchCriteria))
             {
                 SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
                 return retVal;
@@ -231,7 +203,7 @@ namespace Chizl.SystemSearch
             else if (Directory.Exists(e.FullPath))
             {
                 createList.AddRange(Scanner.ScanSubFolders(new string[] { e.FullPath }));
-                if(createList.Count>0)
+                if (createList.Count > 0)
                     SearchMessage.SendMsg(SearchMessageType.Info, $"Adding: [{createList.Count}] files to cache.");
             }
 
@@ -288,7 +260,7 @@ namespace Chizl.SystemSearch
                 renameList.AddRange(Scanner.RemoveRootFolder(e.OldFullPath, false));
             else
                 renameList.Add(Task.Run(() => { Scanner.RemoveFile(e.OldFullPath, false); return Task.CompletedTask; }));
-            
+
             removedFolders = renameList.Count;
             fileGoodToGo = removedFolders > 0;
 
@@ -324,8 +296,8 @@ namespace Chizl.SystemSearch
             {
                 var watcher = new FileSystemWatcher(drive)
                 {
-                    NotifyFilter = NotifyFilters.DirectoryName | 
-                                   NotifyFilters.FileName | 
+                    NotifyFilter = NotifyFilters.DirectoryName |
+                                   NotifyFilters.FileName |
                                    NotifyFilters.Attributes
                 };
 
@@ -352,14 +324,14 @@ namespace Chizl.SystemSearch
         /// <summary>
         /// Scans all drives based on allow filters set in options.  Event messages will be sent to subscribers.
         /// </summary>
-        public Task ScanToCache() => Scan(GlobalSettings.DriveList);
+        /// <param name="reScan">true: Will clear the cache and start over.  false: will leave, but rescan for any new files to add to the cache.</param>
+        public Task ScanToCache(bool isRescan = false) => Scan(GlobalSettings.DriveList, true, isRescan);
         public Task ScanToCache(DriveInfo drive) => Scan(new string[] { drive.Name });
         public Task ScanToCache(DriveInfo[] drives) => Scan(drives.Select(w => w.Name).ToArray());
 
         /// <summary>
         /// Starts search in cache if exists. Defaults drives to all drives.
         /// </summary>
-        /// <param name="searchCriteria"></param>
         /// <returns></returns>
         public Task Search(string searchCriteria) => Search(GlobalSettings.DriveList, searchCriteria);
         public Task Search(DriveInfo drive, string searchCriteria) => Search(new string[] { drive.Name }, searchCriteria);

@@ -55,8 +55,10 @@ namespace Chizl.SearchSystemUI
         static DateTime _endDate = DateTime.MinValue;
 
         private static ListViewHitTestInfo _listViewHitTest = new ListViewHitTestInfo(null, null, ListViewHitTestLocations.None);
+
         private static readonly ConcurrentQueue<SearchEventArgs> _msgQueue = new ConcurrentQueue<SearchEventArgs>();
-        private static List<ListViewItem> _unfilteredItemsList = new List<ListViewItem> { };
+        private static readonly List<ListViewItem> _unfilteredItemsList = new List<ListViewItem> { };
+        private static readonly List<string> _excludeItems = new List<string> { };
 
         private static IOFinder _finder = GlobalSetup.Finder;
         private static ScanProperties _criterias = _finder.Criteria;
@@ -207,6 +209,8 @@ namespace Chizl.SearchSystemUI
                                 break;
 
                             _unfilteredItemsList.Clear();
+                            _excludeItems.Clear();
+
                             ListViewItem[] unfileInfoList;
                             if (e.Message.Contains("\n"))
                             {
@@ -517,7 +521,7 @@ namespace Chizl.SearchSystemUI
                 LastScanTimer.Stop();
                 _scanTime = TimeSpan.Zero;
 
-                _finder.ScanToCache()
+                _finder.ScanToCache(reScan)
                     .ContinueWith(t =>
                     {
                         _driveFilterOn.SetVal(false);
@@ -618,8 +622,15 @@ namespace Chizl.SearchSystemUI
 
                 foreach (var item in items)
                 {
-                    if (!item.SubItems[5].Text.ToUpper().StartsWith(drive))
+                    var str = item.SubItems[5].Text;
+                    if (!str.ToUpper().StartsWith(drive))
+                    {
+                        var revDrive = str.Substring(0, 2);
+                        if (!_excludeItems.Contains(revDrive))
+                            _excludeItems.Add(revDrive);
+
                         ResultsListView.Items.Remove(item);
+                    }
                 }
 
                 _driveFilterOn.SetVal(true);
@@ -633,13 +644,20 @@ namespace Chizl.SearchSystemUI
             {
                 var count = ResultsListView.Items.Count;
                 var ext = Path.GetExtension(selectedItem).ToLower();
+
                 ListViewItem[] items = new ListViewItem[count];
                 ResultsListView.Items.CopyTo(items, 0);
 
                 foreach (var item in items)
                 {
                     if (!item.Text.ToLower().EndsWith(ext))
+                    {
+                        var remExt = Path.GetExtension(item.Text).ToLower();
+                        if (!_excludeItems.Contains(remExt))
+                            _excludeItems.Add(remExt);
+
                         ResultsListView.Items.Remove(item);
+                    }
                 }
 
                 _extFilterOn.SetVal(true);
@@ -651,6 +669,8 @@ namespace Chizl.SearchSystemUI
         {
             ResultsListView.Items.Clear();
             ResultsListView.Items.AddRange(_unfilteredItemsList.ToArray());
+
+            _excludeItems.Clear();
             _driveFilterOn.SetVal(false);
             _extFilterOn.SetVal(false);
             _customFilterOn.SetVal(false);
@@ -898,24 +918,43 @@ namespace Chizl.SearchSystemUI
             if (GetSelectedItem(out string selectedItem))
             {
                 SubFilterOptions subFilter = new SubFilterOptions(selectedItem);
+                subFilter.ExcludeItems.Clear();
+                subFilter.ExcludeItems.AddRange(_excludeItems);
 
                 if (subFilter.ShowDialog(this) == DialogResult.OK)
                 {
-                    //var removeStrItem = new List<string>();
                     var removeStrItem = new List<ListViewItem>();
-                    var exItems = subFilter.ExcludeItems;
 
-                    //foreach (var item in ResultsListView.Items)
-                    foreach (ListViewItem item in ResultsListView.Items) 
+                    foreach(var exItm in _excludeItems)
                     {
-                        foreach (var ex in exItems) 
+                        if(!subFilter.ExcludeItems.Contains(exItm))
                         {
-                            if (item.SubItems[5].Text.Contains(ex))
-                                removeStrItem.Add(item);
-                            //if (item.ToString().Contains(ex))
-                            //    removeStrItem.Add(item.ToString());
+                            ListMenuFilterClear_Click(null, null);
+                            break;
                         }
                     }
+
+                    _excludeItems.Clear();
+                    _excludeItems.AddRange(subFilter.ExcludeItems);
+
+                    if (_excludeItems.Where(w => w.StartsWith(".")).Count() > 0)
+                        _extFilterOn.SetVal(true);
+                    else
+                        _extFilterOn.SetVal(false);
+
+                    if (_excludeItems.Where(w => w.Length.Equals(2) && w.EndsWith(":")).Count() > 0)
+                        _driveFilterOn.SetVal(true);
+                    else
+                        _driveFilterOn.SetVal(false);
+
+                    foreach (ListViewItem item in ResultsListView.Items)
+                        {
+                            foreach (var ex in _excludeItems)
+                            {
+                                if (item.SubItems[5].Text.Contains(ex))
+                                    removeStrItem.Add(item);
+                            }
+                        }
 
                     foreach (var item in removeStrItem)
                         ResultsListView.Items.Remove(item);

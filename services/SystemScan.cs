@@ -144,7 +144,7 @@ namespace Chizl.SystemSearch
         internal bool IsDirectory(string path) => FolderDictionary.Where(w => w.Key.Equals(path)).Any();
         internal bool IsFile(string path) => FileDictionary.Where(w => w.Equals(path)).Any();
 
-        internal Task ScanDrives(string[] driveLetter, bool sendMsg)
+        internal Task ScanDrives(string[] driveLetter, bool sendMsg, bool isRescan = true)
         {
             GlobalSettings.Startup();
 
@@ -156,8 +156,11 @@ namespace Chizl.SystemSearch
             ScannedFolders = 0;
             ScannedFiles = 0;
 
-            _fileDictionary.Clear();
-            _folderDictionary.Clear();
+            if (isRescan)
+            {
+                _fileDictionary.Clear();
+                _folderDictionary.Clear();
+            }
 
             //setup status for UI
             SetStatus(LookupStatus.Running);

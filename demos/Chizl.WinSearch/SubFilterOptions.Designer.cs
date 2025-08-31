@@ -42,7 +42,6 @@
             this.panel3 = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
             this.panel6 = new System.Windows.Forms.Panel();
-            this.ButtonRemove = new System.Windows.Forms.Button();
             this.ButtonCancel = new System.Windows.Forms.Button();
             this.ButtonOk = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
@@ -175,7 +174,6 @@
             // 
             // panel6
             // 
-            this.panel6.Controls.Add(this.ButtonRemove);
             this.panel6.Controls.Add(this.ButtonCancel);
             this.panel6.Controls.Add(this.ButtonOk);
             this.panel6.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -183,16 +181,6 @@
             this.panel6.Name = "panel6";
             this.panel6.Size = new System.Drawing.Size(790, 72);
             this.panel6.TabIndex = 3;
-            // 
-            // ButtonRemove
-            // 
-            this.ButtonRemove.Dock = System.Windows.Forms.DockStyle.Left;
-            this.ButtonRemove.Location = new System.Drawing.Point(0, 0);
-            this.ButtonRemove.Name = "ButtonRemove";
-            this.ButtonRemove.Size = new System.Drawing.Size(69, 72);
-            this.ButtonRemove.TabIndex = 4;
-            this.ButtonRemove.Text = "&Remove";
-            this.ButtonRemove.UseVisualStyleBackColor = true;
             // 
             // ButtonCancel
             // 
@@ -258,7 +246,6 @@
         private System.Windows.Forms.Panel panel6;
         private System.Windows.Forms.Button ButtonCancel;
         private System.Windows.Forms.Button ButtonOk;
-        private System.Windows.Forms.Button ButtonRemove;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuRemoveItem;
     }
