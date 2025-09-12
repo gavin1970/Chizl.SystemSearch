@@ -56,8 +56,9 @@
             this.ListMenuOpenLocation = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuClearList = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuExclude = new System.Windows.Forms.ToolStripMenuItem();
-            this.splitContainerEventLists = new System.Windows.Forms.SplitContainer();
+            this.SplitContainerEventLists = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.ChkHideErrors = new System.Windows.Forms.CheckBox();
             this.ErrorList = new System.Windows.Forms.ListBox();
             this.ChkSystemFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.CMenuOptions = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -88,7 +89,6 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.StartupTimer = new System.Windows.Forms.Timer(this.components);
             this.LastScanTimer = new System.Windows.Forms.Timer(this.components);
-            this.checkBoxHideErrors = new System.Windows.Forms.CheckBox();
             this.PanelSearchText.SuspendLayout();
             this.PanelSearchAttrib.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
@@ -99,10 +99,10 @@
             this.splitContainerMain.Panel2.SuspendLayout();
             this.splitContainerMain.SuspendLayout();
             this.CMenuList.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerEventLists)).BeginInit();
-            this.splitContainerEventLists.Panel1.SuspendLayout();
-            this.splitContainerEventLists.Panel2.SuspendLayout();
-            this.splitContainerEventLists.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.SplitContainerEventLists)).BeginInit();
+            this.SplitContainerEventLists.Panel1.SuspendLayout();
+            this.SplitContainerEventLists.Panel2.SuspendLayout();
+            this.SplitContainerEventLists.SuspendLayout();
             this.panel1.SuspendLayout();
             this.CMenuOptions.SuspendLayout();
             this.PanelScanButton.SuspendLayout();
@@ -208,6 +208,7 @@
             this.EventList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.EventList.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.EventList.FormattingEnabled = true;
+            this.EventList.IntegralHeight = false;
             this.EventList.ItemHeight = 14;
             this.EventList.Location = new System.Drawing.Point(0, 0);
             this.EventList.Name = "EventList";
@@ -289,7 +290,7 @@
             // splitContainerMain.Panel2
             // 
             this.splitContainerMain.Panel2.BackColor = System.Drawing.Color.DarkGray;
-            this.splitContainerMain.Panel2.Controls.Add(this.splitContainerEventLists);
+            this.splitContainerMain.Panel2.Controls.Add(this.SplitContainerEventLists);
             this.splitContainerMain.Panel2.Padding = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.splitContainerMain.Size = new System.Drawing.Size(1144, 557);
             this.splitContainerMain.SplitterDistance = 385;
@@ -370,39 +371,53 @@
             this.ListMenuExclude.Text = "&Excluded (Subfilter)";
             this.ListMenuExclude.Click += new System.EventHandler(this.ListMenuExclude_Click);
             // 
-            // splitContainerEventLists
+            // SplitContainerEventLists
             // 
-            this.splitContainerEventLists.BackColor = System.Drawing.Color.DimGray;
-            this.splitContainerEventLists.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainerEventLists.Location = new System.Drawing.Point(5, 0);
-            this.splitContainerEventLists.Name = "splitContainerEventLists";
-            this.splitContainerEventLists.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.SplitContainerEventLists.BackColor = System.Drawing.Color.DimGray;
+            this.SplitContainerEventLists.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.SplitContainerEventLists.Location = new System.Drawing.Point(5, 0);
+            this.SplitContainerEventLists.Name = "SplitContainerEventLists";
+            this.SplitContainerEventLists.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
-            // splitContainerEventLists.Panel1
+            // SplitContainerEventLists.Panel1
             // 
-            this.splitContainerEventLists.Panel1.BackColor = System.Drawing.Color.DarkGray;
-            this.splitContainerEventLists.Panel1.Controls.Add(this.EventList);
-            this.splitContainerEventLists.Panel1.Controls.Add(this.panel1);
+            this.SplitContainerEventLists.Panel1.BackColor = System.Drawing.Color.DarkGray;
+            this.SplitContainerEventLists.Panel1.Controls.Add(this.EventList);
+            this.SplitContainerEventLists.Panel1.Controls.Add(this.panel1);
             // 
-            // splitContainerEventLists.Panel2
+            // SplitContainerEventLists.Panel2
             // 
-            this.splitContainerEventLists.Panel2.BackColor = System.Drawing.Color.DarkGray;
-            this.splitContainerEventLists.Panel2.Controls.Add(this.ErrorList);
-            this.splitContainerEventLists.Size = new System.Drawing.Size(1134, 162);
-            this.splitContainerEventLists.SplitterDistance = 88;
-            this.splitContainerEventLists.SplitterWidth = 10;
-            this.splitContainerEventLists.TabIndex = 15;
+            this.SplitContainerEventLists.Panel2.BackColor = System.Drawing.Color.DarkGray;
+            this.SplitContainerEventLists.Panel2.Controls.Add(this.ErrorList);
+            this.SplitContainerEventLists.Size = new System.Drawing.Size(1134, 162);
+            this.SplitContainerEventLists.SplitterDistance = 88;
+            this.SplitContainerEventLists.SplitterWidth = 10;
+            this.SplitContainerEventLists.TabIndex = 15;
             // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.Gray;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel1.Controls.Add(this.checkBoxHideErrors);
+            this.panel1.Controls.Add(this.ChkHideErrors);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panel1.Location = new System.Drawing.Point(0, 70);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1134, 18);
             this.panel1.TabIndex = 2;
+            // 
+            // ChkHideErrors
+            // 
+            this.ChkHideErrors.AutoSize = true;
+            this.ChkHideErrors.Checked = true;
+            this.ChkHideErrors.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ChkHideErrors.Dock = System.Windows.Forms.DockStyle.Right;
+            this.ChkHideErrors.Location = new System.Drawing.Point(1054, 0);
+            this.ChkHideErrors.Name = "ChkHideErrors";
+            this.ChkHideErrors.Size = new System.Drawing.Size(78, 16);
+            this.ChkHideErrors.TabIndex = 0;
+            this.ChkHideErrors.Text = "Hide Errors";
+            this.ChkHideErrors.UseVisualStyleBackColor = true;
+            this.ChkHideErrors.CheckedChanged += new System.EventHandler(this.UIOptions_CheckedChanged);
             // 
             // ErrorList
             // 
@@ -410,6 +425,7 @@
             this.ErrorList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ErrorList.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ErrorList.FormattingEnabled = true;
+            this.ErrorList.IntegralHeight = false;
             this.ErrorList.ItemHeight = 14;
             this.ErrorList.Location = new System.Drawing.Point(0, 0);
             this.ErrorList.Name = "ErrorList";
@@ -689,18 +705,6 @@
             this.LastScanTimer.Interval = 10000;
             this.LastScanTimer.Tick += new System.EventHandler(this.LastScanTimer_Tick);
             // 
-            // checkBoxHideErrors
-            // 
-            this.checkBoxHideErrors.AutoSize = true;
-            this.checkBoxHideErrors.Dock = System.Windows.Forms.DockStyle.Right;
-            this.checkBoxHideErrors.Location = new System.Drawing.Point(1054, 0);
-            this.checkBoxHideErrors.Name = "checkBoxHideErrors";
-            this.checkBoxHideErrors.Size = new System.Drawing.Size(78, 16);
-            this.checkBoxHideErrors.TabIndex = 0;
-            this.checkBoxHideErrors.Text = "Hide Errors";
-            this.checkBoxHideErrors.UseVisualStyleBackColor = true;
-            this.checkBoxHideErrors.CheckedChanged += new System.EventHandler(this.checkBoxHideErrors_CheckedChanged);
-            // 
             // Starter
             // 
             this.AcceptButton = this.BtnFind;
@@ -731,10 +735,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).EndInit();
             this.splitContainerMain.ResumeLayout(false);
             this.CMenuList.ResumeLayout(false);
-            this.splitContainerEventLists.Panel1.ResumeLayout(false);
-            this.splitContainerEventLists.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerEventLists)).EndInit();
-            this.splitContainerEventLists.ResumeLayout(false);
+            this.SplitContainerEventLists.Panel1.ResumeLayout(false);
+            this.SplitContainerEventLists.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.SplitContainerEventLists)).EndInit();
+            this.SplitContainerEventLists.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.CMenuOptions.ResumeLayout(false);
@@ -807,10 +811,10 @@
         private System.Windows.Forms.ToolStripStatusLabel StatusToolStripSubFiltered;
         private System.Windows.Forms.ListView ResultsListView;
         private System.Windows.Forms.Timer LastScanTimer;
-        private System.Windows.Forms.SplitContainer splitContainerEventLists;
+        private System.Windows.Forms.SplitContainer SplitContainerEventLists;
         private System.Windows.Forms.SplitContainer splitContainerMain;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.CheckBox checkBoxHideErrors;
+        private System.Windows.Forms.CheckBox ChkHideErrors;
     }
 }
 

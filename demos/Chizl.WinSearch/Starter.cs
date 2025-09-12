@@ -42,6 +42,7 @@ namespace Chizl.SearchSystemUI
 
         private static Bool _scanAborted = new Bool(false);
         private static Bool _scanStarted = new Bool(false);
+        private static bool _hideErrors = false;
 
         private static TimeSpan _scanTime = TimeSpan.Zero;
         private static string _lastFilteringStatus = string.Empty;
@@ -274,7 +275,6 @@ namespace Chizl.SearchSystemUI
         {
             LoadConfig();
             SetupListView(ResultsListView);
-            //this.ResultsListView.Columns[1].Width = 0;
         }
         private void LoadConfig()
         {
@@ -301,6 +301,9 @@ namespace Chizl.SearchSystemUI
             _criterias.AllowUser = isChecked;
             ConfigData.GetItem<bool>("ChkWinFolder", true, out isChecked);
             _criterias.AllowWindows = isChecked;
+            ConfigData.GetItem<bool>("ChkHideErrors", true, out isChecked);
+            _hideErrors = isChecked;
+
             _criterias.IgnoreChange = false;
 
             //in some cases, the System and Windows directory are the same.
@@ -424,6 +427,8 @@ namespace Chizl.SearchSystemUI
             ChkWinFolder.Checked = _criterias.AllowWindows;
             ChkDirectoryName.Checked = _criterias.SearchDirectory;
             ChkFilename.Checked = _criterias.SearchFilename;
+            ChkHideErrors.Checked = _hideErrors;
+            SplitContainerEventLists.Panel2Collapsed = _hideErrors;
         }
         #endregion
 
@@ -553,6 +558,27 @@ namespace Chizl.SearchSystemUI
         {
             CMenuOptions.Show(BtnOptions, new Point(0, 0));
         }
+        
+        private void UIOptions_CheckedChanged(object sender, EventArgs e)
+        {
+            var chkBox = sender as CheckBox;
+            var isChecked = chkBox.Checked;
+
+            switch (chkBox.Name)
+            {
+                case "ChkHideErrors":
+                    _hideErrors = isChecked;
+                    SplitContainerEventLists.Panel2Collapsed = _hideErrors;
+                    break;
+                default:
+                    MessageBox.Show($"'{chkBox.Name}' is setup for UI Options, but not coded for it.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    break;
+            }
+
+            if (!ConfigData.AddItem(chkBox.Name, isChecked, true))
+                MessageBox.Show($"'{chkBox.Name}' failed to save to configuration file.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
         private void Options_CheckedChanged(object sender, EventArgs e)
         {
             var chkBox = sender as ToolStripMenuItem;
@@ -979,12 +1005,6 @@ namespace Chizl.SearchSystemUI
                 ShowMsg(SearchMessageType.StatusMessage, $"Last full scan completed in {_scanTime.TotalSeconds} sec."); 
                 LastScanTimer.Stop();
             }
-        }
-        private static bool _hideErrors = false;
-        private void checkBoxHideErrors_CheckedChanged(object sender, EventArgs e)
-        {
-            _hideErrors = this.checkBoxHideErrors.Checked;
-            this.splitContainerEventLists.Panel2Collapsed = _hideErrors;
         }
     }
 }
