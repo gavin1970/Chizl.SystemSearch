@@ -183,12 +183,15 @@ namespace Chizl.SearchSystemUI
                     {
                         case SearchMessageType.Exception:
                         case SearchMessageType.Error:
-                            var msg = e.Message;
-                            if (e.Message.Contains("Access to the"))
-                                this.ErrorList.Items.Add($"{e.Message}");
-                            else
-                                this.ErrorList.Items.Add($"[{e.MessageType}] {e.Message}");
-                            this.ErrorList.SelectedIndex = this.ErrorList.Items.Count - 1;
+                            if (!_hideErrors)
+                            {
+                                var msg = e.Message;
+                                if (e.Message.Contains("Access to the"))
+                                    this.ErrorList.Items.Add($"{e.Message}");
+                                else
+                                    this.ErrorList.Items.Add($"[{e.MessageType}] {e.Message}");
+                                this.ErrorList.SelectedIndex = this.ErrorList.Items.Count - 1;
+                            }
                             break;
                         case SearchMessageType.Warning:
                         case SearchMessageType.Info:
@@ -976,6 +979,12 @@ namespace Chizl.SearchSystemUI
                 ShowMsg(SearchMessageType.StatusMessage, $"Last full scan completed in {_scanTime.TotalSeconds} sec."); 
                 LastScanTimer.Stop();
             }
+        }
+        private static bool _hideErrors = false;
+        private void checkBoxHideErrors_CheckedChanged(object sender, EventArgs e)
+        {
+            _hideErrors = this.checkBoxHideErrors.Checked;
+            this.splitContainerEventLists.Panel2Collapsed = _hideErrors;
         }
     }
 }
