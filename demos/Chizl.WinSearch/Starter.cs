@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Drawing;
+using Chizl.WinSearch;
 using System.Diagnostics;
 using Chizl.ThreadSupport;
 using Chizl.Applications;
@@ -9,7 +10,6 @@ using Chizl.SystemSearch;
 using System.Windows.Forms;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Chizl.WinSearch;
 
 namespace Chizl.SearchSystemUI
 {
@@ -279,7 +279,6 @@ namespace Chizl.SearchSystemUI
         private void LoadConfig()
         {
             this.Text = About.TitleWithFileVersion;
-
             ConfigData.LoadConfig(_configFile);
 
             //Ignore change.. This is a flag, so that each _finder.OptionalPaths.<<Property>> doesn't start a scan.
@@ -428,7 +427,7 @@ namespace Chizl.SearchSystemUI
             ChkDirectoryName.Checked = _criterias.SearchDirectory;
             ChkFilename.Checked = _criterias.SearchFilename;
             ChkHideErrors.Checked = _hideErrors;
-            SplitContainerEventLists.Panel2Collapsed = _hideErrors;
+            EventListsSplitContainer.Panel2Collapsed = _hideErrors;
         }
         #endregion
 
@@ -564,11 +563,14 @@ namespace Chizl.SearchSystemUI
             var chkBox = sender as CheckBox;
             var isChecked = chkBox.Checked;
 
+            if (!_loaded)
+                return;
+
             switch (chkBox.Name)
             {
                 case "ChkHideErrors":
                     _hideErrors = isChecked;
-                    SplitContainerEventLists.Panel2Collapsed = _hideErrors;
+                    EventListsSplitContainer.Panel2Collapsed = _hideErrors;
                     break;
                 default:
                     MessageBox.Show($"'{chkBox.Name}' is setup for UI Options, but not coded for it.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
