@@ -7,30 +7,30 @@ namespace Chizl.SystemSearch
 {
     internal static class Tools
     {
-        /// <summary>
-        /// Can use Sleep() for methods or tasks <b>not</b> using "async"<br/>
-        /// Second argument: sleepType is optional with Default as Seconds.
-        /// <code>
-        /// Example:
-        ///     Sleep(2);                           // (Default) 2 Seconds.
-        ///     Sleep(2, SleepType.Milliseconds);   // 2 Milliseconds.
-        /// </code>
-        /// </summary>
-        /// <param name="timing">How long to wait based on sleepType</param>
-        /// <param name="sleepType">(Optional) Default: Seconds</param>
+        // / <summary>
+        // / Can use Sleep() for methods or tasks <b>not</b> using "async"<br/>
+        // / Second argument: sleepType is optional with Default as Seconds.
+        // / <code>
+        // / Example:
+        // /     Sleep(2);                           // (Default) 2 Seconds.
+        // /     Sleep(2, SleepType.Milliseconds);   // 2 Milliseconds.
+        // / </code>
+        // / </summary>
+        // / <param name="timing">How long to wait based on sleepType</param>
+        // / <param name="sleepType">(Optional) Default: Seconds</param>
         internal static void Sleep(int timing, SleepType sleepType = SleepType.Seconds) => Delay(timing, sleepType).Wait();
-        /// <summary>
-        /// Must use Delay() for methods or tasks using "async".<br/>
-        /// Second argument: sleepType is optional with Default as Seconds.
-        /// <code>
-        /// Example:
-        ///     await Delay(2)                          // (Default) 2 Seconds.
-        ///     await Delay(2, SleepType.Milliseconds)  // 2 Milliseconds.
-        /// </code>
-        /// </summary>
-        /// <param name="timing">How long to wait based on sleepType</param>
-        /// <param name="sleepType">(Optional) Default: Seconds</param>
-        /// <returns></returns>
+        // / <summary>
+        // / Must use Delay() for methods or tasks using "async".<br/>
+        // / Second argument: sleepType is optional with Default as Seconds.
+        // / <code>
+        // / Example:
+        // /     await Delay(2)                          // (Default) 2 Seconds.
+        // /     await Delay(2, SleepType.Milliseconds)  // 2 Milliseconds.
+        // / </code>
+        // / </summary>
+        // / <param name="timing">How long to wait based on sleepType</param>
+        // / <param name="sleepType">(Optional) Default: Seconds</param>
+        // / <returns></returns>
         internal static async Task Delay(int timing, SleepType sleepType = SleepType.Seconds)
         {
             TimeSpan ts = TimeSpan.Zero;
@@ -52,11 +52,11 @@ namespace Chizl.SystemSearch
 
             await Task.Delay(ts);
         }
-        /// <summary>
-        /// Create a 32-byte MD5 Hash without spaces.
-        /// </summary>
-        /// <param name="input">String to create MD5 hash.</param>
-        /// <returns>MD5 Hash without dashes</returns>
+        // / <summary>
+        // / Create a 32-byte MD5 Hash without spaces.
+        // / </summary>
+        // / <param name="input">String to create MD5 hash.</param>
+        // / <returns>MD5 Hash without dashes</returns>
         internal static string CreateMD5(string input, ReturnCase caseType = ReturnCase.Upper)
         {
             // Use input string to calculate MD5 hash

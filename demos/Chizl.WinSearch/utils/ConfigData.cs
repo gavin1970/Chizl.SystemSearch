@@ -13,14 +13,14 @@ namespace Chizl.Applications
         const int _configNameSize = 20;
         private static string FilePath = @".\config.dat";
 
-        /// <summary>
-        /// Add or Update existing config value by config name.
-        /// </summary>
-        /// <typeparam name="T">Object type of config value</typeparam>
-        /// <param name="configName">Config Name</param>
-        /// <param name="configValue">Config Value</param>
-        /// <param name="autoSave">If the value was added or updated success, auto save to file.</param>
-        /// <returns>true if successfully added or updated</returns>
+        // / <summary>
+        // / Add or Update existing config value by config name.
+        // / </summary>
+        // / <typeparam name="T">Object type of config value</typeparam>
+        // / <param name="configName">Config Name</param>
+        // / <param name="configValue">Config Value</param>
+        // / <param name="autoSave">If the value was added or updated success, auto save to file.</param>
+        // / <returns>true if successfully added or updated</returns>
         public static bool AddItem<T>(string configName, T configValue, bool autoSave = false)
         {
             var retVal = false;
@@ -35,13 +35,13 @@ namespace Chizl.Applications
             return retVal;
         }
 
-        /// <summary>
-        /// Get config value by config name.
-        /// </summary>
-        /// <typeparam name="T">Object type of config value</typeparam>
-        /// <param name="configName">Config Name</param>
-        /// <param name="configValue">Config Value</param>
-        /// <returns>true if successfully found and convert to typeof(T)</returns>
+        // / <summary>
+        // / Get config value by config name.
+        // / </summary>
+        // / <typeparam name="T">Object type of config value</typeparam>
+        // / <param name="configName">Config Name</param>
+        // / <param name="configValue">Config Value</param>
+        // / <returns>true if successfully found and convert to typeof(T)</returns>
         public static bool GetItem<T>(string configName, T defaultValue, out T configValue)
         {
             var t = typeof(T);
@@ -88,26 +88,26 @@ namespace Chizl.Applications
             return false;
         }
 
-        /// <summary>
-        /// Remove Config Value by Config Name
-        /// </summary>
-        /// <param name="configName">Config Name</param>
-        /// <returns>true if successfully found and removed</returns>
+        // / <summary>
+        // / Remove Config Value by Config Name
+        // / </summary>
+        // / <param name="configName">Config Name</param>
+        // / <returns>true if successfully found and removed</returns>
         public static bool RemoveItem(string configName) => ConfigLabels.TryRemove(configName, out _);
 
-        /// <summary>
-        /// Load file into Dictionary of config information.
-        /// </summary>
-        /// <param name="filePath">Path of the file.</param>
+        // / <summary>
+        // / Load file into Dictionary of config information.
+        // / </summary>
+        // / <param name="filePath">Path of the file.</param>
         public static void LoadConfig(string filePath)
         {
             FilePath = filePath;
             LoadConfig();
         }
 
-        /// <summary>
-        /// Save config, only called after AddItem()..
-        /// </summary>
+        // / <summary>
+        // / Save config, only called after AddItem()..
+        // / </summary>
         private static void SaveConfig()
         {
             var configData = new List<string>();
@@ -131,9 +131,9 @@ namespace Chizl.Applications
             File.WriteAllLines(FilePath, configData.ToArray());
         }
 
-        /// <summary>
-        /// Load file into Dictionary of config information.
-        /// </summary>
+        // / <summary>
+        // / Load file into Dictionary of config information.
+        // / </summary>
         private static void LoadConfig()
         {
             if (File.Exists(FilePath))
@@ -154,9 +154,9 @@ namespace Chizl.Applications
             }
         }
 
-        /// <summary>
-        /// Dictionary that holds all configurations and their values.
-        /// </summary>
+        // / <summary>
+        // / Dictionary that holds all configurations and their values.
+        // / </summary>
         private static ConcurrentDictionary<string, object> ConfigLabels { get; } = new ConcurrentDictionary<string, object>();
     }
 }

@@ -15,14 +15,14 @@ namespace Chizl.SearchSystemUI
 {
     public partial class Starter : Form
     {
-        //when ready, this will be set to true.
+        // when ready, this will be set to true.
         const bool _panelSearchAttrib_Visible = false;
 
 
-        //had to add this, because folder/file count was coming in so fast, the FileScanStatus event, couldn't
-        //updated at the screen.  This states every MAX event for FileScanStatus event, allow it to display.
-        //100 works, but this makes it smother. The ScanComplete/ScanAborted, update the same
-        //information, not through FileScanStatus event.
+        // had to add this, because folder/file count was coming in so fast, the FileScanStatus event, couldn't
+        // updated at the screen.  This states every MAX event for FileScanStatus event, allow it to display.
+        // 100 works, but this makes it smother. The ScanComplete/ScanAborted, update the same
+        // information, not through FileScanStatus event.
         const int maxRefreshCnt = 500;
         const string _stopScanText = "&Stop Scan";
         const string _startScanText = "&Start Scan";
@@ -35,7 +35,7 @@ namespace Chizl.SearchSystemUI
         private static int resetRefreshCnt = 0;
         private static int refreshCnt = 0;
 
-        //thread-safe boolean
+        // thread-safe boolean
         private static Bool _driveFilterOn = new Bool();
         private static Bool _extFilterOn = new Bool();
         private static Bool _customFilterOn = new Bool();
@@ -47,7 +47,7 @@ namespace Chizl.SearchSystemUI
         private static TimeSpan _scanTime = TimeSpan.Zero;
         private static string _lastFilteringStatus = string.Empty;
 
-        //button background color
+        // button background color
         readonly static Color _gray = Color.FromArgb(192, 192, 192);
         readonly static Color _green = Color.FromArgb(128, 255, 128);
         readonly static Color _red = Color.FromArgb(255, 128, 128);
@@ -95,8 +95,8 @@ namespace Chizl.SearchSystemUI
 
                 _scanStarted.SetFalse();
 
-                //this allows all messages to be posted, only
-                //need this setup during scan, which is too intense.
+                // this allows all messages to be posted, only
+                // need this setup during scan, which is too intense.
                 resetRefreshCnt = 0;
                 refreshCnt = 0;
 
@@ -147,7 +147,7 @@ namespace Chizl.SearchSystemUI
                 else
                     _scanAborted.SetFalse();
 
-                //set refresh for folder/file count information to max setting for refeshes.
+                // set refresh for folder/file count information to max setting for refeshes.
                 resetRefreshCnt = maxRefreshCnt;
                 refreshCnt = 0;
                 BtnFind.Enabled = false;
@@ -281,9 +281,6 @@ namespace Chizl.SearchSystemUI
             this.Text = About.TitleWithFileVersion;
             ConfigData.LoadConfig(_configFile);
 
-            //Ignore change.. This is a flag, so that each _finder.OptionalPaths.<<Property>> doesn't start a scan.
-
-            _criterias.IgnoreChange = true;
             ConfigData.GetItem<bool>("ChkFilename", true, out bool isChecked);
             _criterias.SearchFilename = isChecked;
             ConfigData.GetItem<bool>("ChkDirectoryName", false, out isChecked);
@@ -303,9 +300,11 @@ namespace Chizl.SearchSystemUI
             ConfigData.GetItem<bool>("ChkHideErrors", true, out isChecked);
             _hideErrors = isChecked;
 
-            _criterias.IgnoreChange = false;
+            // This library is setup to auto add to cache when presets are checked or auto remove when unchecked.
+            // Ignore change is to prevent the scan from starting to load into cache during startup of the application.
+            _criterias.IgnoreChange = false;    //default is true
 
-            //in some cases, the System and Windows directory are the same.
+            // in some cases, the System and Windows directory are the same.
             if (_criterias.WindowsDir.Equals(_criterias.SystemDir))
                 ChkSystemFolder.Visible = false;
 
@@ -331,12 +330,12 @@ namespace Chizl.SearchSystemUI
         private void SetupCbChoices()
         {
             PanelSearchAttrib.Visible = _panelSearchAttrib_Visible;
-            //Search attributes
+            // Search attributes
             foreach (var e in Enum.GetNames(typeof(SearchAttributes)))
                 this.CbAttribute.Items.Add(GlobalSetup.CleanEnumName(e, true));
             this.CbAttribute.SelectedIndex = 0;
 
-            //Search Options
+            // Search Options
             foreach (var e in Enum.GetNames(typeof(SearchDirecction)))
                 this.CbGtLtEq.Items.Add(GlobalSetup.CleanEnumName(e, false));
             this.CbGtLtEq.SelectedIndex = 0;
@@ -363,11 +362,11 @@ namespace Chizl.SearchSystemUI
         private bool GetSelectedItem(out string selectedItem)
         {
             selectedItem = string.Empty;
-            //if (ResultsList.SelectedIndex < 0)
+            // if (ResultsList.SelectedIndex < 0)
             if (ResultsListView.SelectedItems.Count.Equals(0))
                 return false;
 
-            //selectedItem = ResultsList.Items[ResultsList.SelectedIndex].ToString();
+            // selectedItem = ResultsList.Items[ResultsList.SelectedIndex].ToString();
             selectedItem = ResultsListView.SelectedItems[0].SubItems[5].Text;
 
             return true;
@@ -446,7 +445,7 @@ namespace Chizl.SearchSystemUI
                 {
                     ShowMsg(e);
                     refreshCnt = resetRefreshCnt;
-                    //something is wrong, this should be set, if we have file scans coming in.
+                    // something is wrong, this should be set, if we have file scans coming in.
                     if (_finder.CurrentStatus.Equals(LookupStatus.Running) && 
                         !BtnStartStopScan.Text.Equals(_stopScanText))
                         ScanStarted();
@@ -480,7 +479,7 @@ namespace Chizl.SearchSystemUI
             if (!ConfigData.AddItem("WinMax", maxWin, true))
                 MessageBox.Show($"WinMax: '{this.WindowState}' failed to save to configuration file.", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-            //only save size if not maxWin
+            // only save size if not maxWin
             if (!maxWin && !ConfigData.AddItem("ClientSize", this.Size, true))
                 MessageBox.Show($"ClientSize: '{this.Size}' failed to save to configuration file.", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
@@ -490,7 +489,7 @@ namespace Chizl.SearchSystemUI
                 return;
 
             var maxWin = this.WindowState == FormWindowState.Maximized;
-            //only save location if not maxWin
+            // only save location if not maxWin
             if (!maxWin && !ConfigData.AddItem("ClientLoc", this.Location, true))
                 MessageBox.Show($"ClientLoc: '{this.Location}' failed to save to configuration file.", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
@@ -524,7 +523,7 @@ namespace Chizl.SearchSystemUI
                         MessageBoxIcon.Question) == DialogResult.No)
                         return;
 
-                //start over
+                // start over
                 LastScanTimer.Stop();
                 _scanTime = TimeSpan.Zero;
 
@@ -591,10 +590,14 @@ namespace Chizl.SearchSystemUI
                 case "ChkDirectoryName":
                     _criterias.SearchDirectory = isChecked;
                     ChkFilename.Checked = _criterias.SearchFilename;
+                    if (!ConfigData.AddItem("ChkFilename", !isChecked, true))
+                        MessageBox.Show($"'ChkFilename' failed to save to configuration file.", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
                 case "ChkFilename":
                     _criterias.SearchFilename = isChecked;
                     ChkDirectoryName.Checked = _criterias.SearchDirectory;
+                    if (!ConfigData.AddItem("ChkDirectoryName", !isChecked, true))
+                        MessageBox.Show($"'ChkDirectoryName' failed to save to configuration file.", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
                 case "ChkInternetCache":
                     _criterias.AllowInternetCache = isChecked;
@@ -726,7 +729,7 @@ namespace Chizl.SearchSystemUI
             else
                 ListMenuClearList.Enabled = true;
 
-            //var selItem = GetSelectedItem(out string selectedItem);
+            // var selItem = GetSelectedItem(out string selectedItem);
 
             if (_listViewHitTest?.Item != null)
             {
@@ -805,7 +808,7 @@ namespace Chizl.SearchSystemUI
             var lv = sender as ListView;
             var isChecked = e.Item.Checked ? 1 : 0;
             var id = e.Item.SubItems[e.Item.SubItems.Count-1].Text;
-            //TODO: What is needed if I use Checked.
+            // TODO: What is needed if I use Checked.
         }
         private void ListView_ColumnClick(object sender, ColumnClickEventArgs e)
         {
@@ -836,11 +839,11 @@ namespace Chizl.SearchSystemUI
         {
             if (lv.View != View.Details)
             {
-                //setup for sorting..
+                // setup for sorting..
                 lv.HeaderStyle = ColumnHeaderStyle.Clickable;
-                //sort based on column click
+                // sort based on column click
                 lv.ColumnClick += ListView_ColumnClick;
-                //resizes last column, when any other columns are changed.
+                // resizes last column, when any other columns are changed.
                 lv.ColumnWidthChanged += ListView_ColumnWidthChanged;
 
                 // removed multi-select
@@ -864,7 +867,7 @@ namespace Chizl.SearchSystemUI
                 // Text color
                 lv.ForeColor = Color.Black;
 
-                //more sorting
+                // more sorting
                 _lViewHelper.LvColumnSorter = new ListViewColumnSorter();
                 lv.ListViewItemSorter = _lViewHelper.LvColumnSorter;
             }
@@ -979,13 +982,31 @@ namespace Chizl.SearchSystemUI
                         _driveFilterOn.SetVal(false);
 
                     foreach (ListViewItem item in ResultsListView.Items)
+                    {
+                        foreach (var ex in _excludeItems)
                         {
-                            foreach (var ex in _excludeItems)
+                            // found there are files without extensions, this cause just about all fiels to be filtered
+                            // as most of them are in a folder or the filename has a space in it.  This fixed that issue.
+                            if(string.IsNullOrWhiteSpace(ex))
                             {
-                                if (item.SubItems[5].Text.Contains(ex))
+                                if (item.SubItems[0].Text.IndexOf('.').Equals(-1))
                                     removeStrItem.Add(item);
                             }
+                            // This helps focus on mostly extension as there are some folders with . in them, but if
+                            // the filter starts with a '.', lets assume this is an extension.
+                            else if (ex.StartsWith("."))
+                            {
+                                if (item.SubItems[5].Text.ToLower().EndsWith(ex.ToLower()))
+                                    removeStrItem.Add(item);
+                            }
+                            else
+                            {
+                                if(!string.IsNullOrWhiteSpace(ex))
+                                    if (item.SubItems[5].Text.ToLower().Contains(ex.ToLower()))
+                                        removeStrItem.Add(item);
+                            }
                         }
+                    }
 
                     foreach (var item in removeStrItem)
                         ResultsListView.Items.Remove(item);

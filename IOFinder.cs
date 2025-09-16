@@ -11,7 +11,7 @@ namespace Chizl.SystemSearch
         const int _maxFindingsCount = 1000;
         private static List<FileSystemWatcher> _watcher = new List<FileSystemWatcher>();
 
-        //since there will be a lot of threading going on, these status need to be seen by all threads.
+        // since there will be a lot of threading going on, these status need to be seen by all threads.
         private static bool disposedValue;
 
         protected virtual void Dispose(bool disposing)
@@ -52,7 +52,7 @@ namespace Chizl.SystemSearch
             })
             .ContinueWith(previousTask =>
             {
-                //synchronous
+                // synchronous
                 SearchCache(drives, searchCriteria);
             });
 
@@ -81,14 +81,14 @@ namespace Chizl.SystemSearch
 
                 var wc = wcSearch[i];
 
-                //if we have content, we now need to filter down for each criteria.
+                // if we have content, we now need to filter down for each criteria.
                 if (findings.Count > 0)
                     findings = findings.Where(w => w.ToLower().Contains(wc.ToLower())).ToList();
                 else
                     findings = Scanner.GetFileList.Where(w => w.ToLower().Contains(wc.ToLower())).ToList();
 
-                //at any time, we haven't found anything,
-                //then we haven't met the criteria
+                // at any time, we haven't found anything,
+                // then we haven't met the criteria
                 if (findings.Count.Equals(0))
                     break;
             }
@@ -110,18 +110,18 @@ namespace Chizl.SystemSearch
                         verifiedFiles++;
                     }
                 }
-                //I found sending a message for each file found became really slow, so,
-                //SearchMessage.SendMsg(SearchMessageType.SearchResults, file);
+                // I found sending a message for each file found became really slow, so,
+                // SearchMessage.SendMsg(SearchMessageType.SearchResults, file);
 
-                //Bulk send of all findings by split of '\n', instant...  Balances Windows with Linux strings.
+                // Bulk send of all findings by split of '\n', instant...  Balances Windows with Linux strings.
                 var arrData = string.Join("\n", fileList);
                 SearchMessage.SendMsg(SearchMessageType.SearchResults, arrData);
             }
 
             var showing = verifiedFiles > _maxFindingsCount ? _maxFindingsCount : verifiedFiles;
-            //send found message
+            // send found message
             SearchMessage.SendMsg(SearchMessageType.SearchStatus, $"Filtered: {showing.FormatByComma()}, Total Found: {verifiedFiles.FormatByComma()}");
-            //send total count message, to ensure accuratness
+            // send total count message, to ensure accuratness
             SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
 
             return retVal;
@@ -141,7 +141,7 @@ namespace Chizl.SystemSearch
             {
                 foreach (var sArr in wcSearch)
                 {
-                    //met criteria, get out.
+                    // met criteria, get out.
                     if (findCount >= wcSearch.Length)
                         break;
 
@@ -165,7 +165,7 @@ namespace Chizl.SystemSearch
                 prevLoc = 0;
                 foreach (var sArr in wcSearch.Skip(findCount))
                 {
-                    //met criteria, get out.
+                    // met criteria, get out.
                     if (findCount >= wcSearch.Length)
                         break;
 
@@ -192,7 +192,7 @@ namespace Chizl.SystemSearch
                 return;
 
             List<Task> createList = new List<Task>();
-            //we found if a folder is being added, files are missed, so lets sleep a sec and see if that helps.
+            // we found if a folder is being added, files are missed, so lets sleep a sec and see if that helps.
             Tools.Sleep(100, SleepType.Milliseconds);
 
             if (File.Exists(e.FullPath))
@@ -220,7 +220,7 @@ namespace Chizl.SystemSearch
                 return;
 
             List<Task> removeList = new List<Task>();
-            //we found if a folder is being added, files are missed, so lets sleep a sec and see if that helps.
+            // we found if a folder is being added, files are missed, so lets sleep a sec and see if that helps.
             Tools.Sleep(100, SleepType.Milliseconds);
 
             var dirWithSlash = e.FullPath.EndsWith("\\") ? e.FullPath : $"{e.FullPath}\\";
@@ -321,18 +321,18 @@ namespace Chizl.SystemSearch
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Scans all drives based on allow filters set in options.  Event messages will be sent to subscribers.
-        /// </summary>
-        /// <param name="reScan">true: Will clear the cache and start over.  false: will leave, but rescan for any new files to add to the cache.</param>
+        // / <summary>
+        // / Scans all drives based on allow filters set in options.  Event messages will be sent to subscribers.
+        // / </summary>
+        // / <param name="reScan">true: Will clear the cache and start over.  false: will leave, but rescan for any new files to add to the cache.</param>
         public Task ScanToCache(bool isRescan = false) => Scan(GlobalSettings.DriveList, true, isRescan);
         public Task ScanToCache(DriveInfo drive) => Scan(new string[] { drive.Name });
         public Task ScanToCache(DriveInfo[] drives) => Scan(drives.Select(w => w.Name).ToArray());
 
-        /// <summary>
-        /// Starts search in cache if exists. Defaults drives to all drives.
-        /// </summary>
-        /// <returns></returns>
+        // / <summary>
+        // / Starts search in cache if exists. Defaults drives to all drives.
+        // / </summary>
+        // / <returns></returns>
         public Task Search(string searchCriteria) => Search(GlobalSettings.DriveList, searchCriteria);
         public Task Search(DriveInfo drive, string searchCriteria) => Search(new string[] { drive.Name }, searchCriteria);
         public Task Search(DriveInfo[] drives, string searchCriteria) => Search(drives.Select(w => w.Name).ToArray(), searchCriteria);

@@ -63,7 +63,7 @@ namespace Chizl.SystemSearch
 
                 return _scannedFolders;
             }
-            //only used for overwriting a count and wnat to update both vars.
+            // only used for overwriting a count and wnat to update both vars.
             set
             {
                 lock (_countLock)
@@ -81,14 +81,14 @@ namespace Chizl.SystemSearch
                 {
                     if (!_scannedFiles.Equals(_fastPullScannedFiles))
                     {
-                        _scannedFiles = _fileDictionary.Count;   //slower call, than just using the static int var.
+                        _scannedFiles = _fileDictionary.Count;   // slower call, than just using the static int var.
                         _fastPullScannedFiles = _scannedFiles;
                     }
                 }
 
                 return _scannedFiles;
             }
-            //only used for overwriting a count and wnat to update both vars.
+            // only used for overwriting a count and wnat to update both vars.
             set
             {
                 lock (_countLock)
@@ -109,20 +109,20 @@ namespace Chizl.SystemSearch
                 {
                     while(!_fileInfoQueue.IsEmpty)
                     {
-                        //insurance
+                        // insurance
                         if (GlobalSettings.HasShutdown)
                             break;
 
                         if (_fileInfoQueue.TryDequeue(out string fileName))
                         {
-                            //if(_fileDictionary.TryGetValue(fileName, out string md5Hash))
-                            //{
-                                //attempt to build a quicker db lookup id, by using Int instead of string.
-                                //TODO, get file info
-                                //using (var fd = new FileDetails(fileName, md5Hash))
+                            // if(_fileDictionary.TryGetValue(fileName, out string md5Hash))
+                            // {
+                                // attempt to build a quicker db lookup id, by using Int instead of string.
+                                // TODO, get file info
+                                // using (var fd = new FileDetails(fileName, md5Hash))
                                 //    fd.SaveToFile();
-                                //Thread.Sleep(1);
-                            //}
+                                // Thread.Sleep(1);
+                            // }
                         }
                     }
                 }
@@ -151,8 +151,8 @@ namespace Chizl.SystemSearch
             var taskList = new List<Task>();
             var taskFolderList = new List<Task>();
 
-            //reset folders, because they will be rescanned, but files
-            //are based on Dictionary Size and will not need to be reset.
+            // reset folders, because they will be rescanned, but files
+            // are based on Dictionary Size and will not need to be reset.
             ScannedFolders = 0;
             ScannedFiles = 0;
 
@@ -162,7 +162,7 @@ namespace Chizl.SystemSearch
                 _folderDictionary.Clear();
             }
 
-            //setup status for UI
+            // setup status for UI
             SetStatus(LookupStatus.Running);
 
             return Task.Run(() =>
@@ -177,13 +177,13 @@ namespace Chizl.SystemSearch
                 {
                     try
                     {
-                        //get root files, skip subfolders.
+                        // get root files, skip subfolders.
                         taskList.Add(ScanFolder(drive, true));
 
-                        //foreach (var folder in Directory.EnumerateDirectories(drive))
+                        // foreach (var folder in Directory.EnumerateDirectories(drive))
                         //    taskList.Add(ScanFolder(drive));
 
-                        //get all subfolders with each subfolder in their own thread/task
+                        // get all subfolders with each subfolder in their own thread/task
                         taskList.AddRange(ScanSubFolders(Directory.GetDirectories(drive)));
                     }
                     catch (Exception ex) 
@@ -196,7 +196,7 @@ namespace Chizl.SystemSearch
                 var drivesStr = string.Join(", ", driveLetter);
                 SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"Scanning: ({drivesStr}) - Please wait.");
 
-                //asynchronously waits for all tasks
+                // asynchronously waits for all tasks
                 Task.WaitAll(taskList.ToArray());
 
                 var msgType = GlobalSettings.HasShutdown ? SearchMessageType.ScanAborted : SearchMessageType.ScanComplete;
@@ -211,19 +211,19 @@ namespace Chizl.SystemSearch
         {
             List<Task> taskList = new List<Task>();
 
-            //only holds root folders of each drive.
+            // only holds root folders of each drive.
             foreach (var subfolder in folderList)
             {
                 try
                 {
                     if (GlobalSettings.ScanSettings.AllowDir(subfolder))
                     {
-                        //scan each root folder asynchronously.
+                        // scan each root folder asynchronously.
                         taskList.Add(Task.Run(() =>
                         {
-                            //ScanFolder(subfolder);
+                            // ScanFolder(subfolder);
                             ScanFolder(subfolder);
-                            //Tools.Sleep(1, SleepType.Milliseconds);
+                            // Tools.Sleep(1, SleepType.Milliseconds);
                         }));
                     }
                 }
@@ -247,17 +247,17 @@ namespace Chizl.SystemSearch
 
             List<Task> removeTaskList = new List<Task>();
 
-            //sending too many sent messages from the following loops, slows down the UI.
-            //lets max mount of sends within each loop.
+            // sending too many sent messages from the following loops, slows down the UI.
+            // lets max mount of sends within each loop.
             Interlocked.Exchange(ref toFileSentMsg, _maxSendInfoMsg);
             Interlocked.Exchange(ref toFolderSentMsg, _maxSendInfoMsg);
 
-            //get all files under folder path.
+            // get all files under folder path.
             var fileKeys = _fileDictionary.Keys.Where(w => w.ToLower().StartsWith(folder)).ToList();
-            //get all folders under folder path.
+            // get all folders under folder path.
             var folderKeys = _folderDictionary.Keys.Where(w => w.ToLower().StartsWith(folder)).ToList();
 
-            //send a quick message
+            // send a quick message
             SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"Deleting '{fileKeys.Count}' file entries and '{folderKeys.Count}' folder entries from cache. - Please wait.");
 
             if (fileKeys.Count > _maxSendInfoMsg)
@@ -267,7 +267,7 @@ namespace Chizl.SystemSearch
 
             foreach (var key in fileKeys)
             {
-                //remove each file asynchronously.
+                // remove each file asynchronously.
                 removeTaskList.Add(
                     Task.Run(() =>
                     {
@@ -288,7 +288,7 @@ namespace Chizl.SystemSearch
 
             foreach (var key in folderKeys)
             {
-                //remove each root folder asynchronously.
+                // remove each root folder asynchronously.
                 removeTaskList.Add(
                     Task.Run(() =>
                     {
@@ -311,7 +311,7 @@ namespace Chizl.SystemSearch
             if (!folder.EndsWith(@"\"))
                 folder += "\\";
 
-            //ignoring temp paths and recycle bins
+            // ignoring temp paths and recycle bins
             if (GlobalSettings.HasShutdown)
                 return retVal;
 
@@ -323,7 +323,7 @@ namespace Chizl.SystemSearch
 
             try
             {
-                //This filters out files looking for and if all, the search string is not needed.
+                // This filters out files looking for and if all, the search string is not needed.
                 foreach (var file in Directory.EnumerateFiles(folder))
                 {
                     if (GlobalSettings.HasShutdown)
@@ -334,7 +334,7 @@ namespace Chizl.SystemSearch
                         // The '0' is a dummy value, we only care about the value, only the key.
                         // This adds the path and TryAdd return false if already exists.
                         AddFile(file);
-                        //if (_fileDictionary.TryAdd(file, 0))
+                        // if (_fileDictionary.TryAdd(file, 0))
                         //    Interlocked.Increment(ref _scannedFiles);
                     }
                     catch (Exception ex)
@@ -351,9 +351,9 @@ namespace Chizl.SystemSearch
             }
             catch (Exception ex)
             {
-                //when you don't have access to the folder, this will provide an IO
-                //error, so instead of trying to access it's subdirectories, lets exit.
-                //if already exists in dictionary, then we don't want to send the message again.
+                // when you don't have access to the folder, this will provide an IO
+                // error, so instead of trying to access it's subdirectories, lets exit.
+                // if already exists in dictionary, then we don't want to send the message again.
                 if (_deniedDictionary.TryAdd(folder, 0))
                     SearchMessage.SendMsg(ex);
 
@@ -371,7 +371,7 @@ namespace Chizl.SystemSearch
                     SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Scanning: ({_scannedFolders}) Folders, ({_scannedFiles}) Files");
                 }
 
-                //lets look at all subfolders within this folder.
+                // lets look at all subfolders within this folder.
                 foreach (var subFolder in Directory.EnumerateDirectories(folder))
                 {
                     try
@@ -379,7 +379,7 @@ namespace Chizl.SystemSearch
                         if (GlobalSettings.HasShutdown)
                             return retVal;
 
-                        //lets look at all files within this subfolder.
+                        // lets look at all files within this subfolder.
                         ScanFolder(subFolder);
                     }
                     catch (Exception ex)
@@ -401,13 +401,13 @@ namespace Chizl.SystemSearch
         {
             var md5Hash = addMD5Hash ? Tools.CreateMD5(fileName, ReturnCase.Lower) : "";
 
-            //verifies root folder of file and determines if it should continue.
+            // verifies root folder of file and determines if it should continue.
             if (_fileDictionary.TryAdd(fileName, md5Hash))
             {
                 Interlocked.Increment(ref _scannedFiles);
                 if (addMD5Hash)
                 {
-                    _fileInfoQueue.Enqueue(fileName);   //not unique
+                    _fileInfoQueue.Enqueue(fileName);   // not unique
                     if (_fileInfoThread == null || !_fileInfoThread.IsAlive)
                     {
                         _fileInfoThread = new Thread(() => { ThreadEventMonitor(); });
@@ -423,7 +423,7 @@ namespace Chizl.SystemSearch
         }
         internal bool RemoveFile(string fileName, bool sendInfoMsg = true)
         {
-            //verifies root folder of file and determines if it should continue.
+            // verifies root folder of file and determines if it should continue.
             if (_fileDictionary.TryRemove(fileName, out _))
             {
                 Interlocked.Decrement(ref _scannedFiles);

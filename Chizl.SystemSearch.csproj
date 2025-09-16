@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-			<TargetFrameworks>netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
-			<ImplicitUsings>disable</ImplicitUsings>
-			<Nullable>disable</Nullable>
-			<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-			<GenerateDocumentationFile>False</GenerateDocumentationFile>
-	</PropertyGroup>
+		<PropertyGroup>
+				<TargetFrameworks>netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
+				<ImplicitUsings>disable</ImplicitUsings>
+				<Nullable>disable</Nullable>
+				<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+				<GenerateDocumentationFile>False</GenerateDocumentationFile>
+		</PropertyGroup>
 
 		<PropertyGroup>
 				<Authors>Chizl</Authors>
@@ -14,8 +14,8 @@
 				<Company>Chizl.com</Company>
 				<Copyright>© 2025 chizl.com</Copyright>
 				<PackageTags>file-search;library;in-console;on-desktop;standard;framework;no-deps</PackageTags>
-				<FileVersion>5.09.14.1281</FileVersion>
-				<Version>5.09.14.0</Version>
+				<FileVersion>5.09.16.1726</FileVersion>
+				<Version>5.09.16.0</Version>
 				<AssemblyVersion>5.09.0.0</AssemblyVersion>
 				<PackageReadmeFile>README.md</PackageReadmeFile>
 		</PropertyGroup>

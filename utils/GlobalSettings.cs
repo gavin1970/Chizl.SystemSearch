@@ -32,9 +32,9 @@ namespace Chizl.SystemSearch
         }
         public static ScanProperties ScanSettings { get; } = new ScanProperties();
 
-        /// <summary>
-        /// Scan options to be set from the parent application or use defaults.
-        /// </summary>
+        // / <summary>
+        // / Scan options to be set from the parent application or use defaults.
+        // / </summary>
         public static ConcurrentDictionary<string, bool> RefreshFolder { get; } = new ConcurrentDictionary<string, bool>();
 
         #region Shortcut Methods
@@ -46,7 +46,7 @@ namespace Chizl.SystemSearch
                 if (RefreshFolder.TryAdd(dir, add))
                 {
                     SearchMessage.SendMsg(SearchMessageType.UpdateInprogress, $"Updating cache by '{(add ? "Adding" : "Removing")}' entries associated to '{dir}'.  Please wait...");
-                    //set to true, if previous was false, lets Task.Run().
+                    // set to true, if previous was false, lets Task.Run().
                     if (!IsRefreshing.SetVal(true))
                     {
                         Task.Run(() =>
@@ -63,12 +63,12 @@ namespace Chizl.SystemSearch
         }
         #endregion
 
-        //Volatile.Read vs Interlocked.Read (deeper and more precise)
+        // Volatile.Read vs Interlocked.Read (deeper and more precise)
 
         #region Shortcut Properties
-        /// <summary>
-        /// Thread safe boolean.
-        /// </summary>
+        // / <summary>
+        // / Thread safe boolean.
+        // / </summary>
         public static bool FullScanCompleted
         {
             get => Interlocked.Read(ref _fullScanCompleted) == 1;
@@ -127,9 +127,9 @@ namespace Chizl.SystemSearch
                 foreach (var actionFolder in addList)
                 {
                     RefreshFolder.TryRemove(actionFolder, out _);
-                    //add that specific folder, without subfolders.
+                    // add that specific folder, without subfolders.
                     queTasks.Add(_scanner.ScanFolder(actionFolder, true));
-                    //add all subfolders with each in their own thread task.
+                    // add all subfolders with each in their own thread task.
                     queTasks.AddRange(_scanner.ScanSubFolders(Directory.GetDirectories(actionFolder)));
                 }
 
@@ -139,12 +139,12 @@ namespace Chizl.SystemSearch
                     queTasks.AddRange(_scanner.RemoveRootFolder(actionFolder));
                 }
 
-                //wait for all thread/tasks to complete.
+                // wait for all thread/tasks to complete.
                 Task.WaitAll(queTasks.ToArray());
                 queTasks.Clear();
-                //send complete message to UI
+                // send complete message to UI
                 SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
-                //wait 0.10 sec
+                // wait 0.10 sec
                 await Tools.Delay(100, SleepType.Milliseconds);
 
                 SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");

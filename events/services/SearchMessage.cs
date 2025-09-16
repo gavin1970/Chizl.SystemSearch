@@ -5,7 +5,7 @@ namespace Chizl.SystemSearch
 {
     internal static class SearchMessage
     {
-        //private static int _cleanedUp = 0;
+        // private static int _cleanedUp = 0;
 
         static SearchMessage()
         {
@@ -19,12 +19,12 @@ namespace Chizl.SystemSearch
 #if NETCOREAPP || NET5_0_OR_GREATER
         private static void OnUnloading(System.Runtime.Loader.AssemblyLoadContext context)
         {
-            //Cleanup();
+            // Cleanup();
         }
 #endif
         private static void OnProcessExit(object sender, EventArgs e)
         {
-            //Cleanup();
+            // Cleanup();
         }
 
         public static event SearchEventHandler EventMessaging;

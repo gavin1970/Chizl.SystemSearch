@@ -2,15 +2,15 @@
 {
     partial class Starter
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
+        // / <summary>
+        // / Required designer variable.
+        // / </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        // / <summary>
+        // / Clean up any resources being used.
+        // / </summary>
+        // / <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -22,10 +22,10 @@
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
+        // / <summary>
+        // / Required method for Designer support - do not modify
+        // / the contents of this method with the code editor.
+        // / </summary>
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
@@ -251,14 +251,14 @@
             // CMenuInfoErrRemoveType
             // 
             this.CMenuInfoErrRemoveType.Name = "CMenuInfoErrRemoveType";
-            this.CMenuInfoErrRemoveType.Size = new System.Drawing.Size(180, 22);
+            this.CMenuInfoErrRemoveType.Size = new System.Drawing.Size(145, 22);
             this.CMenuInfoErrRemoveType.Text = "&Remove Type";
             this.CMenuInfoErrRemoveType.Click += new System.EventHandler(this.CMenuInfoErrRemoveType_Click);
             // 
             // CMenuInfoErrIgnore
             // 
             this.CMenuInfoErrIgnore.Name = "CMenuInfoErrIgnore";
-            this.CMenuInfoErrIgnore.Size = new System.Drawing.Size(180, 22);
+            this.CMenuInfoErrIgnore.Size = new System.Drawing.Size(145, 22);
             this.CMenuInfoErrIgnore.Text = "&Ignore Type";
             this.CMenuInfoErrIgnore.Click += new System.EventHandler(this.CMenuInfoErrIgnore_Click);
             // 
@@ -575,7 +575,7 @@
             // 
             this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
             this.ExitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.X)));
-            this.ExitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.ExitToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
             this.ExitToolStripMenuItem.Text = "E&xit";
             this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
@@ -590,7 +590,7 @@
             // AboutToolStripMenuItem
             // 
             this.AboutToolStripMenuItem.Name = "AboutToolStripMenuItem";
-            this.AboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.AboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.AboutToolStripMenuItem.Text = "&About";
             this.AboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
             // 

@@ -2,12 +2,12 @@
 
 ## Project Information
 - What Is It: 
-	- ![Class Library](https://img.shields.io/badge/Multi_Platform-Class_Library-orange)
+	- ![Class Library](https:// img.shields.io/badge/Multi_Platform-Class_Library-orange)
 - Written In: 
-	- ![Visual Studio](https://badgen.net/badge/icon/VisualStudio?color=blue&icon=visualstudio&label)![v2022](https://badgen.net/badge/visualstudio/2022/red?labelColor=blue&color=red&label)
+	- ![Visual Studio](https:// badgen.net/badge/icon/VisualStudio?color=blue&icon=visualstudio&label)![v2022](https:// badgen.net/badge/visualstudio/2022/red?labelColor=blue&color=red&label)
 - Target Frameworks: 
-	- ![NetStandard](https://img.shields.io/badge/.NET_Standard-gray)![](https://img.shields.io/badge/v2.0-red)![](https://img.shields.io/badge/v2.1-blue)
-	- ![NET](https://img.shields.io/badge/.NET8-red)
+	- ![NetStandard](https:// img.shields.io/badge/.NET_Standard-gray)![](https:// img.shields.io/badge/v2.0-red)![](https:// img.shields.io/badge/v2.1-blue)
+	- ![NET](https:// img.shields.io/badge/.NET8-red)
 - Short Description:
 	- `Cross platform library for drive scan file/folder searches with fully functioning Windows .NET Framework 4.8.1 demo UI.`
 
@@ -16,7 +16,7 @@
 ### Library:
 * Is compatible with a wide range of .NET implementations, from older versions to the latest.
   * <b>netstandard2.0</b>
-  [![Build Status](https://travis-ci.org/username/repo-name.svg?branch=master)](https://travis-ci.org/username/repo-name)
+  [![Build Status](https:// travis-ci.org/username/repo-name.svg?branch=master)](https:// travis-ci.org/username/repo-name)
   * netstandard2.1
   * net8.0
 

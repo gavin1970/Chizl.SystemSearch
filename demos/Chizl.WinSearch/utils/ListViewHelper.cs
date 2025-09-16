@@ -55,10 +55,10 @@ public class ListViewHelper
         }
     }
 
-    /// <summary>
-    /// sets default settings for any listView passed to it.
-    /// </summary>
-    /// <param name="lv"></param>
+    // / <summary>
+    // / sets default settings for any listView passed to it.
+    // / </summary>
+    // / <param name="lv"></param>
     private void DefaultListView(ListView lv, ListViewOptions lvo = null)
     {
         if (lv.IsDisposed || lv.Disposing)
@@ -210,29 +210,29 @@ public class ListViewOptions
     }
 }
 
-/// <summary>
-/// This class is an implementation of the 'IComparer' interface.
-/// </summary>
+// / <summary>
+// / This class is an implementation of the 'IComparer' interface.
+// / </summary>
 public class ListViewColumnSorter : IComparer
 {
-    /// <summary>
-    /// Specifies the column to be sorted
-    /// </summary>
+    // / <summary>
+    // / Specifies the column to be sorted
+    // / </summary>
     private int ColumnToSort;
 
-    /// <summary>
-    /// Specifies the order in which to sort (i.e. 'Ascending').
-    /// </summary>
+    // / <summary>
+    // / Specifies the order in which to sort (i.e. 'Ascending').
+    // / </summary>
     private SortOrder OrderOfSort;
 
-    /// <summary>
-    /// Case insensitive comparer object
-    /// </summary>
+    // / <summary>
+    // / Case insensitive comparer object
+    // / </summary>
     private CaseInsensitiveComparer ObjectCompare;
 
-    /// <summary>
-    /// Class constructor. Initializes various elements
-    /// </summary>
+    // / <summary>
+    // / Class constructor. Initializes various elements
+    // / </summary>
     public ListViewColumnSorter()
     {
         // Initialize the column to '0'
@@ -245,26 +245,26 @@ public class ListViewColumnSorter : IComparer
         ObjectCompare = new CaseInsensitiveComparer();
     }
 
-    /// <summary>
-    /// This method is inherited from the IComparer interface. It compares the two objects passed using a case insensitive comparison.
-    /// </summary>
-    /// <param name="x">First object to be compared</param>
-    /// <param name="y">Second object to be compared</param>
-    /// <returns>The result of the comparison. "0" if equal, negative if 'x' is less than 'y' and positive if 'x' is greater than 'y'</returns>
+    // / <summary>
+    // / This method is inherited from the IComparer interface. It compares the two objects passed using a case insensitive comparison.
+    // / </summary>
+    // / <param name="x">First object to be compared</param>
+    // / <param name="y">Second object to be compared</param>
+    // / <returns>The result of the comparison. "0" if equal, negative if 'x' is less than 'y' and positive if 'x' is greater than 'y'</returns>
     public int Compare(object x, object y)
     {
         int compareResult;
-        //get string values from parameters
+        // get string values from parameters
         string xVal = ((ListViewItem)x).SubItems[ColumnToSort].Text;
         string yVal = ((ListViewItem)y).SubItems[ColumnToSort].Text;
 
-        //check if values are int, long, double, or floats
+        // check if values are int, long, double, or floats
         if (float.TryParse(xVal, out float xFloat) && float.TryParse(yVal, out float yFloat))
             compareResult = ObjectCompare.Compare(xFloat, yFloat);
-        //check if values are dates
+        // check if values are dates
         else if (DateTime.TryParse(xVal, out DateTime xDateTime) && DateTime.TryParse(yVal, out DateTime yDateTime))
             compareResult = ObjectCompare.Compare(xDateTime, yDateTime);
-        //compare as strings
+        // compare as strings
         else
             compareResult = ObjectCompare.Compare(xVal, yVal);
 
@@ -286,9 +286,9 @@ public class ListViewColumnSorter : IComparer
         }
     }
 
-    /// <summary>
-    /// Gets or sets the number of the column to which to apply the sorting operation (Defaults to '0').
-    /// </summary>
+    // / <summary>
+    // / Gets or sets the number of the column to which to apply the sorting operation (Defaults to '0').
+    // / </summary>
     public int SortColumn
     {
         set
@@ -301,9 +301,9 @@ public class ListViewColumnSorter : IComparer
         }
     }
 
-    /// <summary>
-    /// Gets or sets the order of sorting to apply (for example, 'Ascending' or 'Descending').
-    /// </summary>
+    // / <summary>
+    // / Gets or sets the order of sorting to apply (for example, 'Ascending' or 'Descending').
+    // / </summary>
     public SortOrder Order
     {
         set

@@ -1,15 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace Chizl.SystemSearch
 {
     public static class ScanPaths
     {
-        private static string _cachedJson = string.Empty;
         private static string _winRoot = string.Empty;
         private static string _sysRoot = string.Empty;
         private static string _userRoot = string.Empty;
@@ -24,7 +20,6 @@ namespace Chizl.SystemSearch
             _winRoot = ProperCase(Environment.GetFolderPath(Environment.SpecialFolder.Windows));
             _internetCache = ProperCase(Environment.GetFolderPath(Environment.SpecialFolder.InternetCache));
             _userRoot = ProperCase(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-            _cachedJson = ProperCase(GlobalSettings.SavePath);
 
             if (!Directory.Exists(_recycleBin))
                 _recycleBin = string.Empty;
@@ -32,7 +27,6 @@ namespace Chizl.SystemSearch
                 _recycleBin = ProperCase(_recycleBin);
         }
 
-        public static string CachedJson => _cachedJson;
         public static string WindowsDir => _winRoot;
         public static string SystemDir => _sysRoot;
         public static string UserDir => _userRoot;
@@ -41,11 +35,11 @@ namespace Chizl.SystemSearch
         public static string RecycleBinDir => _recycleBin;
 
         #region Private Helper Methods
-        /// <summary>
-        /// Only have to Propercase 1 time, to match with what exists.  This is so, 
-        /// we don't have to IgnoreCase for every folder and slow the process down.
-        /// C:\WINDOWS is the biggest issue.
-        /// </summary>
+        // / <summary>
+        // / Only have to Propercase 1 time, to match with what exists.  This is so, 
+        // / we don't have to IgnoreCase for every folder and slow the process down.
+        // / C:\WINDOWS is the biggest issue.
+        // / </summary>
         private static string ProperCase(string path)
         {
             if (path.EndsWith("\\"))
@@ -55,7 +49,7 @@ namespace Chizl.SystemSearch
             var rootList = Directory.GetDirectories(root).ToList();
             var newPath = rootList.FirstOrDefault(f => f.StartsWith(path, StringComparison.CurrentCultureIgnoreCase));
 
-            //This path: C:\User\You\AppData\Local\Temporary Internet Files
+            // This path: C:\User\You\AppData\Local\Temporary Internet Files
             // contains: C:\User\You\AppData\Local\Temp
             if (!newPath.EndsWith("\\"))
                 newPath += "\\";

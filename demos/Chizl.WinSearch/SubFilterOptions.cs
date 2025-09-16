@@ -8,7 +8,6 @@ namespace Chizl.WinSearch
     {
         private string _path = string.Empty;
         private List<string> _excludeItems = new List<string>();
-        public List<string> ExcludeItems { get; } = new List<string>();
 
         public SubFilterOptions(string path)
         {
@@ -16,21 +15,25 @@ namespace Chizl.WinSearch
             _path = path;
         }
 
+        // / <summary>
+        // / Accessible from the outside.
+        // / </summary>
+        public List<string> ExcludeItems { get { return _excludeItems; } }
+
         private void SubFilterOptions_Load(object sender, EventArgs e)
         {
             this.TextPath.Text = _path;
-            if (ExcludeItems.Count > 0)
-                ListBoxSubFilters.Items.AddRange(ExcludeItems.ToArray());
-
-            _excludeItems.AddRange(ExcludeItems);
+            if (_excludeItems.Count > 0)
+                ListBoxSubFilters.Items.AddRange(_excludeItems.ToArray());
         }
         private void ButtonAdd_Click(object sender, EventArgs e)
         {
             int start = this.TextPath.SelectionStart;
             int len = this.TextPath.SelectionLength;
             var sel = this.TextPath.SelectedText;
-            //add to temp if not exists, but if cancel is clicked,
-            //we don't want to add it to the return list.
+
+            // add to temp if not exists, but if cancel is clicked,
+            // we don't want to add it to the return list.
             if (!_excludeItems.Contains(sel))
             {
                 _excludeItems.Add(sel);
@@ -44,9 +47,6 @@ namespace Chizl.WinSearch
         }
         private void ButtonOk_Click(object sender, EventArgs e)
         {
-
-            ExcludeItems.Clear();
-            ExcludeItems.AddRange(_excludeItems);
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
