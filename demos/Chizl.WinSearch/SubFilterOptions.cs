@@ -15,9 +15,9 @@ namespace Chizl.WinSearch
             _path = path;
         }
 
-        // / <summary>
-        // / Accessible from the outside.
-        // / </summary>
+        /// <summary>
+        /// Accessible from the outside.
+        /// </summary>
         public List<string> ExcludeItems { get { return _excludeItems; } }
 
         private void SubFilterOptions_Load(object sender, EventArgs e)

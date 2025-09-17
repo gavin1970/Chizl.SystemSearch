@@ -94,9 +94,9 @@ namespace Chizl.SystemSearch
             }
 
             var verifiedFiles = 0;
+            var fileList = new List<string>();
             if (findings != null && findings.Count > 0)
             {
-                var fileList = new List<string>();
                 retVal = true;
                 foreach (var file in findings)
                 {
@@ -105,7 +105,7 @@ namespace Chizl.SystemSearch
 
                     if (VerifyCriteria(drives, file, wcSearch))
                     {
-                        if (verifiedFiles <= _maxFindingsCount)
+                        if (verifiedFiles < _maxFindingsCount)
                             fileList.Add(file);
                         verifiedFiles++;
                     }
@@ -118,9 +118,8 @@ namespace Chizl.SystemSearch
                 SearchMessage.SendMsg(SearchMessageType.SearchResults, arrData);
             }
 
-            var showing = verifiedFiles > _maxFindingsCount ? _maxFindingsCount : verifiedFiles;
             // send found message
-            SearchMessage.SendMsg(SearchMessageType.SearchStatus, $"Filtered: {showing.FormatByComma()}, Total Found: {verifiedFiles.FormatByComma()}");
+            SearchMessage.SendMsg(SearchMessageType.SearchStatus, $"Filtered: {fileList.Count().FormatByComma()}, Total Found: {verifiedFiles.FormatByComma()}");
             // send total count message, to ensure accuratness
             SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
 
@@ -321,18 +320,18 @@ namespace Chizl.SystemSearch
         #endregion
 
         #region Public Methods
-        // / <summary>
-        // / Scans all drives based on allow filters set in options.  Event messages will be sent to subscribers.
-        // / </summary>
-        // / <param name="reScan">true: Will clear the cache and start over.  false: will leave, but rescan for any new files to add to the cache.</param>
+        /// <summary>
+        /// Scans all drives based on allow filters set in options.  Event messages will be sent to subscribers.
+        /// </summary>
+        /// <param name="reScan">true: Will clear the cache and start over.  false: will leave, but rescan for any new files to add to the cache.</param>
         public Task ScanToCache(bool isRescan = false) => Scan(GlobalSettings.DriveList, true, isRescan);
         public Task ScanToCache(DriveInfo drive) => Scan(new string[] { drive.Name });
         public Task ScanToCache(DriveInfo[] drives) => Scan(drives.Select(w => w.Name).ToArray());
 
-        // / <summary>
-        // / Starts search in cache if exists. Defaults drives to all drives.
-        // / </summary>
-        // / <returns></returns>
+        /// <summary>
+        /// Starts search in cache if exists. Defaults drives to all drives.
+        /// </summary>
+        /// <returns></returns>
         public Task Search(string searchCriteria) => Search(GlobalSettings.DriveList, searchCriteria);
         public Task Search(DriveInfo drive, string searchCriteria) => Search(new string[] { drive.Name }, searchCriteria);
         public Task Search(DriveInfo[] drives, string searchCriteria) => Search(drives.Select(w => w.Name).ToArray(), searchCriteria);

@@ -1,15 +1,15 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
-using System.Drawing;
-using Chizl.WinSearch;
-using System.Diagnostics;
-using Chizl.ThreadSupport;
-using Chizl.Applications;
-using Chizl.SystemSearch;
-using System.Windows.Forms;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Chizl.Applications;
+using Chizl.SystemSearch;
+using Chizl.ThreadSupport;
+using Chizl.WinSearch;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace Chizl.SearchSystemUI
 {
@@ -223,7 +223,7 @@ namespace Chizl.SearchSystemUI
                             }
                             else
                                 unfileInfoList = GetFileInfo(new string[] { e.Message });
-
+                            var cnt = unfileInfoList.Length;
                             _unfilteredItemsList.AddRange(unfileInfoList);
                             this.ResultsListView.Items.AddRange(unfileInfoList);
                             ResultsListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
@@ -359,17 +359,26 @@ namespace Chizl.SearchSystemUI
             if (GlobalSetup.UseDirection.Count == CbAttribute.Items.Count)
                 CbGtLtEq.Visible = GlobalSetup.UseDirection[CbAttribute.SelectedIndex];
         }
-        private bool GetSelectedItem(out string selectedItem)
+        private bool GetSelectedItems(out string[] selectedItems, bool pathOnly)
         {
-            selectedItem = string.Empty;
-            // if (ResultsList.SelectedIndex < 0)
+            selectedItems = new string[0] { };
+            var selected = new List<string>();
+
             if (ResultsListView.SelectedItems.Count.Equals(0))
                 return false;
 
-            // selectedItem = ResultsList.Items[ResultsList.SelectedIndex].ToString();
-            selectedItem = ResultsListView.SelectedItems[0].SubItems[5].Text;
+            foreach (ListViewItem lineItem in ResultsListView.SelectedItems)
+            {
+                if(pathOnly)
+                    selected.Add($"\"{lineItem.SubItems[5].Text}\"");
+                else
+                    selected.Add($"\"{lineItem.Text}\"\t\"{lineItem.SubItems[2].Text}\"\t\"{lineItem.SubItems[3].Text}\"\t\"{lineItem.SubItems[4].Text}\"\t\"{lineItem.SubItems[5].Text}\"");
+            }
+
+            selectedItems = selected.ToArray();
 
             return true;
+
         }
         private void OpenExplorerAndSelectFile(string filePath)
         {
@@ -642,15 +651,18 @@ namespace Chizl.SearchSystemUI
         #region Search Context Menu Events
         private void ListMenuOpenLocation_Click(object sender, EventArgs e)
         {
-            if (GetSelectedItem(out string selectedItem))
-                OpenExplorerAndSelectFile(selectedItem);
+            if (GetSelectedItems(out string[] selectedItems, true))
+            {
+                foreach(var path in selectedItems)
+                    OpenExplorerAndSelectFile(path.Replace("\"", ""));
+            }
         }
         private void ListMenuFilterDrive_Click(object sender, EventArgs e)
         {
-            if (GetSelectedItem(out string selectedItem))
+            if (GetSelectedItems(out string[] selectedItem, true))
             {
                 var count = ResultsListView.Items.Count;
-                var drive = selectedItem.Substring(0, 2).ToUpper();
+                var drive = selectedItem[0].Substring(0, 2).ToUpper();
                 ListViewItem[] items = new ListViewItem[count];
                 ResultsListView.Items.CopyTo(items, 0);
 
@@ -674,10 +686,10 @@ namespace Chizl.SearchSystemUI
         }
         private void ListMenuFilterFileExtension_Click(object sender, EventArgs e)
         {
-            if (GetSelectedItem(out string selectedItem))
+            if (GetSelectedItems(out string[] selectedItems, true))
             {
                 var count = ResultsListView.Items.Count;
-                var ext = Path.GetExtension(selectedItem).ToLower();
+                var ext = Path.GetExtension(selectedItems[0].Replace("\"", "")).ToLower();
 
                 ListViewItem[] items = new ListViewItem[count];
                 ResultsListView.Items.CopyTo(items, 0);
@@ -792,14 +804,6 @@ namespace Chizl.SearchSystemUI
                 }
             }
         }
-        private void CMenuInfoErrCopy_Click(object sender, EventArgs e)
-        {
-
-        }
-        private void CMenuInfoErrIgnore_Click(object sender, EventArgs e)
-        {
-
-        }
         #endregion
 
         #region ListView Setup/Controls
@@ -847,7 +851,7 @@ namespace Chizl.SearchSystemUI
                 lv.ColumnWidthChanged += ListView_ColumnWidthChanged;
 
                 // removed multi-select
-                lv.MultiSelect = false;
+                lv.MultiSelect = true;
                 // allow scrolls
                 lv.Scrollable = true;
                 // Set the view to show details.
@@ -949,9 +953,9 @@ namespace Chizl.SearchSystemUI
 
         private void ListMenuExclude_Click(object sender, EventArgs e)
         {
-            if (GetSelectedItem(out string selectedItem))
+            if (GetSelectedItems(out string[] selectedItems, true))
             {
-                SubFilterOptions subFilter = new SubFilterOptions(selectedItem);
+                SubFilterOptions subFilter = new SubFilterOptions(selectedItems[0].Replace("\"", ""));
                 subFilter.ExcludeItems.Clear();
                 subFilter.ExcludeItems.AddRange(_excludeItems);
 
@@ -1028,6 +1032,32 @@ namespace Chizl.SearchSystemUI
                 ShowMsg(SearchMessageType.StatusMessage, $"Last full scan completed in {_scanTime.TotalSeconds} sec."); 
                 LastScanTimer.Stop();
             }
+        }
+
+        private void ListMenuCopyPath_Click(object sender, EventArgs e)
+        {
+            if (GetSelectedItems(out string[] selectedItems, true))
+            {
+                Clipboard.Clear();
+                Clipboard.SetText(string.Join("\n", selectedItems));
+                ShowMsg(SearchMessageType.StatusMessage, $"'{selectedItems.Count()}' paths has been copied to clipboard.");
+            }
+        }
+
+        private void ListMenuCopyList_Click(object sender, EventArgs e)
+        {
+
+            if (GetSelectedItems(out string[] selectedItems, false))
+            {
+                Clipboard.Clear();
+                Clipboard.SetText(string.Join("\n", selectedItems));
+                ShowMsg(SearchMessageType.StatusMessage, $"'{selectedItems.Count()}' items were copied to clipboard.");
+            }
+        }
+
+        private void ListMenuExportList_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

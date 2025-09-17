@@ -21,11 +21,11 @@ namespace Chizl.SystemSearch
         internal ScanProperties() { }
 
         #region Public Methods
-        // / <summary>
-        // / Used to validate folders to ensure they meet the criteria.
-        // / </summary>
-        // / <param name="path">Path that will be validated with each property that is set to false.</param>
-        // / <returns>true is returned if the property isn't part of the evaluation or if found and the property is allowed.</returns>
+        /// <summary>
+        /// Used to validate folders to ensure they meet the criteria.
+        /// </summary>
+        /// <param name="path">Path that will be validated with each property that is set to false.</param>
+        /// <returns>true is returned if the property isn't part of the evaluation or if found and the property is allowed.</returns>
         public bool AllowDir(string path)
         {
             if (!AllowWindows && path.StartsWith(ScanPaths.WindowsDir))
@@ -51,24 +51,24 @@ namespace Chizl.SystemSearch
         #endregion
 
         #region Public Properties
-        // / <summary>
-        // / ** Thread Safe **<br/>
-        // / If you loading configuration for the first time and you don't want to auto 
-        // / scan or delete from cache instantly, then this should be set to true.<br/>
-        // / Remember to set it back to false or no auto cache sync will occur.
-        // / </summary>
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// If you loading configuration for the first time and you don't want to auto 
+        /// scan or delete from cache instantly, then this should be set to true.<br/>
+        /// Remember to set it back to false or no auto cache sync will occur.
+        /// </summary>
         public bool IgnoreChange
         {
             get => _ignoreChange;
             set => _ignoreChange.SetVal(value);
         }
-        // / <summary>
-        // / ** Thread Safe **<br/>
-        // / Allow Windows Root path to be scanned.<br/>
-        // / Usually: C:\Windows\<br/>
-        // / Only if WindowsDir and SystemDir are the same, AllowSystem 
-        // / will be overridden to the same value as AllowWindows.
-        // / </summary>
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow Windows Root path to be scanned.<br/>
+        /// Usually: C:\Windows\<br/>
+        /// Only if WindowsDir and SystemDir are the same, AllowSystem 
+        /// will be overridden to the same value as AllowWindows.
+        /// </summary>
         public bool AllowWindows
         {
             get => _allowWinRoot;
@@ -80,13 +80,13 @@ namespace Chizl.SystemSearch
                 CheckWinSys();
             }
         }
-        // / <summary>
-        // / ** Thread Safe **<br/>
-        // / Allow System Root path to be scanned.<br/>
-        // / Usually same as Windows, but could be different.<br/>
-        // / Only if WindowsDir and SystemDir are the same, AllowSystem 
-        // / will be overridden to the same value as AllowWindows.
-        // / </summary>
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow System Root path to be scanned.<br/>
+        /// Usually same as Windows, but could be different.<br/>
+        /// Only if WindowsDir and SystemDir are the same, AllowSystem 
+        /// will be overridden to the same value as AllowWindows.
+        /// </summary>
         public bool AllowSystem
         {
             get => _allowSysRoot;
@@ -98,11 +98,11 @@ namespace Chizl.SystemSearch
                 CheckWinSys();
             }
         }
-        // / <summary>
-        // / ** Thread Safe **<br/>
-        // / Allow YourProfile path to be scanned.<br/>
-        // / Usually: C:\Users\YourProfile\
-        // / </summary>
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow YourProfile path to be scanned.<br/>
+        /// Usually: C:\Users\YourProfile\
+        /// </summary>
         public bool AllowUser
         {
             get => _allowUser;
@@ -112,11 +112,11 @@ namespace Chizl.SystemSearch
                     GlobalSettings.AddRemove(UserDir, _allowUser);
             }
         }
-        // / <summary>
-        // / ** Thread Safe **<br/>
-        // / Allow Temp path to be scanned.<br/>
-        // / Usually: C:\Users\YourProfile\AppData\Local\Temp\
-        // / </summary>
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow Temp path to be scanned.<br/>
+        /// Usually: C:\Users\YourProfile\AppData\Local\Temp\
+        /// </summary>
         public bool AllowTemp
         {
             get => _allowTemp;
@@ -126,11 +126,11 @@ namespace Chizl.SystemSearch
                     GlobalSettings.AddRemove(TempDir, _allowTemp);
             }
         }
-        // / <summary>
-        // / ** Thread Safe **<br/>
-        // / Allow Temp Internet Cached path to be scanned.<br/>
-        // / Usually: C:\Users\YourProfile\AppData\Local\Microsoft\Windows\INetCache\
-        // / </summary>
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow Temp Internet Cached path to be scanned.<br/>
+        /// Usually: C:\Users\YourProfile\AppData\Local\Microsoft\Windows\INetCache\
+        /// </summary>
         public bool AllowInternetCache
         {
             get => _allowInternetCache;
@@ -140,11 +140,11 @@ namespace Chizl.SystemSearch
                     GlobalSettings.AddRemove(InternetCache, _allowInternetCache);
             }
         }
-        // / <summary>
-        // / ** Thread Safe **<br/>
-        // / Allow RecycleBin path to be scanned.<br/>
-        // / Usually: C:\\$Recycle.Bin
-        // / </summary>
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow RecycleBin path to be scanned.<br/>
+        /// Usually: C:\\$Recycle.Bin
+        /// </summary>
         public bool AllowRecycleBin
         {
             get => _allowRecycleBin;
@@ -154,9 +154,9 @@ namespace Chizl.SystemSearch
                     GlobalSettings.AddRemove(RecycleBinDir, _allowRecycleBin);
             }
         }
-        // / <summary>
-        // / 
-        // / </summary>
+        /// <summary>
+        /// 
+        /// </summary>
         public bool SearchFilename
         {
             get => _file;

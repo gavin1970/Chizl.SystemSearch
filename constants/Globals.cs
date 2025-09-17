@@ -6,18 +6,18 @@ namespace Chizl.SystemSearch
     [Flags]
     public enum LookupStatus
     {
-        // / <summary>
-        // / Initial setup
-        // / </summary>
+        /// <summary>
+        /// Initial setup
+        /// </summary>
         NotStarted = 1,
-        // / <summary>
-        // / Also know as InProgress, but have extensions and IsRunning looks better than IsInProgress.
-        // / </summary>
+        /// <summary>
+        /// Also know as InProgress, but have extensions and IsRunning looks better than IsInProgress.
+        /// </summary>
         Running = 2,
         Completed = 4,
-        // / <summary>
-        // / Dec: 6 - Used for starter thread, if already running or fullscan already complete, no need to do it again.
-        // / </summary>
+        /// <summary>
+        /// Dec: 6 - Used for starter thread, if already running or fullscan already complete, no need to do it again.
+        /// </summary>
         RunningOrCompleted = Running | Completed,            // 6        
         Aborted = 8,
         NotFinished = NotStarted | Running | Aborted,        // 11
@@ -40,45 +40,45 @@ namespace Chizl.SystemSearch
 
     internal static class SearchExt
     {
-        // / <summary>
-        // /     Ended = Completed | Aborted - Dec: 12
-        // / </summary>
-        // / <returns>True if status is Completed or Aborted</returns>
+        /// <summary>
+        ///     Ended = Completed | Aborted - Dec: 12
+        /// </summary>
+        /// <returns>True if status is Completed or Aborted</returns>
         public static bool HasEnded(this LookupStatus @this) => (@this & LookupStatus.Ended) > 0;
-        // / <summary>
-        // /     Completed = 4
-        // / </summary>
-        // / <returns>True if status is Completed</returns>
+        /// <summary>
+        ///     Completed = 4
+        /// </summary>
+        /// <returns>True if status is Completed</returns>
         public static bool HasCompleted(this LookupStatus @this) => (@this & LookupStatus.Completed) > 0;
-        // / <summary>
-        // /     Aborted = 8
-        // / </summary>
-        // / <returns>True if status is IsAborted</returns>
+        /// <summary>
+        ///     Aborted = 8
+        /// </summary>
+        /// <returns>True if status is IsAborted</returns>
         public static bool HasAborted(this LookupStatus @this) => (@this & LookupStatus.Aborted) > 0;
-        // / <summary>
-        // /     Running = 2
-        // / </summary>
-        // / <returns>True if status is Running</returns>
+        /// <summary>
+        ///     Running = 2
+        /// </summary>
+        /// <returns>True if status is Running</returns>
         public static bool IsRunning(this LookupStatus @this) => (@this & LookupStatus.Running) > 0;
-        // / <summary>
-        // /     NotStarted = 1
-        // / </summary>
-        // / <returns>True if status is NotStarted</returns>
+        /// <summary>
+        ///     NotStarted = 1
+        /// </summary>
+        /// <returns>True if status is NotStarted</returns>
         public static bool HasNotStarted(this LookupStatus @this) => (@this & LookupStatus.NotStarted) > 0;
-        // / <summary>
-        // /     NotFinished = NotStarted | InProgress | Aborted - Dec: 11
-        // / </summary>
-        // / <returns>True if status is NotStarted or InProgress or Aborted</returns>
+        /// <summary>
+        ///     NotFinished = NotStarted | InProgress | Aborted - Dec: 11
+        /// </summary>
+        /// <returns>True if status is NotStarted or InProgress or Aborted</returns>
         public static bool HasNotFinished(this LookupStatus @this) => (@this & LookupStatus.NotFinished) > 0;
-        // / <summary>
-        // /     RunningOrCompleted = Running | Completed - Dec: 6
-        // / </summary>
-        // / <returns>True if status is Running or Completed</returns>
+        /// <summary>
+        ///     RunningOrCompleted = Running | Completed - Dec: 6
+        /// </summary>
+        /// <returns>True if status is Running or Completed</returns>
         public static bool IsRunningOrCompleted(this LookupStatus @this) => (@this & LookupStatus.RunningOrCompleted) > 0;
-        // / <summary>
-        // /     Stopped = NotStarted | Finished - 13
-        // / </summary>
-        // / <returns>True if status is NotStarted | Finished</returns>
+        /// <summary>
+        ///     Stopped = NotStarted | Finished - 13
+        /// </summary>
+        /// <returns>True if status is NotStarted | Finished</returns>
         public static bool HasStopped(this LookupStatus @this) => (@this & LookupStatus.Stopped) > 0;
         public static string[] SplitByStr(this string @this, string splitString)
         {

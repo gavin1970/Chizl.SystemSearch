@@ -35,11 +35,11 @@ namespace Chizl.SystemSearch
         public static string RecycleBinDir => _recycleBin;
 
         #region Private Helper Methods
-        // / <summary>
-        // / Only have to Propercase 1 time, to match with what exists.  This is so, 
-        // / we don't have to IgnoreCase for every folder and slow the process down.
-        // / C:\WINDOWS is the biggest issue.
-        // / </summary>
+        /// <summary>
+        /// Only have to Propercase 1 time, to match with what exists.  This is so, 
+        /// we don't have to IgnoreCase for every folder and slow the process down.
+        /// C:\WINDOWS is the biggest issue.
+        /// </summary>
         private static string ProperCase(string path)
         {
             if (path.EndsWith("\\"))

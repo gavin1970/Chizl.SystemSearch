@@ -32,9 +32,9 @@ namespace Chizl.SystemSearch
         }
         public static ScanProperties ScanSettings { get; } = new ScanProperties();
 
-        // / <summary>
-        // / Scan options to be set from the parent application or use defaults.
-        // / </summary>
+        /// <summary>
+        /// Scan options to be set from the parent application or use defaults.
+        /// </summary>
         public static ConcurrentDictionary<string, bool> RefreshFolder { get; } = new ConcurrentDictionary<string, bool>();
 
         #region Shortcut Methods
@@ -66,9 +66,9 @@ namespace Chizl.SystemSearch
         // Volatile.Read vs Interlocked.Read (deeper and more precise)
 
         #region Shortcut Properties
-        // / <summary>
-        // / Thread safe boolean.
-        // / </summary>
+        /// <summary>
+        /// Thread safe boolean.
+        /// </summary>
         public static bool FullScanCompleted
         {
             get => Interlocked.Read(ref _fullScanCompleted) == 1;

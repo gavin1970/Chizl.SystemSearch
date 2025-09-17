@@ -2,15 +2,15 @@
 {
     partial class Starter
     {
-        // / <summary>
-        // / Required designer variable.
-        // / </summary>
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        // / <summary>
-        // / Clean up any resources being used.
-        // / </summary>
-        // / <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -22,10 +22,10 @@
 
         #region Windows Form Designer generated code
 
-        // / <summary>
-        // / Required method for Designer support - do not modify
-        // / the contents of this method with the code editor.
-        // / </summary>
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
@@ -41,10 +41,8 @@
             this.EventList = new System.Windows.Forms.ListBox();
             this.CMenuInfoErr = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.CMenuInfoErrClear = new System.Windows.Forms.ToolStripMenuItem();
-            this.CMenuInfoErrCopy = new System.Windows.Forms.ToolStripMenuItem();
             this.CMenuInfoErrFilter = new System.Windows.Forms.ToolStripMenuItem();
             this.CMenuInfoErrRemoveType = new System.Windows.Forms.ToolStripMenuItem();
-            this.CMenuInfoErrIgnore = new System.Windows.Forms.ToolStripMenuItem();
             this.ResultsPanel = new System.Windows.Forms.Panel();
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
             this.ResultsListView = new System.Windows.Forms.ListView();
@@ -89,6 +87,11 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.StartupTimer = new System.Windows.Forms.Timer(this.components);
             this.LastScanTimer = new System.Windows.Forms.Timer(this.components);
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.ListMenuCopyPath = new System.Windows.Forms.ToolStripMenuItem();
+            this.ListMenuCopyList = new System.Windows.Forms.ToolStripMenuItem();
+            this.ListMenuExportList = new System.Windows.Forms.ToolStripMenuItem();
             this.PanelSearchText.SuspendLayout();
             this.PanelSearchAttrib.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
@@ -220,10 +223,9 @@
             // 
             this.CMenuInfoErr.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.CMenuInfoErrClear,
-            this.CMenuInfoErrCopy,
             this.CMenuInfoErrFilter});
             this.CMenuInfoErr.Name = "CMenuInfoErr";
-            this.CMenuInfoErr.Size = new System.Drawing.Size(106, 70);
+            this.CMenuInfoErr.Size = new System.Drawing.Size(106, 48);
             // 
             // CMenuInfoErrClear
             // 
@@ -232,18 +234,10 @@
             this.CMenuInfoErrClear.Text = "&Clear";
             this.CMenuInfoErrClear.Click += new System.EventHandler(this.CMenuInfoErrClear_Click);
             // 
-            // CMenuInfoErrCopy
-            // 
-            this.CMenuInfoErrCopy.Name = "CMenuInfoErrCopy";
-            this.CMenuInfoErrCopy.Size = new System.Drawing.Size(105, 22);
-            this.CMenuInfoErrCopy.Text = "&Copy";
-            this.CMenuInfoErrCopy.Click += new System.EventHandler(this.CMenuInfoErrCopy_Click);
-            // 
             // CMenuInfoErrFilter
             // 
             this.CMenuInfoErrFilter.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.CMenuInfoErrRemoveType,
-            this.CMenuInfoErrIgnore});
+            this.CMenuInfoErrRemoveType});
             this.CMenuInfoErrFilter.Name = "CMenuInfoErrFilter";
             this.CMenuInfoErrFilter.Size = new System.Drawing.Size(105, 22);
             this.CMenuInfoErrFilter.Text = "&Filters";
@@ -251,16 +245,9 @@
             // CMenuInfoErrRemoveType
             // 
             this.CMenuInfoErrRemoveType.Name = "CMenuInfoErrRemoveType";
-            this.CMenuInfoErrRemoveType.Size = new System.Drawing.Size(145, 22);
+            this.CMenuInfoErrRemoveType.Size = new System.Drawing.Size(180, 22);
             this.CMenuInfoErrRemoveType.Text = "&Remove Type";
             this.CMenuInfoErrRemoveType.Click += new System.EventHandler(this.CMenuInfoErrRemoveType_Click);
-            // 
-            // CMenuInfoErrIgnore
-            // 
-            this.CMenuInfoErrIgnore.Name = "CMenuInfoErrIgnore";
-            this.CMenuInfoErrIgnore.Size = new System.Drawing.Size(145, 22);
-            this.CMenuInfoErrIgnore.Text = "&Ignore Type";
-            this.CMenuInfoErrIgnore.Click += new System.EventHandler(this.CMenuInfoErrIgnore_Click);
             // 
             // ResultsPanel
             // 
@@ -313,11 +300,16 @@
             // 
             this.CMenuList.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ListMenuFilters,
+            this.ListMenuExclude,
+            this.toolStripSeparator1,
             this.ListMenuOpenLocation,
             this.ListMenuClearList,
-            this.ListMenuExclude});
+            this.toolStripSeparator2,
+            this.ListMenuCopyPath,
+            this.ListMenuCopyList,
+            this.ListMenuExportList});
             this.CMenuList.Name = "CMenuList";
-            this.CMenuList.Size = new System.Drawing.Size(177, 92);
+            this.CMenuList.Size = new System.Drawing.Size(182, 192);
             // 
             // ListMenuFilters
             // 
@@ -326,7 +318,7 @@
             this.ListMenuFilterDrive,
             this.ListMenuFilterFileExtension});
             this.ListMenuFilters.Name = "ListMenuFilters";
-            this.ListMenuFilters.Size = new System.Drawing.Size(176, 22);
+            this.ListMenuFilters.Size = new System.Drawing.Size(181, 22);
             this.ListMenuFilters.Text = "&Sub-Filter";
             // 
             // ListMenuFilterClear
@@ -353,21 +345,21 @@
             // ListMenuOpenLocation
             // 
             this.ListMenuOpenLocation.Name = "ListMenuOpenLocation";
-            this.ListMenuOpenLocation.Size = new System.Drawing.Size(176, 22);
+            this.ListMenuOpenLocation.Size = new System.Drawing.Size(181, 22);
             this.ListMenuOpenLocation.Text = "&Open Location";
             this.ListMenuOpenLocation.Click += new System.EventHandler(this.ListMenuOpenLocation_Click);
             // 
             // ListMenuClearList
             // 
             this.ListMenuClearList.Name = "ListMenuClearList";
-            this.ListMenuClearList.Size = new System.Drawing.Size(176, 22);
-            this.ListMenuClearList.Text = "&Clear Results List";
+            this.ListMenuClearList.Size = new System.Drawing.Size(181, 22);
+            this.ListMenuClearList.Text = "Clear &Results List";
             this.ListMenuClearList.Click += new System.EventHandler(this.ListMenuClearList_Click);
             // 
             // ListMenuExclude
             // 
             this.ListMenuExclude.Name = "ListMenuExclude";
-            this.ListMenuExclude.Size = new System.Drawing.Size(176, 22);
+            this.ListMenuExclude.Size = new System.Drawing.Size(181, 22);
             this.ListMenuExclude.Text = "&Excluded (Subfilter)";
             this.ListMenuExclude.Click += new System.EventHandler(this.ListMenuExclude_Click);
             // 
@@ -705,6 +697,37 @@
             this.LastScanTimer.Interval = 10000;
             this.LastScanTimer.Tick += new System.EventHandler(this.LastScanTimer_Tick);
             // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(178, 6);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(178, 6);
+            // 
+            // ListMenuCopyPath
+            // 
+            this.ListMenuCopyPath.Name = "ListMenuCopyPath";
+            this.ListMenuCopyPath.Size = new System.Drawing.Size(181, 22);
+            this.ListMenuCopyPath.Text = "&Copy Path";
+            this.ListMenuCopyPath.Click += new System.EventHandler(this.ListMenuCopyPath_Click);
+            // 
+            // ListMenuCopyList
+            // 
+            this.ListMenuCopyList.Name = "ListMenuCopyList";
+            this.ListMenuCopyList.Size = new System.Drawing.Size(181, 22);
+            this.ListMenuCopyList.Text = "Copy &Selected Paths";
+            this.ListMenuCopyList.Click += new System.EventHandler(this.ListMenuCopyList_Click);
+            // 
+            // ListMenuExportList
+            // 
+            this.ListMenuExportList.Name = "ListMenuExportList";
+            this.ListMenuExportList.Size = new System.Drawing.Size(181, 22);
+            this.ListMenuExportList.Text = "&Export List";
+            this.ListMenuExportList.Click += new System.EventHandler(this.ListMenuExportList_Click);
+            // 
             // Starter
             // 
             this.AcceptButton = this.BtnFind;
@@ -801,9 +824,7 @@
         private System.Windows.Forms.ContextMenuStrip CMenuInfoErr;
         private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrClear;
         private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrRemoveType;
-        private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrCopy;
         private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrFilter;
-        private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrIgnore;
         private System.Windows.Forms.Panel PanelSearchAttrib;
         private System.Windows.Forms.ComboBox CbAttribute;
         private System.Windows.Forms.ComboBox CbGtLtEq;
@@ -815,6 +836,11 @@
         private System.Windows.Forms.SplitContainer MainSplitContainer;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.CheckBox ChkHideErrors;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem ListMenuCopyPath;
+        private System.Windows.Forms.ToolStripMenuItem ListMenuCopyList;
+        private System.Windows.Forms.ToolStripMenuItem ListMenuExportList;
     }
 }
 
