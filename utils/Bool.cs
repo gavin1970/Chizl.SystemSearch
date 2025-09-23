@@ -7,8 +7,8 @@ namespace Chizl.ThreadSupport
     /// <code>
     /// static Bool _myVar = new Bool(true);
     /// ...
-    /// var prevBool = _myVar.SetVal(false);
-    /// Console.WriteLine($"The old value was: {prevBool}.  The new value is: {_myVar}");
+    /// var prevValue = _myVar.SetVal(false);
+    /// Console.WriteLine($"The old value was: {prevValue}.  The new value is: {_myVar}");
     /// </code>
     /// </summary>
     public sealed class Bool
@@ -24,8 +24,8 @@ namespace Chizl.ThreadSupport
         /// or
         /// static Bool _myVar = new Bool();
         /// ...
-        /// var prevBool = _myVar.SetVal(false);
-        /// Console.WriteLine($"The old value was: {prevBool}.  The new value is: {_myVar}");
+        /// var prevValue = _myVar.SetVal(false);
+        /// Console.WriteLine($"The old value was: {prevValue}.  The new value is: {_myVar}");
         /// </code>
         /// </summary>
         /// <param name="defaultValue">(Optional) Default: false</param>
@@ -38,7 +38,7 @@ namespace Chizl.ThreadSupport
         /// var prevBool = _myVar.SetTrue();
         /// or
         /// if (!_myVar.SetTrue())
-        ///     Console.WriteLine($"Previous value was false, but now set to {_myVar}.");
+        ///     Console.WriteLine($"Value was false, but now set to {_myVar}.");
         /// </code>
         /// </summary>
         /// <param name="boolValue">New Boolean value.</param>
@@ -52,7 +52,7 @@ namespace Chizl.ThreadSupport
         /// var prevBool = _myVar.SetFalse();
         /// or
         /// if (!_myVar.SetFalse())
-        ///     Console.WriteLine($"Previous value was false, but now set to {_myVar}.");
+        ///     Console.WriteLine($"Value was already set to false.  Current value is {_myVar}.");
         /// </code>
         /// </summary>
         /// <param name="boolValue">New Boolean value.</param>
@@ -65,7 +65,9 @@ namespace Chizl.ThreadSupport
         /// var prevBool = _myVar.SetVal(true);
         /// or
         /// if (!_myVar.SetVal(true))
-        ///     Console.WriteLine($"Previous value was false, but now set to {_myVar}.");
+        ///     Console.WriteLine($"Value was false, but now set to {_myVar}.");
+        /// else
+        ///     Console.WriteLine($"Value was already set to true.  Current value is {_myVar}.");
         /// </code>
         /// </summary>
         /// <param name="boolValue">New Boolean value.</param>
@@ -73,13 +75,15 @@ namespace Chizl.ThreadSupport
         public bool SetVal(bool boolValue) => Interlocked.Exchange(ref _boolValue, (boolValue ? 1 : 0)) == 1;
 
         /// <summary>
-        /// Default, when a property isn't assigned, allowing Bool class to be used like a variable, returning if it's True or False.
+        /// Default, when a property isn't being assigned by properties, this allows Bool class to be used like a variable, returning true or false.
         /// <code>
         /// static Bool _myVar = new Bool(true);
         /// ...
-        /// Console.WriteLine($"_myVar = {_myVar}");
-        /// 
-        /// Returns: "_myVar = true"
+        /// if (_myVar)
+        ///     Console.WriteLine($"Value is true");
+        /// else
+        ///     Console.WriteLine($"Value is false");
+        /// Returns: "Value is true"
         /// </code>
         /// </summary>
         public static implicit operator bool(Bool obj)

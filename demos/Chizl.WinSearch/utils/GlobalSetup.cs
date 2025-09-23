@@ -1,5 +1,7 @@
 ﻿using Chizl.SystemSearch;
 using System.Collections.Generic;
+using System.IO;
+using System.Windows.Forms;
 
 namespace Chizl.SearchSystemUI
 {
@@ -37,6 +39,24 @@ namespace Chizl.SearchSystemUI
                 UseDirection.Add(addDir);
 
             return retVal;
+        }
+        public static ListViewItem[] GetFileInfo(string[] unfiltList)
+        {
+            var listViewItems = new List<ListViewItem>();
+            foreach (var filePath in unfiltList)
+            {
+                var fi = new FileInfo(filePath);
+                var liv = new ListViewItem(fi.Name);
+                liv.SubItems.Add(fi.Length.ToString());
+                liv.SubItems.Add($"{fi.Length.FormatByteSize()}");
+                liv.SubItems.Add(fi.CreationTime.ToString("MM/dd/yyyy HH:mm:ss"));
+                liv.SubItems.Add(fi.LastWriteTime.ToString("MM/dd/yyyy HH:mm:ss"));
+                liv.SubItems.Add(fi.FullName);
+
+                listViewItems.Add(liv);
+            }
+
+            return listViewItems.ToArray();
         }
     }
 }

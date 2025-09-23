@@ -32,9 +32,6 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Starter));
             this.PanelSearchText = new System.Windows.Forms.Panel();
             this.TxtSearchName = new System.Windows.Forms.TextBox();
-            this.PanelSearchAttrib = new System.Windows.Forms.Panel();
-            this.CbAttribute = new System.Windows.Forms.ComboBox();
-            this.CbGtLtEq = new System.Windows.Forms.ComboBox();
             this.PanelFindButton = new System.Windows.Forms.Panel();
             this.BtnFind = new System.Windows.Forms.Button();
             this.BtnOptions = new System.Windows.Forms.Button();
@@ -99,7 +96,6 @@
             this.MnuAllowedFolders = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.AllowFoldersTitle = new System.Windows.Forms.ToolStripMenuItem();
             this.PanelSearchText.SuspendLayout();
-            this.PanelSearchAttrib.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
             this.CMenuInfoErr.SuspendLayout();
             this.ResultsPanel.SuspendLayout();
@@ -128,7 +124,6 @@
             // PanelSearchText
             // 
             this.PanelSearchText.Controls.Add(this.TxtSearchName);
-            this.PanelSearchText.Controls.Add(this.PanelSearchAttrib);
             this.PanelSearchText.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PanelSearchText.Location = new System.Drawing.Point(87, 0);
             this.PanelSearchText.Name = "PanelSearchText";
@@ -144,41 +139,9 @@
             this.TxtSearchName.ForeColor = System.Drawing.SystemColors.MenuText;
             this.TxtSearchName.Location = new System.Drawing.Point(5, 5);
             this.TxtSearchName.Name = "TxtSearchName";
-            this.TxtSearchName.Size = new System.Drawing.Size(740, 20);
+            this.TxtSearchName.Size = new System.Drawing.Size(945, 20);
             this.TxtSearchName.TabIndex = 3;
             this.TxtSearchName.TextChanged += new System.EventHandler(this.TxtSearchName_TextChanged);
-            // 
-            // PanelSearchAttrib
-            // 
-            this.PanelSearchAttrib.Controls.Add(this.CbAttribute);
-            this.PanelSearchAttrib.Controls.Add(this.CbGtLtEq);
-            this.PanelSearchAttrib.Dock = System.Windows.Forms.DockStyle.Right;
-            this.PanelSearchAttrib.Location = new System.Drawing.Point(745, 5);
-            this.PanelSearchAttrib.Name = "PanelSearchAttrib";
-            this.PanelSearchAttrib.Padding = new System.Windows.Forms.Padding(5, 0, 0, 0);
-            this.PanelSearchAttrib.Size = new System.Drawing.Size(205, 25);
-            this.PanelSearchAttrib.TabIndex = 4;
-            // 
-            // CbAttribute
-            // 
-            this.CbAttribute.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.CbAttribute.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CbAttribute.FormattingEnabled = true;
-            this.CbAttribute.Location = new System.Drawing.Point(5, 0);
-            this.CbAttribute.Name = "CbAttribute";
-            this.CbAttribute.Size = new System.Drawing.Size(104, 21);
-            this.CbAttribute.TabIndex = 0;
-            this.CbAttribute.SelectedIndexChanged += new System.EventHandler(this.CbAttribute_SelectedIndexChanged);
-            // 
-            // CbGtLtEq
-            // 
-            this.CbGtLtEq.Dock = System.Windows.Forms.DockStyle.Right;
-            this.CbGtLtEq.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CbGtLtEq.FormattingEnabled = true;
-            this.CbGtLtEq.Location = new System.Drawing.Point(109, 0);
-            this.CbGtLtEq.Name = "CbGtLtEq";
-            this.CbGtLtEq.Size = new System.Drawing.Size(96, 21);
-            this.CbGtLtEq.TabIndex = 1;
             // 
             // PanelFindButton
             // 
@@ -819,7 +782,6 @@
             this.Resize += new System.EventHandler(this.Starter_Resize);
             this.PanelSearchText.ResumeLayout(false);
             this.PanelSearchText.PerformLayout();
-            this.PanelSearchAttrib.ResumeLayout(false);
             this.PanelFindButton.ResumeLayout(false);
             this.CMenuInfoErr.ResumeLayout(false);
             this.ResultsPanel.ResumeLayout(false);
@@ -900,9 +862,6 @@
         private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrClear;
         private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrRemoveType;
         private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrFilter;
-        private System.Windows.Forms.Panel PanelSearchAttrib;
-        private System.Windows.Forms.ComboBox CbAttribute;
-        private System.Windows.Forms.ComboBox CbGtLtEq;
         private System.Windows.Forms.ToolStripMenuItem ListMenuExclude;
         private System.Windows.Forms.ToolStripStatusLabel StatusToolStripSubFiltered;
         private System.Windows.Forms.ListView ResultsListView;
