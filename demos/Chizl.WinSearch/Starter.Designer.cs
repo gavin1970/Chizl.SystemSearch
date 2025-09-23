@@ -45,15 +45,24 @@
             this.CMenuInfoErrRemoveType = new System.Windows.Forms.ToolStripMenuItem();
             this.ResultsPanel = new System.Windows.Forms.Panel();
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.panel4 = new System.Windows.Forms.Panel();
             this.ResultsListView = new System.Windows.Forms.ListView();
             this.CMenuList = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ListMenuFilters = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuFilterClear = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuFilterDrive = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuFilterFileExtension = new System.Windows.Forms.ToolStripMenuItem();
+            this.ListMenuExclude = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.ListMenuOpenLocation = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuClearList = new System.Windows.Forms.ToolStripMenuItem();
-            this.ListMenuExclude = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.ListMenuCopyPath = new System.Windows.Forms.ToolStripMenuItem();
+            this.ListMenuCopyList = new System.Windows.Forms.ToolStripMenuItem();
+            this.ListMenuExportList = new System.Windows.Forms.ToolStripMenuItem();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.ChkHideInfo = new System.Windows.Forms.CheckBox();
+            this.panel5 = new System.Windows.Forms.Panel();
             this.EventListsSplitContainer = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
             this.ChkHideErrors = new System.Windows.Forms.CheckBox();
@@ -87,11 +96,8 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.StartupTimer = new System.Windows.Forms.Timer(this.components);
             this.LastScanTimer = new System.Windows.Forms.Timer(this.components);
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.ListMenuCopyPath = new System.Windows.Forms.ToolStripMenuItem();
-            this.ListMenuCopyList = new System.Windows.Forms.ToolStripMenuItem();
-            this.ListMenuExportList = new System.Windows.Forms.ToolStripMenuItem();
+            this.MnuAllowedFolders = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.AllowFoldersTitle = new System.Windows.Forms.ToolStripMenuItem();
             this.PanelSearchText.SuspendLayout();
             this.PanelSearchAttrib.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
@@ -101,7 +107,10 @@
             this.MainSplitContainer.Panel1.SuspendLayout();
             this.MainSplitContainer.Panel2.SuspendLayout();
             this.MainSplitContainer.SuspendLayout();
+            this.panel4.SuspendLayout();
             this.CMenuList.SuspendLayout();
+            this.panel3.SuspendLayout();
+            this.panel5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.EventListsSplitContainer)).BeginInit();
             this.EventListsSplitContainer.Panel1.SuspendLayout();
             this.EventListsSplitContainer.Panel2.SuspendLayout();
@@ -113,6 +122,7 @@
             this.StartupStatusStrip.SuspendLayout();
             this.PanelSearchBar.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.MnuAllowedFolders.SuspendLayout();
             this.SuspendLayout();
             // 
             // PanelSearchText
@@ -215,7 +225,7 @@
             this.EventList.ItemHeight = 14;
             this.EventList.Location = new System.Drawing.Point(0, 0);
             this.EventList.Name = "EventList";
-            this.EventList.Size = new System.Drawing.Size(1134, 59);
+            this.EventList.Size = new System.Drawing.Size(1144, 128);
             this.EventList.TabIndex = 1;
             this.EventList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.InfoError_MouseDown);
             // 
@@ -245,7 +255,7 @@
             // CMenuInfoErrRemoveType
             // 
             this.CMenuInfoErrRemoveType.Name = "CMenuInfoErrRemoveType";
-            this.CMenuInfoErrRemoveType.Size = new System.Drawing.Size(180, 22);
+            this.CMenuInfoErrRemoveType.Size = new System.Drawing.Size(145, 22);
             this.CMenuInfoErrRemoveType.Text = "&Remove Type";
             this.CMenuInfoErrRemoveType.Click += new System.EventHandler(this.CMenuInfoErrRemoveType_Click);
             // 
@@ -271,27 +281,36 @@
             // MainSplitContainer.Panel1
             // 
             this.MainSplitContainer.Panel1.BackColor = System.Drawing.Color.DarkGray;
-            this.MainSplitContainer.Panel1.Controls.Add(this.ResultsListView);
-            this.MainSplitContainer.Panel1.Padding = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.MainSplitContainer.Panel1.Controls.Add(this.panel4);
             // 
             // MainSplitContainer.Panel2
             // 
             this.MainSplitContainer.Panel2.BackColor = System.Drawing.Color.DarkGray;
-            this.MainSplitContainer.Panel2.Controls.Add(this.EventListsSplitContainer);
-            this.MainSplitContainer.Panel2.Padding = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.MainSplitContainer.Panel2.Controls.Add(this.panel5);
             this.MainSplitContainer.Size = new System.Drawing.Size(1144, 557);
-            this.MainSplitContainer.SplitterDistance = 405;
+            this.MainSplitContainer.SplitterDistance = 277;
             this.MainSplitContainer.SplitterWidth = 10;
             this.MainSplitContainer.TabIndex = 16;
+            this.MainSplitContainer.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.MainSplitContainer_SplitterMoved);
+            // 
+            // panel4
+            // 
+            this.panel4.Controls.Add(this.ResultsListView);
+            this.panel4.Controls.Add(this.panel3);
+            this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel4.Location = new System.Drawing.Point(0, 0);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(1144, 277);
+            this.panel4.TabIndex = 4;
             // 
             // ResultsListView
             // 
             this.ResultsListView.ContextMenuStrip = this.CMenuList;
             this.ResultsListView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ResultsListView.HideSelection = false;
-            this.ResultsListView.Location = new System.Drawing.Point(5, 0);
+            this.ResultsListView.Location = new System.Drawing.Point(0, 0);
             this.ResultsListView.Name = "ResultsListView";
-            this.ResultsListView.Size = new System.Drawing.Size(1134, 405);
+            this.ResultsListView.Size = new System.Drawing.Size(1144, 259);
             this.ResultsListView.TabIndex = 2;
             this.ResultsListView.UseCompatibleStateImageBehavior = false;
             this.ResultsListView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ResultsListView_MouseUp);
@@ -309,7 +328,7 @@
             this.ListMenuCopyList,
             this.ListMenuExportList});
             this.CMenuList.Name = "CMenuList";
-            this.CMenuList.Size = new System.Drawing.Size(182, 192);
+            this.CMenuList.Size = new System.Drawing.Size(190, 170);
             // 
             // ListMenuFilters
             // 
@@ -318,7 +337,7 @@
             this.ListMenuFilterDrive,
             this.ListMenuFilterFileExtension});
             this.ListMenuFilters.Name = "ListMenuFilters";
-            this.ListMenuFilters.Size = new System.Drawing.Size(181, 22);
+            this.ListMenuFilters.Size = new System.Drawing.Size(189, 22);
             this.ListMenuFilters.Text = "&Sub-Filter";
             // 
             // ListMenuFilterClear
@@ -342,32 +361,98 @@
             this.ListMenuFilterFileExtension.Text = "Show Selected &File Extension Only";
             this.ListMenuFilterFileExtension.Click += new System.EventHandler(this.ListMenuFilterFileExtension_Click);
             // 
+            // ListMenuExclude
+            // 
+            this.ListMenuExclude.Name = "ListMenuExclude";
+            this.ListMenuExclude.Size = new System.Drawing.Size(189, 22);
+            this.ListMenuExclude.Text = "&Excluded (Subfilter)";
+            this.ListMenuExclude.Click += new System.EventHandler(this.ListMenuExclude_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(186, 6);
+            // 
             // ListMenuOpenLocation
             // 
             this.ListMenuOpenLocation.Name = "ListMenuOpenLocation";
-            this.ListMenuOpenLocation.Size = new System.Drawing.Size(181, 22);
+            this.ListMenuOpenLocation.Size = new System.Drawing.Size(189, 22);
             this.ListMenuOpenLocation.Text = "&Open Location";
             this.ListMenuOpenLocation.Click += new System.EventHandler(this.ListMenuOpenLocation_Click);
             // 
             // ListMenuClearList
             // 
             this.ListMenuClearList.Name = "ListMenuClearList";
-            this.ListMenuClearList.Size = new System.Drawing.Size(181, 22);
+            this.ListMenuClearList.Size = new System.Drawing.Size(189, 22);
             this.ListMenuClearList.Text = "Clear &Results List";
             this.ListMenuClearList.Click += new System.EventHandler(this.ListMenuClearList_Click);
             // 
-            // ListMenuExclude
+            // toolStripSeparator2
             // 
-            this.ListMenuExclude.Name = "ListMenuExclude";
-            this.ListMenuExclude.Size = new System.Drawing.Size(181, 22);
-            this.ListMenuExclude.Text = "&Excluded (Subfilter)";
-            this.ListMenuExclude.Click += new System.EventHandler(this.ListMenuExclude_Click);
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(186, 6);
+            // 
+            // ListMenuCopyPath
+            // 
+            this.ListMenuCopyPath.Name = "ListMenuCopyPath";
+            this.ListMenuCopyPath.Size = new System.Drawing.Size(189, 22);
+            this.ListMenuCopyPath.Text = "&Copy Selected Path(s)";
+            this.ListMenuCopyPath.Click += new System.EventHandler(this.ListMenuCopyPath_Click);
+            // 
+            // ListMenuCopyList
+            // 
+            this.ListMenuCopyList.Name = "ListMenuCopyList";
+            this.ListMenuCopyList.Size = new System.Drawing.Size(189, 22);
+            this.ListMenuCopyList.Text = "Copy &Selected Row(s)";
+            this.ListMenuCopyList.Click += new System.EventHandler(this.ListMenuCopyList_Click);
+            // 
+            // ListMenuExportList
+            // 
+            this.ListMenuExportList.Name = "ListMenuExportList";
+            this.ListMenuExportList.Size = new System.Drawing.Size(189, 22);
+            this.ListMenuExportList.Text = "&Export List (CSV)";
+            this.ListMenuExportList.Click += new System.EventHandler(this.ListMenuExportList_Click);
+            // 
+            // panel3
+            // 
+            this.panel3.BackColor = System.Drawing.Color.Gray;
+            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel3.Controls.Add(this.ChkHideInfo);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel3.Location = new System.Drawing.Point(0, 259);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(1144, 18);
+            this.panel3.TabIndex = 3;
+            // 
+            // ChkHideInfo
+            // 
+            this.ChkHideInfo.AutoSize = true;
+            this.ChkHideInfo.Checked = true;
+            this.ChkHideInfo.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ChkHideInfo.Dock = System.Windows.Forms.DockStyle.Right;
+            this.ChkHideInfo.Location = new System.Drawing.Point(1029, 0);
+            this.ChkHideInfo.Name = "ChkHideInfo";
+            this.ChkHideInfo.Size = new System.Drawing.Size(113, 16);
+            this.ChkHideInfo.TabIndex = 0;
+            this.ChkHideInfo.Text = "Hide All Messages";
+            this.ChkHideInfo.UseVisualStyleBackColor = true;
+            this.ChkHideInfo.CheckedChanged += new System.EventHandler(this.UIOptions_CheckedChanged);
+            // 
+            // panel5
+            // 
+            this.panel5.Controls.Add(this.EventListsSplitContainer);
+            this.panel5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel5.Location = new System.Drawing.Point(0, 0);
+            this.panel5.Name = "panel5";
+            this.panel5.Size = new System.Drawing.Size(1144, 270);
+            this.panel5.TabIndex = 16;
             // 
             // EventListsSplitContainer
             // 
             this.EventListsSplitContainer.BackColor = System.Drawing.Color.DimGray;
             this.EventListsSplitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.EventListsSplitContainer.Location = new System.Drawing.Point(5, 0);
+            this.EventListsSplitContainer.Location = new System.Drawing.Point(0, 0);
+            this.EventListsSplitContainer.MinimumSize = new System.Drawing.Size(0, 50);
             this.EventListsSplitContainer.Name = "EventListsSplitContainer";
             this.EventListsSplitContainer.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -381,8 +466,8 @@
             // 
             this.EventListsSplitContainer.Panel2.BackColor = System.Drawing.Color.DarkGray;
             this.EventListsSplitContainer.Panel2.Controls.Add(this.ErrorList);
-            this.EventListsSplitContainer.Size = new System.Drawing.Size(1134, 142);
-            this.EventListsSplitContainer.SplitterDistance = 77;
+            this.EventListsSplitContainer.Size = new System.Drawing.Size(1144, 270);
+            this.EventListsSplitContainer.SplitterDistance = 146;
             this.EventListsSplitContainer.SplitterWidth = 10;
             this.EventListsSplitContainer.TabIndex = 15;
             // 
@@ -392,9 +477,9 @@
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.ChkHideErrors);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 59);
+            this.panel1.Location = new System.Drawing.Point(0, 128);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1134, 18);
+            this.panel1.Size = new System.Drawing.Size(1144, 18);
             this.panel1.TabIndex = 2;
             // 
             // ChkHideErrors
@@ -403,11 +488,11 @@
             this.ChkHideErrors.Checked = true;
             this.ChkHideErrors.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkHideErrors.Dock = System.Windows.Forms.DockStyle.Right;
-            this.ChkHideErrors.Location = new System.Drawing.Point(1054, 0);
+            this.ChkHideErrors.Location = new System.Drawing.Point(1026, 0);
             this.ChkHideErrors.Name = "ChkHideErrors";
-            this.ChkHideErrors.Size = new System.Drawing.Size(78, 16);
+            this.ChkHideErrors.Size = new System.Drawing.Size(116, 16);
             this.ChkHideErrors.TabIndex = 0;
-            this.ChkHideErrors.Text = "Hide Errors";
+            this.ChkHideErrors.Text = "Hide Access Errors";
             this.ChkHideErrors.UseVisualStyleBackColor = true;
             this.ChkHideErrors.CheckedChanged += new System.EventHandler(this.UIOptions_CheckedChanged);
             // 
@@ -421,7 +506,7 @@
             this.ErrorList.ItemHeight = 14;
             this.ErrorList.Location = new System.Drawing.Point(0, 0);
             this.ErrorList.Name = "ErrorList";
-            this.ErrorList.Size = new System.Drawing.Size(1134, 55);
+            this.ErrorList.Size = new System.Drawing.Size(1144, 114);
             this.ErrorList.TabIndex = 0;
             this.ErrorList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.InfoError_MouseDown);
             // 
@@ -431,7 +516,7 @@
             this.ChkSystemFolder.CheckOnClick = true;
             this.ChkSystemFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkSystemFolder.Name = "ChkSystemFolder";
-            this.ChkSystemFolder.Size = new System.Drawing.Size(151, 22);
+            this.ChkSystemFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkSystemFolder.Text = "System";
             this.ChkSystemFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -442,7 +527,7 @@
             this.ChkDirectoryName,
             this.MnuSkipFolders});
             this.CMenuOptions.Name = "CMenuOptions";
-            this.CMenuOptions.Size = new System.Drawing.Size(172, 70);
+            this.CMenuOptions.Size = new System.Drawing.Size(178, 70);
             // 
             // ChkFilename
             // 
@@ -450,7 +535,7 @@
             this.ChkFilename.CheckOnClick = true;
             this.ChkFilename.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkFilename.Name = "ChkFilename";
-            this.ChkFilename.Size = new System.Drawing.Size(171, 22);
+            this.ChkFilename.Size = new System.Drawing.Size(177, 22);
             this.ChkFilename.Text = "Search File Name";
             this.ChkFilename.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -458,28 +543,23 @@
             // 
             this.ChkDirectoryName.CheckOnClick = true;
             this.ChkDirectoryName.Name = "ChkDirectoryName";
-            this.ChkDirectoryName.Size = new System.Drawing.Size(171, 22);
+            this.ChkDirectoryName.Size = new System.Drawing.Size(177, 22);
             this.ChkDirectoryName.Text = "Search Path Name";
             this.ChkDirectoryName.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // MnuSkipFolders
             // 
-            this.MnuSkipFolders.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ChkRecycleBin,
-            this.ChkTempFolder,
-            this.ChkInternetCache,
-            this.ChkWinFolder,
-            this.ChkSystemFolder,
-            this.ChkUserFolder});
+            this.MnuSkipFolders.Image = ((System.Drawing.Image)(resources.GetObject("MnuSkipFolders.Image")));
             this.MnuSkipFolders.Name = "MnuSkipFolders";
-            this.MnuSkipFolders.Size = new System.Drawing.Size(171, 22);
-            this.MnuSkipFolders.Text = "Allowed Folders";
+            this.MnuSkipFolders.Size = new System.Drawing.Size(177, 22);
+            this.MnuSkipFolders.Text = "Set Allowed Folders";
+            this.MnuSkipFolders.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MnuSkipFolders_MouseUp);
             // 
             // ChkRecycleBin
             // 
             this.ChkRecycleBin.CheckOnClick = true;
             this.ChkRecycleBin.Name = "ChkRecycleBin";
-            this.ChkRecycleBin.Size = new System.Drawing.Size(151, 22);
+            this.ChkRecycleBin.Size = new System.Drawing.Size(177, 22);
             this.ChkRecycleBin.Text = "Recycle Bin";
             this.ChkRecycleBin.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -487,7 +567,7 @@
             // 
             this.ChkTempFolder.CheckOnClick = true;
             this.ChkTempFolder.Name = "ChkTempFolder";
-            this.ChkTempFolder.Size = new System.Drawing.Size(151, 22);
+            this.ChkTempFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkTempFolder.Text = "Temp Folder";
             this.ChkTempFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -495,7 +575,7 @@
             // 
             this.ChkInternetCache.CheckOnClick = true;
             this.ChkInternetCache.Name = "ChkInternetCache";
-            this.ChkInternetCache.Size = new System.Drawing.Size(151, 22);
+            this.ChkInternetCache.Size = new System.Drawing.Size(177, 22);
             this.ChkInternetCache.Text = "Internet Cache";
             this.ChkInternetCache.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -505,7 +585,7 @@
             this.ChkWinFolder.CheckOnClick = true;
             this.ChkWinFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkWinFolder.Name = "ChkWinFolder";
-            this.ChkWinFolder.Size = new System.Drawing.Size(151, 22);
+            this.ChkWinFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkWinFolder.Text = "Windows";
             this.ChkWinFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -515,7 +595,7 @@
             this.ChkUserFolder.CheckOnClick = true;
             this.ChkUserFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkUserFolder.Name = "ChkUserFolder";
-            this.ChkUserFolder.Size = new System.Drawing.Size(151, 22);
+            this.ChkUserFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkUserFolder.Text = "User";
             this.ChkUserFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -697,36 +777,26 @@
             this.LastScanTimer.Interval = 10000;
             this.LastScanTimer.Tick += new System.EventHandler(this.LastScanTimer_Tick);
             // 
-            // toolStripSeparator1
+            // MnuAllowedFolders
             // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(178, 6);
+            this.MnuAllowedFolders.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.AllowFoldersTitle,
+            this.ChkRecycleBin,
+            this.ChkTempFolder,
+            this.ChkInternetCache,
+            this.ChkWinFolder,
+            this.ChkSystemFolder,
+            this.ChkUserFolder});
+            this.MnuAllowedFolders.Name = "MnuAllowedFolders";
+            this.MnuAllowedFolders.Size = new System.Drawing.Size(178, 158);
             // 
-            // toolStripSeparator2
+            // AllowFoldersTitle
             // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(178, 6);
-            // 
-            // ListMenuCopyPath
-            // 
-            this.ListMenuCopyPath.Name = "ListMenuCopyPath";
-            this.ListMenuCopyPath.Size = new System.Drawing.Size(181, 22);
-            this.ListMenuCopyPath.Text = "&Copy Path";
-            this.ListMenuCopyPath.Click += new System.EventHandler(this.ListMenuCopyPath_Click);
-            // 
-            // ListMenuCopyList
-            // 
-            this.ListMenuCopyList.Name = "ListMenuCopyList";
-            this.ListMenuCopyList.Size = new System.Drawing.Size(181, 22);
-            this.ListMenuCopyList.Text = "Copy &Selected Paths";
-            this.ListMenuCopyList.Click += new System.EventHandler(this.ListMenuCopyList_Click);
-            // 
-            // ListMenuExportList
-            // 
-            this.ListMenuExportList.Name = "ListMenuExportList";
-            this.ListMenuExportList.Size = new System.Drawing.Size(181, 22);
-            this.ListMenuExportList.Text = "&Export List";
-            this.ListMenuExportList.Click += new System.EventHandler(this.ListMenuExportList_Click);
+            this.AllowFoldersTitle.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.AllowFoldersTitle.Enabled = false;
+            this.AllowFoldersTitle.Name = "AllowFoldersTitle";
+            this.AllowFoldersTitle.Size = new System.Drawing.Size(177, 22);
+            this.AllowFoldersTitle.Text = "Set Allowed Folders";
             // 
             // Starter
             // 
@@ -757,7 +827,11 @@
             this.MainSplitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).EndInit();
             this.MainSplitContainer.ResumeLayout(false);
+            this.panel4.ResumeLayout(false);
             this.CMenuList.ResumeLayout(false);
+            this.panel3.ResumeLayout(false);
+            this.panel3.PerformLayout();
+            this.panel5.ResumeLayout(false);
             this.EventListsSplitContainer.Panel1.ResumeLayout(false);
             this.EventListsSplitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.EventListsSplitContainer)).EndInit();
@@ -772,6 +846,7 @@
             this.StartupStatusStrip.PerformLayout();
             this.PanelSearchBar.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
+            this.MnuAllowedFolders.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -841,6 +916,12 @@
         private System.Windows.Forms.ToolStripMenuItem ListMenuCopyPath;
         private System.Windows.Forms.ToolStripMenuItem ListMenuCopyList;
         private System.Windows.Forms.ToolStripMenuItem ListMenuExportList;
+        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.CheckBox ChkHideInfo;
+        private System.Windows.Forms.Panel panel4;
+        private System.Windows.Forms.Panel panel5;
+        private System.Windows.Forms.ContextMenuStrip MnuAllowedFolders;
+        private System.Windows.Forms.ToolStripMenuItem AllowFoldersTitle;
     }
 }
 

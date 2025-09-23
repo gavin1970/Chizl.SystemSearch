@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using Chizl.Applications;
+﻿using Chizl.Applications;
 using Chizl.SystemSearch;
 using Chizl.ThreadSupport;
 using Chizl.WinSearch;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace Chizl.SearchSystemUI
         // updated at the screen.  This states every MAX event for FileScanStatus event, allow it to display.
         // 100 works, but this makes it smother. The ScanComplete/ScanAborted, update the same
         // information, not through FileScanStatus event.
-        const int maxRefreshCnt = 500;
+        const int maxRefreshCnt = 1000;
         const string _stopScanText = "&Stop Scan";
         const string _startScanText = "&Start Scan";
         const string _scannedText = "&ReScan";
@@ -43,6 +44,8 @@ namespace Chizl.SearchSystemUI
         private static Bool _scanAborted = new Bool(false);
         private static Bool _scanStarted = new Bool(false);
         private static bool _hideErrors = false;
+        private static bool _hideInformation = false;
+        private static int _mainSplitterDistance = -1;
 
         private static TimeSpan _scanTime = TimeSpan.Zero;
         private static string _lastFilteringStatus = string.Empty;
@@ -59,7 +62,7 @@ namespace Chizl.SearchSystemUI
 
         private static readonly ConcurrentQueue<SearchEventArgs> _msgQueue = new ConcurrentQueue<SearchEventArgs>();
         private static readonly List<ListViewItem> _unfilteredItemsList = new List<ListViewItem> { };
-        private static readonly List<string> _excludeItems = new List<string> { };
+        private static readonly ConcurrentDictionary<string, byte> _excludeItems = new ConcurrentDictionary<string, byte> { };
 
         private static IOFinder _finder = GlobalSetup.Finder;
         private static ScanProperties _criterias = _finder.Criteria;
@@ -184,7 +187,9 @@ namespace Chizl.SearchSystemUI
                     {
                         case SearchMessageType.Exception:
                         case SearchMessageType.Error:
-                            if (!_hideErrors)
+                            // If we are hiding information message then errors
+                            // can't be seen anyway. Stop backend overhead.
+                            if (!_hideErrors && !_hideInformation)
                             {
                                 var msg = e.Message;
                                 if (e.Message.Contains("Access to the"))
@@ -196,8 +201,11 @@ namespace Chizl.SearchSystemUI
                             break;
                         case SearchMessageType.Warning:
                         case SearchMessageType.Info:
-                            this.EventList.Items.Add($"[{e.MessageType}] {e.Message}");
-                            this.EventList.SelectedIndex = this.EventList.Items.Count - 1;
+                            if (!_hideInformation)
+                            {
+                                this.EventList.Items.Add($"[{e.MessageType}] {e.Message}");
+                                this.EventList.SelectedIndex = this.EventList.Items.Count - 1;
+                            }
                             break;
                         case SearchMessageType.SearchStatus:
                             this.SearchStatusToolStripStatusLabel.Text = e.Message;
@@ -278,6 +286,10 @@ namespace Chizl.SearchSystemUI
         }
         private void LoadConfig()
         {
+            //not ready yet
+            ListMenuExportList.Visible = false;
+
+
             this.Text = About.TitleWithFileVersion;
             ConfigData.LoadConfig(_configFile);
 
@@ -297,8 +309,13 @@ namespace Chizl.SearchSystemUI
             _criterias.AllowUser = isChecked;
             ConfigData.GetItem<bool>("ChkWinFolder", true, out isChecked);
             _criterias.AllowWindows = isChecked;
+            ConfigData.GetItem<bool>("ChkHideInfo", false, out isChecked);
+            _hideInformation = isChecked;
             ConfigData.GetItem<bool>("ChkHideErrors", true, out isChecked);
-            _hideErrors = isChecked;
+            _hideErrors = isChecked || _hideInformation;
+
+            ConfigData.GetItem<int>("MainSplitterDistance", -1, out int splitterDistance);
+            _mainSplitterDistance = splitterDistance;
 
             // This library is setup to auto add to cache when presets are checked or auto remove when unchecked.
             // Ignore change is to prevent the scan from starting to load into cache during startup of the application.
@@ -363,6 +380,7 @@ namespace Chizl.SearchSystemUI
         {
             selectedItems = new string[0] { };
             var selected = new List<string>();
+            var quotes = !pathOnly ? "\"" : ""; //using this for possible change in future
 
             if (ResultsListView.SelectedItems.Count.Equals(0))
                 return false;
@@ -370,9 +388,9 @@ namespace Chizl.SearchSystemUI
             foreach (ListViewItem lineItem in ResultsListView.SelectedItems)
             {
                 if(pathOnly)
-                    selected.Add($"\"{lineItem.SubItems[5].Text}\"");
+                    selected.Add($"{quotes}{lineItem.SubItems[5].Text}{quotes}");
                 else
-                    selected.Add($"\"{lineItem.Text}\"\t\"{lineItem.SubItems[2].Text}\"\t\"{lineItem.SubItems[3].Text}\"\t\"{lineItem.SubItems[4].Text}\"\t\"{lineItem.SubItems[5].Text}\"");
+                    selected.Add($"{quotes}{lineItem.Text}{quotes}\t{quotes}{lineItem.SubItems[2].Text}{quotes}\t{quotes}{lineItem.SubItems[3].Text}{quotes}\t{quotes}{lineItem.SubItems[4].Text}{quotes}\t{quotes}{lineItem.SubItems[5].Text}{quotes}");
             }
 
             selectedItems = selected.ToArray();
@@ -434,12 +452,26 @@ namespace Chizl.SearchSystemUI
             ChkWinFolder.Checked = _criterias.AllowWindows;
             ChkDirectoryName.Checked = _criterias.SearchDirectory;
             ChkFilename.Checked = _criterias.SearchFilename;
+            ChkHideInfo.Checked = _hideInformation;
             ChkHideErrors.Checked = _hideErrors;
+
+            MainSplitContainer.Panel2Collapsed = _hideInformation;
             EventListsSplitContainer.Panel2Collapsed = _hideErrors;
+            if (_mainSplitterDistance != -1)
+                MainSplitContainer.SplitterDistance = _mainSplitterDistance;
         }
         #endregion
 
         #region Auto or Callback Events
+        private void MainSplitContainer_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            if (!_loaded)
+                return;
+
+            _mainSplitterDistance = MainSplitContainer.SplitterDistance;
+            if (!ConfigData.AddItem("MainSplitterDistance", _mainSplitterDistance, true))
+                MessageBox.Show($"'MainSplitterDistance' failed to save to configuration file.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
         private void StartupTimer_Tick(object sender, EventArgs e)
         {
             if (_msgQueue.TryDequeue(out SearchEventArgs msg) &&
@@ -561,11 +593,7 @@ namespace Chizl.SearchSystemUI
             else
                 BtnStartStopScan.BackColor = _red;
         }
-        private void BtnOptions_Click(object sender, EventArgs e)
-        {
-            CMenuOptions.Show(BtnOptions, new Point(0, 0));
-        }
-        
+        private void BtnOptions_Click(object sender, EventArgs e) => CMenuOptions.Show(BtnOptions, new Point(1, 1));
         private void UIOptions_CheckedChanged(object sender, EventArgs e)
         {
             var chkBox = sender as CheckBox;
@@ -579,6 +607,10 @@ namespace Chizl.SearchSystemUI
                 case "ChkHideErrors":
                     _hideErrors = isChecked;
                     EventListsSplitContainer.Panel2Collapsed = _hideErrors;
+                    break;
+                case "ChkHideInfo":
+                    _hideInformation = isChecked;
+                    MainSplitContainer.Panel2Collapsed = _hideInformation;
                     break;
                 default:
                     MessageBox.Show($"'{chkBox.Name}' is setup for UI Options, but not coded for it.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -661,54 +693,64 @@ namespace Chizl.SearchSystemUI
         {
             if (GetSelectedItems(out string[] selectedItem, true))
             {
-                var count = ResultsListView.Items.Count;
-                var drive = selectedItem[0].Substring(0, 2).ToUpper();
-                ListViewItem[] items = new ListViewItem[count];
-                ResultsListView.Items.CopyTo(items, 0);
+                var change = false;
+                var drives = selectedItem.Select(s => s.Substring(0, 2));
 
-                foreach (var item in items)
+                // Find all drives that wasn't selected.
+                List<string> removeItems = _unfilteredItemsList.Cast<ListViewItem>()
+                                                .Where(w => !drives.Contains(w.SubItems[5].Text.Substring(0, 2)))
+                                                .Select(s => s.SubItems[5].Text.Substring(0,2)).Distinct().ToList();
+
+                foreach (var rm in removeItems)
+                    change = _excludeItems.TryAdd(rm, 0) || change;
+
+                if (change && CheckFilterData().Added > 0)
                 {
-                    var str = item.SubItems[5].Text;
-                    if (!str.ToUpper().StartsWith(drive))
-                    {
-                        var revDrive = str.Substring(0, 2);
-                        if (!_excludeItems.Contains(revDrive))
-                            _excludeItems.Add(revDrive);
-
-                        ResultsListView.Items.Remove(item);
-                    }
+                    _driveFilterOn.SetVal(true);
+                    SetFilterStatus();
                 }
-
-                _driveFilterOn.SetVal(true);
-                SetFilterStatus();
-                ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
+                else
+                    ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
             }
         }
         private void ListMenuFilterFileExtension_Click(object sender, EventArgs e)
         {
             if (GetSelectedItems(out string[] selectedItems, true))
             {
-                var count = ResultsListView.Items.Count;
+                var change = false;
+                //var count = ResultsListView.Items.Count;
                 var ext = Path.GetExtension(selectedItems[0].Replace("\"", "")).ToLower();
+                
+                var exts = selectedItems.Select(s => Path.GetExtension(s)).ToList();
 
-                ListViewItem[] items = new ListViewItem[count];
-                ResultsListView.Items.CopyTo(items, 0);
+                List<string> removeItems = _unfilteredItemsList.Cast<ListViewItem>()
+                                                .Where(w => exts.Where(ew => w.SubItems[5].Text.EndsWith(ew)).Count().Equals(0))
+                                                .Select(s => Path.GetExtension(s.SubItems[5].Text)).Distinct().ToList();
 
-                foreach (var item in items)
+                foreach (var rm in removeItems)
+                    change = _excludeItems.TryAdd(rm, 0) || change;
+
+                //ListViewItem[] items = new ListViewItem[count];
+                //ResultsListView.Items.CopyTo(items, 0);
+
+                //foreach (var item in items)
+                //{
+                //    if (!item.Text.ToLower().EndsWith(ext))
+                //    {
+                //        var remExt = Path.GetExtension(item.Text).ToLower();
+                //        _excludeItems.TryAdd(remExt, 0);
+
+                //        ResultsListView.Items.Remove(item);
+                //    }
+                //}
+
+                if (change && CheckFilterData().Removed > 0)
                 {
-                    if (!item.Text.ToLower().EndsWith(ext))
-                    {
-                        var remExt = Path.GetExtension(item.Text).ToLower();
-                        if (!_excludeItems.Contains(remExt))
-                            _excludeItems.Add(remExt);
-
-                        ResultsListView.Items.Remove(item);
-                    }
+                    _extFilterOn.SetVal(true);
+                    SetFilterStatus();
                 }
-
-                _extFilterOn.SetVal(true);
-                SetFilterStatus();
-                ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
+                else
+                    ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
             }
         }
         private void ListMenuFilterClear_Click(object sender, EventArgs e)
@@ -955,74 +997,96 @@ namespace Chizl.SearchSystemUI
         {
             if (GetSelectedItems(out string[] selectedItems, true))
             {
-                SubFilterOptions subFilter = new SubFilterOptions(selectedItems[0].Replace("\"", ""));
-                subFilter.ExcludeItems.Clear();
-                subFilter.ExcludeItems.AddRange(_excludeItems);
-
-                if (subFilter.ShowDialog(this) == DialogResult.OK)
+                var exArr = _excludeItems.Keys;
+                SubFilterOptions subFilterForm = new SubFilterOptions(selectedItems[0].Replace("\"", ""));
+                subFilterForm.ExcludeItems.Clear();
+                subFilterForm.ExcludeItems.AddRange(exArr);
+                if (subFilterForm.ShowDialog(this) == DialogResult.OK)
                 {
+                    var extFilterOn = false;
+                    var drivFilterOn = false;
                     var removeStrItem = new List<ListViewItem>();
 
-                    foreach(var exItm in _excludeItems)
+                    //checking to see if what came back from the exclusion form where removed from the list. 
+                    if (subFilterForm.RemovedFromExcludeItems.Count() > 0)
                     {
-                        if(!subFilter.ExcludeItems.Contains(exItm))
-                        {
-                            ListMenuFilterClear_Click(null, null);
-                            break;
-                        }
-                    }
-
-                    _excludeItems.Clear();
-                    _excludeItems.AddRange(subFilter.ExcludeItems);
-
-                    if (_excludeItems.Where(w => w.StartsWith(".")).Count() > 0)
-                        _extFilterOn.SetVal(true);
-                    else
-                        _extFilterOn.SetVal(false);
-
-                    if (_excludeItems.Where(w => w.Length.Equals(2) && w.EndsWith(":")).Count() > 0)
-                        _driveFilterOn.SetVal(true);
-                    else
+                        _excludeItems.Clear();
                         _driveFilterOn.SetVal(false);
-
-                    foreach (ListViewItem item in ResultsListView.Items)
-                    {
-                        foreach (var ex in _excludeItems)
-                        {
-                            // found there are files without extensions, this cause just about all fiels to be filtered
-                            // as most of them are in a folder or the filename has a space in it.  This fixed that issue.
-                            if(string.IsNullOrWhiteSpace(ex))
-                            {
-                                if (item.SubItems[0].Text.IndexOf('.').Equals(-1))
-                                    removeStrItem.Add(item);
-                            }
-                            // This helps focus on mostly extension as there are some folders with . in them, but if
-                            // the filter starts with a '.', lets assume this is an extension.
-                            else if (ex.StartsWith("."))
-                            {
-                                if (item.SubItems[5].Text.ToLower().EndsWith(ex.ToLower()))
-                                    removeStrItem.Add(item);
-                            }
-                            else
-                            {
-                                if(!string.IsNullOrWhiteSpace(ex))
-                                    if (item.SubItems[5].Text.ToLower().Contains(ex.ToLower()))
-                                        removeStrItem.Add(item);
-                            }
-                        }
+                        _extFilterOn.SetVal(false);
+                        _customFilterOn.SetVal(false);
                     }
 
-                    foreach (var item in removeStrItem)
-                        ResultsListView.Items.Remove(item);
+                    foreach (var item in subFilterForm.ExcludeItems)
+                    {
+                        if (!extFilterOn)
+                            extFilterOn = item.StartsWith(".");
+                        if (!drivFilterOn)
+                            drivFilterOn = item.Length.Equals(2) && item.EndsWith(":");
 
-                    if (removeStrItem.Count > 0)
+                        _excludeItems.TryAdd(item, 0);  //only duplicates will fail
+                    }
+
+                    _extFilterOn.SetVal(extFilterOn);
+                    _driveFilterOn.SetVal(drivFilterOn);
+
+                    (var added, var removed) = CheckFilterData();
+
+                    if (added > 0 || removed > 0)
                     {
                         _customFilterOn.SetVal(true);
-                        SetFilterStatus();
-                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
+                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}\n" +
+                                                                $"Last filter added '{added}' and removed '{removed}'.");
                     }
+                    else
+                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
+
+                    // refresh filter status
+                    SetFilterStatus();
                 }
-            }            
+            }
+        }
+        //TODO when you filter a folder name, custom filters isn't filtering at all..
+        private (int Added, int Removed) CheckFilterData()
+        {
+            // found there are files without extensions, this cause just about all fiels to be filtered
+            // as most of them are in a folder or the filename has a space in it.  This fixed that issue.
+            List<string> keepItems = _unfilteredItemsList.Cast<ListViewItem>()
+                                            .Where(w => w.Text.IndexOf(".") > -1)
+                                            .Select(s => s.SubItems[5].Text).ToList();
+
+            // This helps focus on mostly extension as there are some folders with . in them, but if
+            // the filter starts with a '.', lets assume this is an extension.
+            keepItems = keepItems.Where(w => _excludeItems.Keys
+                                        .Where(k => k.StartsWith(".") && w.EndsWith(k))
+                                        .Count().Equals(0)).ToList();
+
+            // Filter drives
+            keepItems = keepItems.Where(w => _excludeItems.Keys
+                                        .Where(k => k.Length.Equals(2) && w.Substring(0, 2).Equals(k))
+                                        .Count().Equals(0)).ToList();
+
+            keepItems = keepItems.Where(w => _excludeItems.Keys
+                                        .Where(k => w.Contains(k))
+                                        .Count().Equals(0)).ToList();
+
+            if (!keepItems.Count.Equals(ResultsListView.Items.Count))
+            {
+                var wasPaths = ResultsListView.Items.Cast<ListViewItem>().Select(w => w.SubItems[5].Text).ToArray();
+
+                ResultsListView.SuspendLayout();
+                ResultsListView.Items.Clear();
+                ResultsListView.Items.AddRange(_unfilteredItemsList.Where(w => keepItems.Contains(w.SubItems[5].Text)).ToArray());
+                ResultsListView.ResumeLayout(true);
+
+                var nowPaths = ResultsListView.Items.Cast<ListViewItem>().Select(w => w.SubItems[5].Text).ToArray();
+
+                var removed = wasPaths.Where(w => !nowPaths.Contains(w)).ToList().Count();
+                var added = nowPaths.Where(w => !wasPaths.Contains(w)).ToList().Count();
+
+                return (added, removed);
+            }
+
+            return (0, 0);
         }
 
         private void LastScanTimer_Tick(object sender, EventArgs e)
@@ -1058,6 +1122,11 @@ namespace Chizl.SearchSystemUI
         private void ListMenuExportList_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void MnuSkipFolders_MouseUp(object sender, MouseEventArgs e)
+        {
+            MnuAllowedFolders.Show(new Point(CMenuOptions.Left, CMenuOptions.Top));
         }
     }
 }

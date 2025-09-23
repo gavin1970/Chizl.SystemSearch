@@ -7,7 +7,8 @@ namespace Chizl.WinSearch
     public partial class SubFilterOptions : Form
     {
         private string _path = string.Empty;
-        private List<string> _excludeItems = new List<string>();
+        private readonly List<string> _excludeItems = new List<string>();
+        private readonly List<string> _removedFromExclusionItems = new List<string>();
 
         public SubFilterOptions(string path)
         {
@@ -19,6 +20,7 @@ namespace Chizl.WinSearch
         /// Accessible from the outside.
         /// </summary>
         public List<string> ExcludeItems { get { return _excludeItems; } }
+        public List<string> RemovedFromExcludeItems { get { return _removedFromExclusionItems; } }
 
         private void SubFilterOptions_Load(object sender, EventArgs e)
         {
@@ -54,6 +56,7 @@ namespace Chizl.WinSearch
         {
             if (GetSelectedItem(out string selectedItem))
             {
+                _removedFromExclusionItems.Add(selectedItem);
                 _excludeItems.Remove(selectedItem);
                 ListBoxSubFilters.Items.RemoveAt(ListBoxSubFilters.SelectedIndex);
             }

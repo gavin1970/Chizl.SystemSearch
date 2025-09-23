@@ -120,7 +120,6 @@ namespace Chizl.Applications
             {
                 var configValue = ConfigLabels[key].ToString().Trim();
                 var configName = $"{key}:";
-                configName += new string(' ', _configNameSize - configName.Length);
 
                 configData.Add($"{configName}{configValue}");
             }
@@ -140,12 +139,12 @@ namespace Chizl.Applications
             {
                 foreach (var confLine in File.ReadLines(FilePath).ToList())
                 {
-                    if (confLine.Length < _configNameSize ||
-                        !confLine.Substring(0, _configNameSize).Contains(":"))
+                    var sep = confLine.IndexOf(':');
+                    if (sep == -1)
                         continue;
 
-                    var configName = confLine.Substring(0, confLine.IndexOf(':'));
-                    var configValue = confLine.Substring(configName.Length + 1);
+                    var configName = confLine.Substring(0, sep).Trim();
+                    var configValue = confLine.Substring(sep + 1).Trim();
 
                     if (!string.IsNullOrWhiteSpace(configName) && 
                         !string.IsNullOrWhiteSpace(configValue))
