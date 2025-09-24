@@ -214,6 +214,12 @@ namespace Chizl.SearchSystemUI
                             break;
                         case SearchMessageType.FileScanStatus:
                             this.FilesAvailableToolStripStatusLabel.Text = e.Message;
+                            // multi-thread so, if one stops, it might set status as complete, but
+                            // the libary will auto correct if still processing in another thread.
+                            // This verifies, if still running and UI refresh is done, then lets
+                            // set UI back it scanning.
+                            if (resetRefreshCnt.Equals(0) && _finder.CurrentStatus.Equals(LookupStatus.Running))
+                                ScanStarted();
                             break;
                         case SearchMessageType.DriveScanStatus:
                             this.SearchStatusToolStripStatusLabel.Text = e.Message;
@@ -657,20 +663,24 @@ namespace Chizl.SearchSystemUI
             if (!ConfigData.AddItem(chkBox.Name, isChecked, true))
                 MessageBox.Show($"'{chkBox.Name}' failed to save to configuration file.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
+        private Point _loc = Point.Empty;
         private void Options_CheckedChanged(object sender, EventArgs e)
         {
             var chkBox = sender as ToolStripMenuItem;
             var isChecked = chkBox.Checked;
+            Point loc = _loc;
 
             switch (chkBox.Name)
             {
                 case "ChkDirectoryName":
+                    loc = Point.Empty;
                     _criterias.SearchDirectory = isChecked;
                     ChkFilename.Checked = _criterias.SearchFilename;
                     if (!ConfigData.AddItem("ChkFilename", !isChecked, true))
                         MessageBox.Show($"'ChkFilename' failed to save to configuration file.", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
                 case "ChkFilename":
+                    loc = Point.Empty;
                     _criterias.SearchFilename = isChecked;
                     ChkDirectoryName.Checked = _criterias.SearchDirectory;
                     if (!ConfigData.AddItem("ChkDirectoryName", !isChecked, true))
@@ -701,6 +711,9 @@ namespace Chizl.SearchSystemUI
 
             if (!ConfigData.AddItem(chkBox.Name, isChecked, true))
                 MessageBox.Show($"'{chkBox.Name}' failed to save to configuration file.", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+            if (!loc.IsEmpty)
+                MnuAllowedFolders.Show(_loc);
         }
         #endregion
 
@@ -901,7 +914,8 @@ namespace Chizl.SearchSystemUI
         }
         private void MnuSkipFolders_MouseUp(object sender, MouseEventArgs e)
         {
-            MnuAllowedFolders.Show(new Point(CMenuOptions.Left, CMenuOptions.Top));
+            _loc = new Point(CMenuOptions.Left, CMenuOptions.Top);
+            MnuAllowedFolders.Show(_loc);
         }
         private void AllowFoldersTitle_Paint(object sender, PaintEventArgs e)
         {

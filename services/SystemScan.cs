@@ -401,6 +401,9 @@ namespace Chizl.SystemSearch
         {
             var md5Hash = addMD5Hash ? Tools.CreateMD5(fileName, ReturnCase.Lower) : "";
 
+            if (GlobalSettings.CurrentStatus != LookupStatus.Running && addMD5Hash)
+                SetStatus(LookupStatus.Running);
+
             // verifies root folder of file and determines if it should continue.
             if (_fileDictionary.TryAdd(fileName, md5Hash))
             {

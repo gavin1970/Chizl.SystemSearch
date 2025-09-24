@@ -14,6 +14,7 @@ namespace Chizl.SystemSearch
         internal static readonly object _lockPath = new object();
 
         private static string _savePath = ".\\FileDatails\\";
+        private static long _scanStarted = 0;
         private static long _shutDown = 0;
         private static long _fullScanCompleted = 0;
         private static SystemScan _scanner = new SystemScan();
@@ -76,12 +77,28 @@ namespace Chizl.SystemSearch
         }
         public static LookupStatus CurrentStatus { get; set; } = LookupStatus.NotStarted;
         public static string[] DriveList { get; } = DriveInfo.GetDrives().Select(s => CheckDriveName(s.Name)).ToArray();
-        public static void Startup(LookupStatus status = LookupStatus.NotStarted) { HasShutdown = false; CurrentStatus = status; }
-        public static void Ended(LookupStatus status = LookupStatus.Completed) { CurrentStatus = status; }
+        public static void Startup(LookupStatus status = LookupStatus.NotStarted) 
+        { 
+            HasShutdown = false; 
+            CurrentStatus = status; 
+            Interlocked.Increment(ref _scanStarted); 
+        }
+        private static bool EndScanCount()
+        {
+            if (Interlocked.Read(ref _scanStarted) > 0)
+                Interlocked.Decrement(ref _scanStarted);
+            return Interlocked.Read(ref _scanStarted).Equals(0);
+        }
+        public static void Ended(LookupStatus status = LookupStatus.Completed)
+        {
+            if (EndScanCount())
+                CurrentStatus = status;
+        }
+
         public static void Shutdown() 
         {
             HasShutdown = true;
-            CurrentStatus = LookupStatus.Aborted;
+            Ended(LookupStatus.Aborted);
             Internals.AutoEvents[AutoEvent.Shutdown].Set();
         }
         public static bool HasShutdown 
