@@ -540,6 +540,12 @@ namespace Chizl.SearchSystemUI
                 if (e.MessageType.Equals(SearchMessageType.SearchStatus) && e.Message.StartsWith("Filtered: "))
                     _lastFilteringStatus = e.Message;
 
+                if (e.MessageType == SearchMessageType.Error && (_hideErrors || _hideInformation))
+                    return;
+                
+                if (e.MessageType == SearchMessageType.Info && _hideInformation)
+                    return;
+                
                 _msgQueue.Enqueue(e);
             }
         }
@@ -598,7 +604,7 @@ namespace Chizl.SearchSystemUI
         }
         private void BtnStartStopScan_Click(object sender, EventArgs e)
         {
-            var reScan = BtnStartStopScan.Text.Equals(_scannedText);
+            var reScan = _finder.FullScanCompleted;// BtnStartStopScan.Text.Equals(_scannedText);
             if (BtnStartStopScan.Text.Equals(_startScanText) || reScan)
             {
                 if (reScan && 
