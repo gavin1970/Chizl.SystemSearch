@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 //      Revision
 // 
 [assembly: AssemblyVersion("5.9.0.0")]
-[assembly: AssemblyFileVersion("5.9.24.1402")]
+[assembly: AssemblyFileVersion("5.9.24.1434")]
 [assembly: AssemblyInformationalVersion("5.9.24.0")]
 [assembly: AssemblyKeyFileAttribute("")]
 [assembly: AssemblyDelaySignAttribute(false)]

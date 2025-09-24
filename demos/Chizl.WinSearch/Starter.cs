@@ -59,6 +59,11 @@ namespace Chizl.SearchSystemUI
         private static readonly List<ListViewItem> _unfilteredItemsList = new List<ListViewItem> { };
         private static readonly ConcurrentDictionary<string, SubFilterExclusion> _excludeItems = new ConcurrentDictionary<string, SubFilterExclusion> { };
 
+        private readonly Color _menuTitleBBColor = Color.FromArgb(0, 0, 128);
+        private readonly Brush _menuTitleFGColor = Brushes.AntiqueWhite;
+        private readonly Font _menuTitleFont = new Font(FontFamily.GenericSansSerif, 9.5f);
+        private readonly StringFormat _stringFormat = new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+
         private static IOFinder _finder = GlobalSetup.Finder;
         private static ScanProperties _criterias = _finder.Criteria;
 
@@ -897,6 +902,12 @@ namespace Chizl.SearchSystemUI
         private void MnuSkipFolders_MouseUp(object sender, MouseEventArgs e)
         {
             MnuAllowedFolders.Show(new Point(CMenuOptions.Left, CMenuOptions.Top));
+        }
+        private void AllowFoldersTitle_Paint(object sender, PaintEventArgs e)
+        {
+            var g = e.Graphics;
+            g.Clear(_menuTitleBBColor);
+            g.DrawString("Allowed Folders", _menuTitleFont, _menuTitleFGColor, AllowFoldersTitle.ContentRectangle, _stringFormat);
         }
         #endregion
 

@@ -461,7 +461,7 @@
             this.ChkSystemFolder.CheckOnClick = true;
             this.ChkSystemFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkSystemFolder.Name = "ChkSystemFolder";
-            this.ChkSystemFolder.Size = new System.Drawing.Size(177, 22);
+            this.ChkSystemFolder.Size = new System.Drawing.Size(180, 22);
             this.ChkSystemFolder.Text = "System";
             this.ChkSystemFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -504,7 +504,7 @@
             // 
             this.ChkRecycleBin.CheckOnClick = true;
             this.ChkRecycleBin.Name = "ChkRecycleBin";
-            this.ChkRecycleBin.Size = new System.Drawing.Size(177, 22);
+            this.ChkRecycleBin.Size = new System.Drawing.Size(180, 22);
             this.ChkRecycleBin.Text = "Recycle Bin";
             this.ChkRecycleBin.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -512,7 +512,7 @@
             // 
             this.ChkTempFolder.CheckOnClick = true;
             this.ChkTempFolder.Name = "ChkTempFolder";
-            this.ChkTempFolder.Size = new System.Drawing.Size(177, 22);
+            this.ChkTempFolder.Size = new System.Drawing.Size(180, 22);
             this.ChkTempFolder.Text = "Temp Folder";
             this.ChkTempFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -520,7 +520,7 @@
             // 
             this.ChkInternetCache.CheckOnClick = true;
             this.ChkInternetCache.Name = "ChkInternetCache";
-            this.ChkInternetCache.Size = new System.Drawing.Size(177, 22);
+            this.ChkInternetCache.Size = new System.Drawing.Size(180, 22);
             this.ChkInternetCache.Text = "Internet Cache";
             this.ChkInternetCache.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -530,7 +530,7 @@
             this.ChkWinFolder.CheckOnClick = true;
             this.ChkWinFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkWinFolder.Name = "ChkWinFolder";
-            this.ChkWinFolder.Size = new System.Drawing.Size(177, 22);
+            this.ChkWinFolder.Size = new System.Drawing.Size(180, 22);
             this.ChkWinFolder.Text = "Windows";
             this.ChkWinFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -540,7 +540,7 @@
             this.ChkUserFolder.CheckOnClick = true;
             this.ChkUserFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkUserFolder.Name = "ChkUserFolder";
-            this.ChkUserFolder.Size = new System.Drawing.Size(177, 22);
+            this.ChkUserFolder.Size = new System.Drawing.Size(180, 22);
             this.ChkUserFolder.Text = "User";
             this.ChkUserFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -733,15 +733,16 @@
             this.ChkSystemFolder,
             this.ChkUserFolder});
             this.MnuAllowedFolders.Name = "MnuAllowedFolders";
-            this.MnuAllowedFolders.Size = new System.Drawing.Size(178, 158);
+            this.MnuAllowedFolders.Size = new System.Drawing.Size(181, 180);
             // 
             // AllowFoldersTitle
             // 
             this.AllowFoldersTitle.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.AllowFoldersTitle.Enabled = false;
             this.AllowFoldersTitle.Name = "AllowFoldersTitle";
-            this.AllowFoldersTitle.Size = new System.Drawing.Size(177, 22);
+            this.AllowFoldersTitle.Size = new System.Drawing.Size(180, 22);
             this.AllowFoldersTitle.Text = "Set Allowed Folders";
+            this.AllowFoldersTitle.Paint += new System.Windows.Forms.PaintEventHandler(this.AllowFoldersTitle_Paint);
             // 
             // Starter
             // 
