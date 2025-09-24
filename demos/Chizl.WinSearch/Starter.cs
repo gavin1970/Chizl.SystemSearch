@@ -57,7 +57,7 @@ namespace Chizl.SearchSystemUI
 
         private static readonly ConcurrentQueue<SearchEventArgs> _msgQueue = new ConcurrentQueue<SearchEventArgs>();
         private static readonly List<ListViewItem> _unfilteredItemsList = new List<ListViewItem> { };
-        private static readonly ConcurrentDictionary<string, byte> _excludeItems = new ConcurrentDictionary<string, byte> { };
+        private static readonly ConcurrentDictionary<string, SubFilterExclusion> _excludeItems = new ConcurrentDictionary<string, SubFilterExclusion> { };
 
         private static IOFinder _finder = GlobalSetup.Finder;
         private static ScanProperties _criterias = _finder.Criteria;
@@ -128,7 +128,6 @@ namespace Chizl.SearchSystemUI
         }
         private void ScanStarted()
         {
-
             if (InvokeRequired)
             {
                 var d = new NoParmDelegateEvent(ScanStarted);
@@ -146,7 +145,8 @@ namespace Chizl.SearchSystemUI
                 else
                     _scanAborted.SetFalse();
 
-                // set refresh for folder/file count information to max setting for refeshes.
+                // set refresh for folder/file count
+                // information to max setting for refeshes.
                 resetRefreshCnt = maxRefreshCnt;
                 refreshCnt = 0;
                 BtnFind.Enabled = false;
@@ -263,13 +263,12 @@ namespace Chizl.SearchSystemUI
         private void SetupForm()
         {
             LoadConfig();
-            SetupListView(ResultsListView);
+            SetupListView(ResultsListView, ListViewColumns());
         }
         private void LoadConfig()
         {
             //not ready yet
             ListMenuExportList.Visible = false;
-
 
             this.Text = About.TitleWithFileVersion;
             ConfigData.LoadConfig(_configFile);
@@ -421,31 +420,63 @@ namespace Chizl.SearchSystemUI
         }
         private (int Added, int Removed) CheckFilterData()
         {
+            var changed = false;
+
+            // If NoExtensions is found, then remove we don't want them in keepItems.
+            var remNoExt = _excludeItems.Values.Where(w => w.Type == FilterType.NoExtension).Any();
+
             // found there are files without extensions, this cause just about all fiels to be filtered
             // as most of them are in a folder or the filename has a space in it.  This fixed that issue.
+            //List<string> keepItems = _unfilteredItemsList.Cast<ListViewItem>()
+            //                                .Where(w => w.Text.IndexOf(".") > -1)
+            //                                .Select(s => s.SubItems[5].Text).ToList();
+
+            //List<string> keepItems = remNoExt
+            //                            ? _unfilteredItemsList.Cast<ListViewItem>()
+            //                                .Where(w => w.Text.Contains("."))
+            //                                .Select(s => s.SubItems[5].Text).ToList()
+            //                            : _unfilteredItemsList.Cast<ListViewItem>()
+            //                                .Select(s => s.SubItems[5].Text).ToList();
+
             List<string> keepItems = _unfilteredItemsList.Cast<ListViewItem>()
-                                            .Where(w => w.Text.IndexOf(".") > -1)
+                                            .Where(w => (remNoExt ? w.Text.Contains(".") : w.Text.Length > 0))
                                             .Select(s => s.SubItems[5].Text).ToList();
 
             // This helps focus on mostly extension as there are some folders with . in them, but if
-            // the filter starts with a '.', lets assume this is an extension.
-            keepItems = keepItems.Where(w => _excludeItems.Keys
-                                        .Where(k => k.StartsWith(".") && w.EndsWith(k))
+            // the filter starts with a '.', lets assume this is an extension.  Extensions are not Case Sensitive
+            keepItems = keepItems.Where(w => _excludeItems
+                                        .Where(k => k.Value.Type.Equals(FilterType.Extension) && w.ToLower().EndsWith(k.Value.Filter))
                                         .Count().Equals(0)).ToList();
 
             // Filter drives
-            keepItems = keepItems.Where(w => _excludeItems.Keys
-                                        .Where(k => k.Length.Equals(2) && w.Substring(0, 2).Equals(k))
+            keepItems = keepItems.Where(w => _excludeItems
+                                        .Where(k => k.Value.Type.Equals(FilterType.Drive) && w.StartsWith(k.Key))
                                         .Count().Equals(0)).ToList();
 
-            keepItems = keepItems.Where(w => _excludeItems.Keys
-                                        .Where(k => w.Contains(k))
+            // Remove any left overs.
+            keepItems = keepItems.Where(w => _excludeItems
+                                        .Where(k => k.Value.Type.Equals(FilterType.Contains) && w.Contains(k.Key))
                                         .Count().Equals(0)).ToList();
 
             if (!keepItems.Count.Equals(ResultsListView.Items.Count))
+                changed = true;
+            else
+            { 
+                foreach (ListViewItem item in ResultsListView.Items)
+                {
+                    if (!keepItems.Contains(item.SubItems[5].Text))
+                    {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (changed)
             {
                 var wasPaths = ResultsListView.Items.Cast<ListViewItem>().Select(w => w.SubItems[5].Text).ToArray();
 
+                // This ensure the list doesn't show rows being removed then readded.  It's an instantant replace of data.
                 ResultsListView.SuspendLayout();
                 ResultsListView.Items.Clear();
                 ResultsListView.Items.AddRange(_unfilteredItemsList.Where(w => keepItems.Contains(w.SubItems[5].Text)).ToArray());
@@ -702,12 +733,20 @@ namespace Chizl.SearchSystemUI
                                                 .Select(s => s.SubItems[5].Text.Substring(0,2)).Distinct().ToList();
 
                 foreach (var rm in removeItems)
-                    change = _excludeItems.TryAdd(rm, 0) || change;
+                    change = _excludeItems.TryAdd(rm, new SubFilterExclusion(rm, FilterType.Drive)) || change;
 
-                if (change && CheckFilterData().Added > 0)
+                if (change)
                 {
-                    _driveFilterOn.SetVal(true);
-                    SetFilterStatus();
+                    (var added, var removed) = CheckFilterData();
+                    if (added > 0 || removed > 0)
+                    {
+                        _driveFilterOn.SetVal(true);
+                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}\n" +
+                                                                $"Last filter added '{added}' and removed '{removed}'.");
+                        SetFilterStatus();
+                    }
+                    else
+                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
                 }
                 else
                     ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
@@ -717,37 +756,35 @@ namespace Chizl.SearchSystemUI
         {
             if (GetSelectedItems(out string[] selectedItems, true))
             {
+                // Extensions are not to be Case Sensitive.
                 var change = false;
-                //var count = ResultsListView.Items.Count;
-                var ext = Path.GetExtension(selectedItems[0].Replace("\"", "")).ToLower();
+                var exts = selectedItems.Select(s => Path.GetExtension(s).ToLower()).ToList();
                 
-                var exts = selectedItems.Select(s => Path.GetExtension(s)).ToList();
+                var currFilter = _unfilteredItemsList.Cast<ListViewItem>()
+                                    .Select(s => s.SubItems[5].Text.ToLower()).ToList();
 
-                List<string> removeItems = _unfilteredItemsList.Cast<ListViewItem>()
-                                                .Where(w => exts.Where(ew => w.SubItems[5].Text.EndsWith(ew)).Count().Equals(0))
-                                                .Select(s => Path.GetExtension(s.SubItems[5].Text)).Distinct().ToList();
+                List<string> removeItems = currFilter
+                                            .Where(w => exts.Where(ew => w.EndsWith(ew))
+                                                            .Count()
+                                                            .Equals(0))
+                                            .Select(s => Path.GetExtension(s))
+                                            .Distinct().ToList();
 
                 foreach (var rm in removeItems)
-                    change = _excludeItems.TryAdd(rm, 0) || change;
+                    change = _excludeItems.TryAdd(rm.ToLower(), new SubFilterExclusion(rm, FilterType.Extension)) || change;
 
-                //ListViewItem[] items = new ListViewItem[count];
-                //ResultsListView.Items.CopyTo(items, 0);
-
-                //foreach (var item in items)
-                //{
-                //    if (!item.Text.ToLower().EndsWith(ext))
-                //    {
-                //        var remExt = Path.GetExtension(item.Text).ToLower();
-                //        _excludeItems.TryAdd(remExt, 0);
-
-                //        ResultsListView.Items.Remove(item);
-                //    }
-                //}
-
-                if (change && CheckFilterData().Removed > 0)
+                if (change)
                 {
-                    _extFilterOn.SetVal(true);
-                    SetFilterStatus();
+                    (var added, var removed) = CheckFilterData();
+                    if (added > 0 || removed > 0)
+                    {
+                        _extFilterOn.SetVal(true);
+                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}\n" +
+                                                                $"Last filter added '{added}' and removed '{removed}'.");
+                        SetFilterStatus();
+                    }
+                    else
+                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
                 }
                 else
                     ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
@@ -775,12 +812,13 @@ namespace Chizl.SearchSystemUI
         {
             if (GetSelectedItems(out string[] selectedItems, true))
             {
-                var exArr = _excludeItems.Keys;
-                SubFilterOptions subFilterForm = new SubFilterOptions(selectedItems[0].Replace("\"", ""));
+                var exArr = _excludeItems.Values.ToArray();
+                SubFilterOptions subFilterForm = new SubFilterOptions(string.Join("\n", selectedItems));
                 subFilterForm.ExcludeItems.Clear();
                 subFilterForm.ExcludeItems.AddRange(exArr);
                 if (subFilterForm.ShowDialog(this) == DialogResult.OK)
                 {
+                    var change = false;
                     var extFilterOn = false;
                     var drivFilterOn = false;
                     var removeStrItem = new List<ListViewItem>();
@@ -797,29 +835,31 @@ namespace Chizl.SearchSystemUI
                     foreach (var item in subFilterForm.ExcludeItems)
                     {
                         if (!extFilterOn)
-                            extFilterOn = item.StartsWith(".");
+                            extFilterOn = item.Type.Equals(FilterType.Extension) || item.Type.Equals(FilterType.NoExtension);
                         if (!drivFilterOn)
-                            drivFilterOn = item.Length.Equals(2) && item.EndsWith(":");
+                            drivFilterOn = item.Type.Equals(FilterType.Drive);
 
-                        _excludeItems.TryAdd(item, 0);  //only duplicates will fail
+                        change = _excludeItems.TryAdd(item.FilterRaw, item) || change;  //only duplicates will fail
                     }
 
                     _extFilterOn.SetVal(extFilterOn);
                     _driveFilterOn.SetVal(drivFilterOn);
 
-                    (var added, var removed) = CheckFilterData();
-
-                    if (added > 0 || removed > 0)
+                    if (change)
                     {
-                        _customFilterOn.SetVal(true);
-                        ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}\n" +
-                                                                $"Last filter added '{added}' and removed '{removed}'.");
+                        (var added, var removed) = CheckFilterData();
+                        if (added > 0 || removed > 0)
+                        {
+                            _customFilterOn.SetVal(true);
+                            ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}\n" +
+                                                                    $"Last filter added '{added}' and removed '{removed}'.");
+                            SetFilterStatus();
+                        }
+                        else
+                            ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
                     }
                     else
                         ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
-
-                    // refresh filter status
-                    SetFilterStatus();
                 }
             }
         }
@@ -870,8 +910,6 @@ namespace Chizl.SearchSystemUI
             else
                 ListMenuClearList.Enabled = true;
 
-            // var selItem = GetSelectedItem(out string selectedItem);
-
             if (_listViewHitTest?.Item != null)
             {
                 CMenuList.Enabled = true;
@@ -909,40 +947,9 @@ namespace Chizl.SearchSystemUI
         {
             _selListBox.Items.Clear();
         }
-        private void CMenuInfoErrRemoveType_Click(object sender, EventArgs e)
-        {
-            var grab = 15;
-            var id = _selListBox.SelectedIndex;
-            if (id < 0)
-                return;
-
-            var text = _selListBox.Items[id].ToString();
-            if (string.IsNullOrWhiteSpace(text))
-                return;
-
-            if (text.Length < grab)
-                grab = text.Length;
-
-            if (text.Length >= grab)
-            {
-                text = text.Substring(0, grab);
-                var itemList = _selListBox.Items.OfType<string>().Where(w=>w.StartsWith(text)).ToArray();
-                foreach(var item in itemList)
-                {
-                    _selListBox.Items.Remove(item);
-                }
-            }
-        }
         #endregion
 
         #region ListView Setup/Controls
-        private void ListView_Checked(object sender, ItemCheckedEventArgs e)
-        {
-            var lv = sender as ListView;
-            var isChecked = e.Item.Checked ? 1 : 0;
-            var id = e.Item.SubItems[e.Item.SubItems.Count-1].Text;
-            // TODO: What is needed if I use Checked.
-        }
         private void ListView_ColumnClick(object sender, ColumnClickEventArgs e)
         {
             var lv = (ListView)sender;
@@ -968,7 +975,7 @@ namespace Chizl.SearchSystemUI
 
             _loaded = true;
         }
-        private void SetupListView(ListView lv)
+        private void SetupListView(ListView lv, ColumnHeader[] ch)
         {
             if (lv.View != View.Details)
             {
@@ -1007,27 +1014,13 @@ namespace Chizl.SearchSystemUI
 
             if (lv.Columns.Count == 0)
             {
-                /*
-                List<ColumnHeader> cols = ListViewColumns();
-                foreach (ColumnHeader header in cols)
-                {
-                    header.AutoResize(ColumnHeaderAutoResizeStyle.HeaderSize);
-                    if (header.Text != "")
-                    {
-                        if (string.IsNullOrWhiteSpace(header.Name))
-                            header.Name = header.Text;
-                        lv.Columns.Add(header);
-                    }
-                }
-                /**/
-
-                lv.Columns.AddRange(ListViewColumns());
+                lv.Columns.AddRange(ch);
                 lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
             }
         }
         internal ColumnHeader[] ListViewColumns()
         {
-            if (_listViewColumns != null && _listViewColumns.Count() > 0)
+            if (_listViewColumns != null && _listViewColumns.Length > 0)
                 return _listViewColumns;
 
             ColumnHeader[] cols = new ColumnHeader[]

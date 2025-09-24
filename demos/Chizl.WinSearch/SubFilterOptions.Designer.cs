@@ -35,11 +35,11 @@
             this.panel5 = new System.Windows.Forms.Panel();
             this.ButtonAdd = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.ListBoxSubFilters = new System.Windows.Forms.ListBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuRemoveItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel2 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.ListViewSubFilters = new System.Windows.Forms.ListView();
             this.label2 = new System.Windows.Forms.Label();
             this.panel6 = new System.Windows.Forms.Panel();
             this.ButtonCancel = new System.Windows.Forms.Button();
@@ -69,10 +69,10 @@
             this.panel4.Controls.Add(this.panel5);
             this.panel4.Controls.Add(this.ButtonAdd);
             this.panel4.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel4.Location = new System.Drawing.Point(5, 57);
+            this.panel4.Location = new System.Drawing.Point(5, 31);
             this.panel4.Name = "panel4";
             this.panel4.Padding = new System.Windows.Forms.Padding(0, 0, 10, 0);
-            this.panel4.Size = new System.Drawing.Size(780, 20);
+            this.panel4.Size = new System.Drawing.Size(780, 46);
             this.panel4.TabIndex = 2;
             // 
             // TextPath
@@ -81,9 +81,10 @@
             this.TextPath.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TextPath.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.TextPath.Location = new System.Drawing.Point(0, 0);
+            this.TextPath.Multiline = true;
             this.TextPath.Name = "TextPath";
             this.TextPath.ReadOnly = true;
-            this.TextPath.Size = new System.Drawing.Size(688, 20);
+            this.TextPath.Size = new System.Drawing.Size(688, 46);
             this.TextPath.TabIndex = 0;
             // 
             // panel5
@@ -91,7 +92,7 @@
             this.panel5.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel5.Location = new System.Drawing.Point(688, 0);
             this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(13, 20);
+            this.panel5.Size = new System.Drawing.Size(13, 46);
             this.panel5.TabIndex = 2;
             // 
             // ButtonAdd
@@ -99,7 +100,7 @@
             this.ButtonAdd.Dock = System.Windows.Forms.DockStyle.Right;
             this.ButtonAdd.Location = new System.Drawing.Point(701, 0);
             this.ButtonAdd.Name = "ButtonAdd";
-            this.ButtonAdd.Size = new System.Drawing.Size(69, 20);
+            this.ButtonAdd.Size = new System.Drawing.Size(69, 46);
             this.ButtonAdd.TabIndex = 1;
             this.ButtonAdd.Text = "Add";
             this.ButtonAdd.UseVisualStyleBackColor = true;
@@ -115,18 +116,6 @@
             this.label1.Text = "Highlight parts from path below and click add to make those parts filtered from y" +
     "our search.";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // ListBoxSubFilters
-            // 
-            this.ListBoxSubFilters.ContextMenuStrip = this.contextMenuStrip1;
-            this.ListBoxSubFilters.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ListBoxSubFilters.FormattingEnabled = true;
-            this.ListBoxSubFilters.Location = new System.Drawing.Point(5, 44);
-            this.ListBoxSubFilters.Name = "ListBoxSubFilters";
-            this.ListBoxSubFilters.Size = new System.Drawing.Size(780, 237);
-            this.ListBoxSubFilters.Sorted = true;
-            this.ListBoxSubFilters.TabIndex = 1;
-            this.ListBoxSubFilters.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ListBoxSubFilters_MouseDown);
             // 
             // contextMenuStrip1
             // 
@@ -154,7 +143,7 @@
             // 
             // panel3
             // 
-            this.panel3.Controls.Add(this.ListBoxSubFilters);
+            this.panel3.Controls.Add(this.ListViewSubFilters);
             this.panel3.Controls.Add(this.label2);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel3.Location = new System.Drawing.Point(0, 0);
@@ -162,6 +151,18 @@
             this.panel3.Padding = new System.Windows.Forms.Padding(5);
             this.panel3.Size = new System.Drawing.Size(790, 286);
             this.panel3.TabIndex = 2;
+            // 
+            // ListViewSubFilters
+            // 
+            this.ListViewSubFilters.ContextMenuStrip = this.contextMenuStrip1;
+            this.ListViewSubFilters.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ListViewSubFilters.HideSelection = false;
+            this.ListViewSubFilters.Location = new System.Drawing.Point(5, 44);
+            this.ListViewSubFilters.MultiSelect = false;
+            this.ListViewSubFilters.Name = "ListViewSubFilters";
+            this.ListViewSubFilters.Size = new System.Drawing.Size(780, 237);
+            this.ListViewSubFilters.TabIndex = 3;
+            this.ListViewSubFilters.UseCompatibleStateImageBehavior = false;
             // 
             // label2
             // 
@@ -237,7 +238,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox TextPath;
-        private System.Windows.Forms.ListBox ListBoxSubFilters;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.Label label2;
@@ -249,5 +249,6 @@
         private System.Windows.Forms.Button ButtonOk;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuRemoveItem;
+        private System.Windows.Forms.ListView ListViewSubFilters;
     }
 }

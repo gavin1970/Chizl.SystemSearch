@@ -38,8 +38,6 @@
             this.EventList = new System.Windows.Forms.ListBox();
             this.CMenuInfoErr = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.CMenuInfoErrClear = new System.Windows.Forms.ToolStripMenuItem();
-            this.CMenuInfoErrFilter = new System.Windows.Forms.ToolStripMenuItem();
-            this.CMenuInfoErrRemoveType = new System.Windows.Forms.ToolStripMenuItem();
             this.ResultsPanel = new System.Windows.Forms.Panel();
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
             this.panel4 = new System.Windows.Forms.Panel();
@@ -195,32 +193,16 @@
             // CMenuInfoErr
             // 
             this.CMenuInfoErr.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.CMenuInfoErrClear,
-            this.CMenuInfoErrFilter});
+            this.CMenuInfoErrClear});
             this.CMenuInfoErr.Name = "CMenuInfoErr";
-            this.CMenuInfoErr.Size = new System.Drawing.Size(106, 48);
+            this.CMenuInfoErr.Size = new System.Drawing.Size(102, 26);
             // 
             // CMenuInfoErrClear
             // 
             this.CMenuInfoErrClear.Name = "CMenuInfoErrClear";
-            this.CMenuInfoErrClear.Size = new System.Drawing.Size(105, 22);
+            this.CMenuInfoErrClear.Size = new System.Drawing.Size(101, 22);
             this.CMenuInfoErrClear.Text = "&Clear";
             this.CMenuInfoErrClear.Click += new System.EventHandler(this.CMenuInfoErrClear_Click);
-            // 
-            // CMenuInfoErrFilter
-            // 
-            this.CMenuInfoErrFilter.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.CMenuInfoErrRemoveType});
-            this.CMenuInfoErrFilter.Name = "CMenuInfoErrFilter";
-            this.CMenuInfoErrFilter.Size = new System.Drawing.Size(105, 22);
-            this.CMenuInfoErrFilter.Text = "&Filters";
-            // 
-            // CMenuInfoErrRemoveType
-            // 
-            this.CMenuInfoErrRemoveType.Name = "CMenuInfoErrRemoveType";
-            this.CMenuInfoErrRemoveType.Size = new System.Drawing.Size(145, 22);
-            this.CMenuInfoErrRemoveType.Text = "&Remove Type";
-            this.CMenuInfoErrRemoveType.Click += new System.EventHandler(this.CMenuInfoErrRemoveType_Click);
             // 
             // ResultsPanel
             // 
@@ -860,8 +842,6 @@
         private System.Windows.Forms.ToolStripMenuItem ListMenuClearList;
         private System.Windows.Forms.ContextMenuStrip CMenuInfoErr;
         private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrClear;
-        private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrRemoveType;
-        private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrFilter;
         private System.Windows.Forms.ToolStripMenuItem ListMenuExclude;
         private System.Windows.Forms.ToolStripStatusLabel StatusToolStripSubFiltered;
         private System.Windows.Forms.ListView ResultsListView;

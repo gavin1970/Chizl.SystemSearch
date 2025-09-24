@@ -14,14 +14,12 @@ public enum LISTVIEW_ACTION
 public class ListViewHelper
 {
     public ListViewColumnSorter LvColumnSorter { get; set; }
-
     private void ListView_ColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
     {
         ListView lv = (ListView)sender;
         e.NewWidth = lv.Columns[e.ColumnIndex].Width;
         e.Cancel = true;
     }
-
     public void SetupListView(ListView lv, List<string> columns, ListViewOptions lvo = null)
     {
         if (lv.IsDisposed || lv.Disposing)
@@ -54,7 +52,6 @@ public class ListViewHelper
             ListView_ResizeGrid(lv, lvo.HideFirstCol, lvo.AutoSizeLastCol);
         }
     }
-
     /// <summary>
     /// sets default settings for any listView passed to it.
     /// </summary>
@@ -101,7 +98,6 @@ public class ListViewHelper
                 lv.ColumnWidthChanging += new ColumnWidthChangingEventHandler(ListView_ColumnWidthChanging);
         }
     }
-
     public void ListView_Column_Sort(ListView lv, ColumnClickEventArgs e)
     {
         if (lv.IsDisposed || lv.Disposing)
@@ -129,7 +125,6 @@ public class ListViewHelper
         // Perform the sort with these new sort options.
         lv.Sort();
     }
-
     public void ListView_ResizeGrid(ListView lv, bool hideFirstCol = true, bool autoSizeLastCol = true)
     {
         if (lv.IsDisposed || lv.Disposing)
@@ -143,7 +138,6 @@ public class ListViewHelper
         if (!hideFirstCol && !autoSizeLastCol)
             lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
     }
-
     public bool ListViewSearch(ListView lv, string findText, LISTVIEW_ACTION action = LISTVIEW_ACTION.SEARCH, ListViewItem lvItem = null)
     {
         bool retVal = false;
@@ -219,17 +213,14 @@ public class ListViewColumnSorter : IComparer
     /// Specifies the column to be sorted
     /// </summary>
     private int ColumnToSort;
-
     /// <summary>
     /// Specifies the order in which to sort (i.e. 'Ascending').
     /// </summary>
     private SortOrder OrderOfSort;
-
     /// <summary>
     /// Case insensitive comparer object
     /// </summary>
     private CaseInsensitiveComparer ObjectCompare;
-
     /// <summary>
     /// Class constructor. Initializes various elements
     /// </summary>
@@ -244,7 +235,6 @@ public class ListViewColumnSorter : IComparer
         // Initialize the CaseInsensitiveComparer object
         ObjectCompare = new CaseInsensitiveComparer();
     }
-
     /// <summary>
     /// This method is inherited from the IComparer interface. It compares the two objects passed using a case insensitive comparison.
     /// </summary>
@@ -285,7 +275,6 @@ public class ListViewColumnSorter : IComparer
             return 0;
         }
     }
-
     /// <summary>
     /// Gets or sets the number of the column to which to apply the sorting operation (Defaults to '0').
     /// </summary>
@@ -300,7 +289,6 @@ public class ListViewColumnSorter : IComparer
             return ColumnToSort;
         }
     }
-
     /// <summary>
     /// Gets or sets the order of sorting to apply (for example, 'Ascending' or 'Descending').
     /// </summary>
@@ -315,5 +303,4 @@ public class ListViewColumnSorter : IComparer
             return OrderOfSort;
         }
     }
-
 }
