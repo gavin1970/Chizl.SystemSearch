@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Runtime.CompilerServices;
 
 namespace Chizl.SystemSearch
 {
@@ -93,7 +90,7 @@ namespace Chizl.SystemSearch
 
             var retVal = searchCriteria;
 
-            if (!searchCriteria.Contains(Seps.cStart) || !searchCriteria.Contains(Seps.cEnd))
+            if (!searchCriteria.Contains($"{Seps.cStart}") || !searchCriteria.Contains($"{Seps.cEnd}"))
                 return retVal.SplitOn(Seps.cWild);
 
             searchCriteria = searchCriteria.Replace($"{Seps.cStart}", $"{Seps.cMulti}{Seps.cStart}")
