@@ -147,7 +147,6 @@ namespace Chizl.SystemSearch
         internal Task ScanDrives(string[] driveLetter, bool sendMsg, bool isRescan = true)
         {
             GlobalSettings.Startup();
-
             var taskList = new List<Task>();
             var taskFolderList = new List<Task>();
 
@@ -205,6 +204,7 @@ namespace Chizl.SystemSearch
                 SetStatus(statusType, true);
 
                 SearchMessage.SendMsg(msgType, $"Cached: ({ScannedFolders.FormatByComma()}) Folders, ({ScannedFiles.FormatByComma()}) Files");
+                GlobalSettings.Ended();
             });
         }
         internal List<Task> ScanSubFolders(string[] folderList)

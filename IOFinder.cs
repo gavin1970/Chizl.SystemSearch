@@ -8,7 +8,7 @@ namespace Chizl.SystemSearch
 {
     public class IOFinder : IDisposable
     {
-        const int _maxFindingsCount = 1000;
+        const int _maxFindingsCount = 10000;
         private static List<FileSystemWatcher> _watcher = new List<FileSystemWatcher>();
 
         // since there will be a lot of threading going on, these status need to be seen by all threads.
@@ -58,6 +58,7 @@ namespace Chizl.SystemSearch
 
             return searchTask;
         }
+        
         private bool SearchCache(string[] drives, string searchCriteria, bool sendMsg = true)
         {
             var retVal = false;
@@ -71,21 +72,75 @@ namespace Chizl.SystemSearch
             if (sendMsg)
                 SearchMessage.SendMsg(SearchMessageType.UpdateInprogress, $"Search cache for '{searchCriteria}'.");
 
-            var wcSearch = searchCriteria.Split(new char[] { '*' }, StringSplitOptions.RemoveEmptyEntries);
-            List<string> findings = new List<string>();
+            var buildSearchCriteria = new BuildSearchCmd(searchCriteria);
+            retVal = DeepDive(drives, buildSearchCriteria);
+            
+            // send total count message, to ensure accuratness
+            SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
 
-            for (int i = 0; i < wcSearch.Length; i++)
+            return retVal;
+        }
+        private bool DeepDive(string[] drives, BuildSearchCmd searchCriteria)
+        {
+            var retVal = false;
+            var findings = new List<string>();
+            var filters = new List<string>();
+
+            var pathList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Path).ToArray();
+            var extList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Ext).ToArray();
+
+            for (int i = 0; i < searchCriteria.SearchCriteria.Length; i++)
             {
                 if (GlobalSettings.HasShutdown)
                     break;
 
-                var wc = wcSearch[i];
+                var wc = searchCriteria.SearchCriteria[i];
 
-                // if we have content, we now need to filter down for each criteria.
-                if (findings.Count > 0)
-                    findings = findings.Where(w => w.ToLower().Contains(wc.ToLower())).ToList();
+                if (wc.Length == 1 && wc.Equals(Seps.cPathPos.ToString()) && pathList.Length > 0)
+                {
+                    searchCriteria.SearchCriteria[i] = "";
+                    filters.Clear();
+
+                    foreach (var p in pathList)
+                    {
+                        if (findings.Count > 0)
+                            filters.AddRange(findings.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList());
+                        else
+                            filters.AddRange(Scanner.GetFileList.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList());
+                    }
+
+                    findings.Clear();
+                    findings.AddRange(filters);
+                }
+                else if (wc.Length == 1 && wc.Equals(Seps.cExtPos.ToString()) && extList.Length > 0)
+                {
+                    searchCriteria.SearchCriteria[i] = "";
+                    filters.Clear();
+
+                    foreach (var e in extList)
+                    {
+                        if (findings.Count > 0)
+                            filters.AddRange(findings.Where(w => w.ToLower().EndsWith(e.Search.ToLower())).ToList());
+                        else
+                            filters.AddRange(Scanner.GetFileList.Where(w => w.ToLower().EndsWith(e.Search.ToLower())).ToList());
+                    }
+
+                    findings.Clear();
+                    findings.AddRange(filters);
+                }
                 else
-                    findings = Scanner.GetFileList.Where(w => w.ToLower().Contains(wc.ToLower())).ToList();
+                {
+                    filters.Clear();
+
+                    // if we have content, we now need to filter down for each criteria.
+                    if (findings.Count > 0)
+                        filters.AddRange(findings.Where(w => w.ToLower().Contains(wc.ToLower())).ToList());
+                    else
+                        filters.AddRange(Scanner.GetFileList.Where(w => w.ToLower().Contains(wc.ToLower())).ToList());
+
+                    findings.Clear();
+                    findings.AddRange(filters);
+                }
 
                 // at any time, we haven't found anything,
                 // then we haven't met the criteria
@@ -103,7 +158,7 @@ namespace Chizl.SystemSearch
                     if (GlobalSettings.HasShutdown)
                         break;
 
-                    if (VerifyCriteria(drives, file, wcSearch))
+                    if (VerifyCriteria(drives, file, searchCriteria))
                     {
                         if (verifiedFiles < _maxFindingsCount)
                             fileList.Add(file);
@@ -116,19 +171,18 @@ namespace Chizl.SystemSearch
                 // Bulk send of all findings by split of '\n', instant...  Balances Windows with Linux strings.
                 var arrData = string.Join("\n", fileList);
                 SearchMessage.SendMsg(SearchMessageType.SearchResults, arrData);
+                // send found message
+                SearchMessage.SendMsg(SearchMessageType.SearchStatus, $"Filtered: {fileList.Count().FormatByComma()}, Total Found: {verifiedFiles.FormatByComma()}");
             }
-
-            // send found message
-            SearchMessage.SendMsg(SearchMessageType.SearchStatus, $"Filtered: {fileList.Count().FormatByComma()}, Total Found: {verifiedFiles.FormatByComma()}");
-            // send total count message, to ensure accuratness
-            SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
 
             return retVal;
         }
-        private bool VerifyCriteria(string[] drives, string file, string[] wcSearch)
+        private bool VerifyCriteria(string[] drives, string file, BuildSearchCmd searchCriteria)
         {
+            var fileDrive = file.Substring(0, 2).ToLower();
             var fileName = Path.GetFileName(file).ToLower();
             var folderName = Path.GetDirectoryName(file).ToLower();
+            var fileExt = Path.GetExtension(file).ToLower();
             var findCount = 0;
             var loc = 0;
             var prevLoc = 0;
@@ -138,13 +192,16 @@ namespace Chizl.SystemSearch
 
             if (Criteria.SearchDirectory)
             {
-                foreach (var sArr in wcSearch)
+                foreach (var sArr in searchCriteria.SearchCriteria)
                 {
                     // met criteria, get out.
-                    if (findCount >= wcSearch.Length)
+                    if (findCount >= searchCriteria.SearchCriteria.Length)
                         break;
-
+                    var clnUp = sArr.EndsWith("\\") ? sArr.Substring(0, sArr.Length - 1) : sArr;
                     loc = folderName.IndexOf(sArr, prevLoc, StringComparison.CurrentCultureIgnoreCase);
+                    if (loc.Equals(-1) && folderName.EndsWith(clnUp))
+                        loc = folderName.IndexOf(clnUp, prevLoc, StringComparison.CurrentCultureIgnoreCase);
+
                     if (loc < prevLoc)
                     {
                         if (Criteria.SearchFilename)
@@ -159,13 +216,16 @@ namespace Chizl.SystemSearch
                     }
                 }
             }
-            if (Criteria.SearchFilename && findCount < wcSearch.Length)
+            if (Criteria.SearchFilename && findCount < searchCriteria.SearchCriteria.Length)
             {
                 prevLoc = 0;
-                foreach (var sArr in wcSearch.Skip(findCount))
+                foreach (var sArr in searchCriteria.SearchCriteria.Skip(findCount))
                 {
+                    if (string.IsNullOrWhiteSpace(sArr))
+                        continue;
+
                     // met criteria, get out.
-                    if (findCount >= wcSearch.Length)
+                    if (findCount >= searchCriteria.SearchCriteria.Length)
                         break;
 
                     loc = fileName.IndexOf(sArr, prevLoc, StringComparison.CurrentCultureIgnoreCase);

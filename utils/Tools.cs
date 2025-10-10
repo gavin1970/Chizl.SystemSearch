@@ -68,5 +68,7 @@ namespace Chizl.SystemSearch
             var hashReturn = BitConverter.ToString(input).Replace("-", "");
             return caseType.Equals(ReturnCase.Upper) ? hashReturn.ToUpper() : hashReturn.ToLower();
         }
+        public static string[] SplitOn(this string @this, char[] sep) => @this.Split(sep, StringSplitOptions.RemoveEmptyEntries);
+        public static string[] SplitOn(this string @this, char sep) => @this.Split(new char[] { sep }, StringSplitOptions.RemoveEmptyEntries);
     }
 }

@@ -21,7 +21,7 @@ namespace Chizl.WinSearch
         public SubFilterOptions(string path)
         {
             InitializeComponent();
-            _path = path;
+            _path = string.IsNullOrWhiteSpace(path) ? "" : path;
         }
 
         /// <summary>

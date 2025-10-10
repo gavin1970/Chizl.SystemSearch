@@ -2,6 +2,7 @@
 {
     public class SubFilterExclusion
     {
+        private SubFilterExclusion() { IsEmpty = true; }
         public SubFilterExclusion(string filter, FilterType type)
         {
             this.Filter = filter.ToLower();
@@ -9,6 +10,8 @@
             this.Type = type != FilterType.Unknown ? type : FindType(filter);
         }
 
+        public static SubFilterExclusion Empty { get { return new SubFilterExclusion(); } }
+        public bool IsEmpty { get; }
         public string Filter { get; }
         public string FilterRaw { get; }
         public FilterType Type { get; }

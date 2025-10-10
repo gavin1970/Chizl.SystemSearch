@@ -75,8 +75,10 @@
             this.PanelScanButton = new System.Windows.Forms.Panel();
             this.BtnStartStopScan = new System.Windows.Forms.Button();
             this.StartupMenuStrip = new System.Windows.Forms.MenuStrip();
-            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ExitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.FileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SetupTSMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.ExitTSMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.StartupStatusStrip = new System.Windows.Forms.StatusStrip();
@@ -572,7 +574,7 @@
             this.StartupMenuStrip.BackColor = System.Drawing.SystemColors.ControlDark;
             this.StartupMenuStrip.ForeColor = System.Drawing.SystemColors.MenuText;
             this.StartupMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem,
+            this.FileToolStripMenuItem,
             this.HelpToolStripMenuItem});
             this.StartupMenuStrip.Location = new System.Drawing.Point(0, 0);
             this.StartupMenuStrip.Name = "StartupMenuStrip";
@@ -580,21 +582,35 @@
             this.StartupMenuStrip.TabIndex = 9;
             this.StartupMenuStrip.Text = "menuStrip1";
             // 
-            // fileToolStripMenuItem
+            // FileToolStripMenuItem
             // 
-            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ExitToolStripMenuItem});
-            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
-            this.fileToolStripMenuItem.Text = "&File";
+            this.FileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.SetupTSMenu,
+            this.toolStripSeparator3,
+            this.ExitTSMenu});
+            this.FileToolStripMenuItem.Name = "FileToolStripMenuItem";
+            this.FileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.FileToolStripMenuItem.Text = "&File";
             // 
-            // ExitToolStripMenuItem
+            // SetupTSMenu
             // 
-            this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
-            this.ExitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.X)));
-            this.ExitToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
-            this.ExitToolStripMenuItem.Text = "E&xit";
-            this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
+            this.SetupTSMenu.Name = "SetupTSMenu";
+            this.SetupTSMenu.Size = new System.Drawing.Size(129, 22);
+            this.SetupTSMenu.Text = "&Setup";
+            this.SetupTSMenu.Click += new System.EventHandler(this.SetupTSMenu_Click);
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(126, 6);
+            // 
+            // ExitTSMenu
+            // 
+            this.ExitTSMenu.Name = "ExitTSMenu";
+            this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.X)));
+            this.ExitTSMenu.Size = new System.Drawing.Size(129, 22);
+            this.ExitTSMenu.Text = "E&xit";
+            this.ExitTSMenu.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
             // HelpToolStripMenuItem
             // 
@@ -819,8 +835,8 @@
         private System.Windows.Forms.Panel PanelScanButton;
         private System.Windows.Forms.Button BtnStartStopScan;
         private System.Windows.Forms.MenuStrip StartupMenuStrip;
-        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ExitToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem FileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ExitTSMenu;
         private System.Windows.Forms.StatusStrip StartupStatusStrip;
         private System.Windows.Forms.ToolStripStatusLabel StatusToolStripStatusLabel;
         private System.Windows.Forms.ToolStripStatusLabel SearchStatusToolStripStatusLabel;
@@ -862,6 +878,8 @@
         private System.Windows.Forms.Panel panel5;
         private System.Windows.Forms.ContextMenuStrip MnuAllowedFolders;
         private System.Windows.Forms.ToolStripMenuItem AllowFoldersTitle;
+        private System.Windows.Forms.ToolStripMenuItem SetupTSMenu;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
     }
 }
 

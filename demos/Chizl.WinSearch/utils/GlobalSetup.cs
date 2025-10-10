@@ -35,23 +35,25 @@ namespace Chizl.SearchSystemUI
     internal static class GlobalSetup
     {
         public static IOFinder Finder { get; } = new IOFinder();
-
         public static ListViewItem[] GetFileInfo(string[] unfiltList)
         {
             var listViewItems = new List<ListViewItem>();
             foreach (var filePath in unfiltList)
             {
-                var fi = new FileInfo(filePath);
-                var liv = new ListViewItem(fi.Name);
-                liv.SubItems.Add(fi.Length.ToString());
-                liv.SubItems.Add($"{fi.Length.FormatByteSize()}");
-                liv.SubItems.Add(fi.CreationTime.ToString("MM/dd/yyyy HH:mm:ss"));
-                liv.SubItems.Add(fi.LastWriteTime.ToString("MM/dd/yyyy HH:mm:ss"));
-                liv.SubItems.Add(fi.FullName);
+                try
+                {
+                    var fi = new FileInfo(filePath);
+                    var liv = new ListViewItem(fi.Name);
+                    liv.SubItems.Add(fi.Length.ToString());
+                    liv.SubItems.Add($"{fi.Length.FormatByteSize()}");
+                    liv.SubItems.Add(fi.CreationTime.ToString("MM/dd/yyyy HH:mm:ss"));
+                    liv.SubItems.Add(fi.LastWriteTime.ToString("MM/dd/yyyy HH:mm:ss"));
+                    liv.SubItems.Add(fi.FullName);
 
-                listViewItems.Add(liv);
+                    listViewItems.Add(liv);
+                }
+                catch { continue; }
             }
-
             return listViewItems.ToArray();
         }
         public static ListViewItem[] GetFilterInfo(SubFilterExclusion[] unfiltList)

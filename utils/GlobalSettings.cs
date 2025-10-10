@@ -5,6 +5,7 @@ using Chizl.ThreadSupport;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System;
 
 namespace Chizl.SystemSearch
 {
@@ -138,36 +139,45 @@ namespace Chizl.SystemSearch
 
             return Task.Run(async () =>
             {
-                var addList = RefreshFolder.Where(w => w.Value).Select(s => s.Key).ToArray();
-                var deleteList = RefreshFolder.Where(w => !w.Value).Select(s => s.Key).ToArray();
-
-                foreach (var actionFolder in addList)
+                try
                 {
-                    RefreshFolder.TryRemove(actionFolder, out _);
-                    // add that specific folder, without subfolders.
-                    queTasks.Add(_scanner.ScanFolder(actionFolder, true));
-                    // add all subfolders with each in their own thread task.
-                    queTasks.AddRange(_scanner.ScanSubFolders(Directory.GetDirectories(actionFolder)));
-                }
+                    var addList = RefreshFolder.Where(w => w.Value).Select(s => s.Key).ToArray();
+                    var deleteList = RefreshFolder.Where(w => !w.Value).Select(s => s.Key).ToArray();
 
-                foreach (var actionFolder in deleteList)
+                    foreach (var actionFolder in addList)
+                    {
+                        RefreshFolder.TryRemove(actionFolder, out _);
+                        // add that specific folder, without subfolders.
+                        queTasks.Add(_scanner.ScanFolder(actionFolder, true));
+                        // add all subfolders with each in their own thread task.
+                        queTasks.AddRange(_scanner.ScanSubFolders(Directory.GetDirectories(actionFolder)));
+                    }
+
+                    foreach (var actionFolder in deleteList)
+                    {
+                        RefreshFolder.TryRemove(actionFolder, out _);
+                        queTasks.AddRange(_scanner.RemoveRootFolder(actionFolder));
+                    }
+
+                    // wait for all thread/tasks to complete.
+                    Task.WaitAll(queTasks.ToArray());
+                    queTasks.Clear();
+                    // send complete message to UI
+                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
+                    // wait 0.10 sec
+                    await Tools.Delay(100, SleepType.Milliseconds);
+
+                    SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
+                } 
+                catch(Exception ex)
                 {
-                    RefreshFolder.TryRemove(actionFolder, out _);
-                    queTasks.AddRange(_scanner.RemoveRootFolder(actionFolder));
+                    SearchMessage.SendMsg(SearchMessageType.Exception, $"Exception during folder refresh: '{ex.Message}'");
                 }
-
-                // wait for all thread/tasks to complete.
-                Task.WaitAll(queTasks.ToArray());
-                queTasks.Clear();
-                // send complete message to UI
-                SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
-                // wait 0.10 sec
-                await Tools.Delay(100, SleepType.Milliseconds);
-
-                SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
-                Ended();
-
-                IsRefreshing.SetFalse();
+                finally 
+                { 
+                    Ended();
+                    IsRefreshing.SetFalse();
+                }
             });
         }
     }
