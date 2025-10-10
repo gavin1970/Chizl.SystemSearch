@@ -46,7 +46,7 @@ namespace Chizl.SystemSearch
             {
                 if (!GlobalSettings.FullScanCompleted)
                 {
-                    SearchMessage.SendMsg(SearchMessageType.UpdateInprogress, $"Full scan hasn't been completed. Please wait...");
+                    SearchMessage.SendMsg(SearchMessageType.UpdateInProgress, $"Full scan hasn't been completed. Please wait...");
                     await Scan(drives, false, isRescan);
                 }
             })
@@ -69,10 +69,14 @@ namespace Chizl.SystemSearch
                 return retVal;
             }
 
-            if (sendMsg)
-                SearchMessage.SendMsg(SearchMessageType.UpdateInprogress, $"Search cache for '{searchCriteria}'.");
+            var buildSearchCriteria = new BuildSearchCmd(ref searchCriteria);
 
-            var buildSearchCriteria = new BuildSearchCmd(searchCriteria);
+            if (sendMsg)
+            {
+                SearchMessage.SendMsg(SearchMessageType.UpdateInProgress, $"Search cache for '{searchCriteria}'.");
+                SearchMessage.SendMsg(SearchMessageType.SearchQueryUsed, searchCriteria);
+            }
+
             retVal = DeepDive(drives, buildSearchCriteria);
             
             // send total count message, to ensure accuratness
@@ -86,8 +90,10 @@ namespace Chizl.SystemSearch
             var findings = new List<string>();
             var filters = new List<string>();
 
-            var pathList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Path).ToArray();
-            var extList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Ext).ToArray();
+            var pathList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.path).ToList();
+            var extList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.ext).ToList();
+            var filterList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.filter).ToList();
+            filterList.AddRange(searchCriteria.Commands.Where(w => w.CommandType == CommandType.exclude).ToList());
 
             for (int i = 0; i < searchCriteria.SearchCriteria.Length; i++)
             {
@@ -96,7 +102,7 @@ namespace Chizl.SystemSearch
 
                 var wc = searchCriteria.SearchCriteria[i];
 
-                if (wc.Length == 1 && wc.Equals(Seps.cPathPos.ToString()) && pathList.Length > 0)
+                if (wc.Length == 1 && wc.Equals(Seps.cPathPos.ToString()) && pathList.Count() > 0)
                 {
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
@@ -112,7 +118,7 @@ namespace Chizl.SystemSearch
                     findings.Clear();
                     findings.AddRange(filters);
                 }
-                else if (wc.Length == 1 && wc.Equals(Seps.cExtPos.ToString()) && extList.Length > 0)
+                else if (wc.Length == 1 && wc.Equals(Seps.cExtPos.ToString()) && extList.Count() > 0)
                 {
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
@@ -127,6 +133,20 @@ namespace Chizl.SystemSearch
 
                     findings.Clear();
                     findings.AddRange(filters);
+                }
+                else if (wc.Length == 1 && wc.Equals(Seps.cFilterPos.ToString()) && filterList.Count() > 0)
+                {
+                    searchCriteria.SearchCriteria[i] = "";
+                    filters.Clear();
+
+                    foreach (var f in filterList)
+                    {
+                        if (findings.Count > 0)
+                            filters.AddRange(findings.Where(w => w.ToLower().Contains(f.Search.ToLower())).ToList());
+                    }
+
+                    foreach (var fnd in filters)
+                        findings.Remove(fnd);
                 }
                 else
                 {

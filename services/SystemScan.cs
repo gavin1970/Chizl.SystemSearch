@@ -168,7 +168,7 @@ namespace Chizl.SystemSearch
             {
                 if (sendMsg)
                 {
-                    SearchMessage.SendMsg(SearchMessageType.UpdateInprogress, $"Preparing for full scan. Please wait...");
+                    SearchMessage.SendMsg(SearchMessageType.UpdateInProgress, $"Preparing for full scan. Please wait...");
                     Tools.Sleep(1, SleepType.Milliseconds);
                 }
 

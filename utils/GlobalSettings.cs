@@ -47,7 +47,7 @@ namespace Chizl.SystemSearch
             {
                 if (RefreshFolder.TryAdd(dir, add))
                 {
-                    SearchMessage.SendMsg(SearchMessageType.UpdateInprogress, $"Updating cache by '{(add ? "Adding" : "Removing")}' entries associated to '{dir}'.  Please wait...");
+                    SearchMessage.SendMsg(SearchMessageType.UpdateInProgress, $"Updating cache by '{(add ? "Adding" : "Removing")}' entries associated to '{dir}'.  Please wait...");
                     // set to true, if previous was false, lets Task.Run().
                     if (!IsRefreshing.SetVal(true))
                     {

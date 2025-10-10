@@ -8,8 +8,10 @@ namespace Chizl.SystemSearch
 {
     internal enum CommandType
     {
-        Path,
-        Ext
+        path,
+        ext,
+        filter,
+        exclude
     }
 
     /// <summary>
@@ -29,18 +31,20 @@ namespace Chizl.SystemSearch
         public static char cWild { get; } = '*';
         public static char cMulti { get; } = '·';       // Alt-250 = ·
         public static char cCmdEnd { get; } = ':';
-        public static char cIgnore { get; } = '■';      // Alt-254 = ■
+        public static char cFilterPos { get; } = '■';   // Alt-254 = ■
         public static char cExtPos { get; } = '☻';      // Alt-258 = ☻
         public static char cPathPos { get; } = '♥';     // Alt-259 = ♥
         public static string GetCommandString(CommandType cmdType) => $"{cmdType}{cCmdEnd}";
-        public static string GetCommandToken(CommandType cmdType) => cmdType == CommandType.Ext ? $"{cExtPos}" : $"{cPathPos}";
+        public static string GetCommandToken(CommandType cmdType) => cmdType == CommandType.ext ? $"{cExtPos}" : (cmdType == CommandType.filter || cmdType == CommandType.exclude) ? $"{cFilterPos}" : $"{cPathPos}";
     }
 
     internal class BuildSearchCmd
     {
         private string[] _searchCriteria = new string[0];
+        private readonly string[] _spaceRemovals = new string[4] { ":", "|", "[", "]" };
+
         private BuildSearchCmd() { IsEmpty = true; }
-        public BuildSearchCmd(string searchCriteria) => _searchCriteria = FindCommands(searchCriteria);
+        public BuildSearchCmd(ref string searchCriteria) => _searchCriteria = FindCommands(ref searchCriteria);
 
         public static BuildSearchCmd Empty { get { return new BuildSearchCmd(); } }
         public bool IsEmpty { get; }
@@ -51,7 +55,7 @@ namespace Chizl.SystemSearch
         private string[] GetAllCommands(string searchCriteria)
         {
             var retVal = new List<string>();
-            var defVal = searchCriteria.SplitOn(Seps.cIgnore);
+            var defVal = searchCriteria.SplitOn(Seps.cFilter);
 
             if (!searchCriteria.Contains(Seps.cStart) || !searchCriteria.Contains(Seps.cEnd))
                 return defVal;
@@ -62,16 +66,19 @@ namespace Chizl.SystemSearch
                 return retVal.ToArray();
         }
         /**/
-        private string[] FindCommands(string searchCriteria)
+        private string[] FindCommands(ref string searchCriteria)
         {
-            string[] spaceRemovals = new string[] { ":", "|", "[", "]" };
+            var hasPathSearch = false;
+            var hasExtSearch = false;
+            var hasFilter = false;
 
             // confort chars people like to use to seperate things.
             searchCriteria = searchCriteria.Replace($",", $"")
                                            .Replace($"+", $"")
                                            .Replace($";", $"").Trim();
 
-            foreach (var ch in spaceRemovals)
+            // replace all spaces in front of or after these chars.
+            foreach (var ch in _spaceRemovals)
             {
                 // this will auto correct the following type of query:
                 //      "landon + ,  [path:code|gavin] ;  [ext: .txt | pdf |. doc | docx | .mp4]"
@@ -100,8 +107,9 @@ namespace Chizl.SystemSearch
             }
 
             var cmdPatterns = searchCriteria.SplitOn(Seps.cMulti);
-            var hasExtSearch = false;
-            var hasPathSearch = false;
+            searchCriteria = searchCriteria.Replace($"{Seps.cMulti}", "").Replace($"{Seps.cStart}", $" + {Seps.cStart}");
+            //searchCriteria = searchCriteria.Replace($"[{CommandType.exclude}:", $"[{CommandType.filter}:");
+
             foreach (var cmd in cmdPatterns)
             {
                 var iS = cmd.IndexOf(Seps.cStart);
@@ -117,27 +125,61 @@ namespace Chizl.SystemSearch
                 var search = cmd.Substring(nS, iE++ - nS);
                 // remove command and param from search string.
                 var remove = cmd.Substring(iS, iE - iS);
+
+                // if the search extension doesn't have the ext type seperated from the values, we can't tell what is needed, lets skip extension.
+                var srchSep = search.IndexOf(Seps.cCmdEnd);
+                if (srchSep == -1)
+                    continue;
+
+                var cmdType = CommandType.ext;
                 // get command type
-                var cmdType = search.StartsWith(Seps.GetCommandString(CommandType.Ext), StringComparison.CurrentCultureIgnoreCase) ? CommandType.Ext : CommandType.Path;
+                switch (search.Substring(0, srchSep).ToLowerInvariant())
+                {
+                    case "ext":
+                        cmdType = CommandType.ext;
+                        break;
+                    case "path":
+                        cmdType = CommandType.path;
+                        break;
+                    case "filter":
+                        cmdType = CommandType.filter;
+                        break;
+                    case "exclude":
+                        cmdType = CommandType.exclude;
+                        break;
+                    default:
+                        // no idea what was passed, but it wasn't anything expected.
+                        continue;
+                }
 
                 // this will resolve "ext:.txt|pdf|. doc|docx|.mp4", to look like: "ext:.txt|pdf|.doc|docx|.mp4"
-                if (cmdType.Equals(CommandType.Ext))
+                // path and filter could have spaces within folder / file names, so we will not replace them.
+                if (cmdType.Equals(CommandType.ext))
+                {
+                    searchCriteria = searchCriteria.Replace(search, search.Replace(" ", ""));
                     search = search.Replace(" ", "");
+                }
 
                 // use for token later.
-                hasPathSearch = hasPathSearch || cmdType == CommandType.Path;
+                hasPathSearch = hasPathSearch || cmdType == CommandType.path;
                 // use for token later.
-                hasExtSearch = hasExtSearch || cmdType == CommandType.Ext;
+                hasExtSearch = hasExtSearch || cmdType == CommandType.ext;
+                // use for token later.
+                hasFilter = hasFilter || cmdType == CommandType.filter || cmdType == CommandType.exclude;
 
                 // replace the command with a token for search order
                 retVal = retVal.Replace(remove, "");
+
                 // Process one or more of existing type
                 MultiBuildCommands(cmdType, search);
             }
 
-            // add search token at the start if exists.  Can have 1 or both tokens, but both up front and Path before Ext.
-            retVal = hasExtSearch ? $"*{Seps.GetCommandToken(CommandType.Ext)}*{retVal.Trim()}" : retVal.Trim();
-            retVal = hasPathSearch ? $"*{Seps.GetCommandToken(CommandType.Path)}*{retVal.Trim()}" : retVal.Trim();
+            // add search tokens at the end if tokens exists.  Can have one or more tokens, but filter needs to be the last thing because it filters on the previous filters.
+            retVal = retVal.Trim();
+            retVal += hasExtSearch ? $"*{Seps.GetCommandToken(CommandType.ext)}*" : "";
+            retVal += hasPathSearch ? $"*{Seps.GetCommandToken(CommandType.path)}*" : "";
+            retVal += hasFilter ? $"*{Seps.GetCommandToken(CommandType.filter)}*" : "";
+
             // SplitOn will auto strip ** by ignoring blank entries if exists.
             return retVal.Replace(",", "").SplitOn(Seps.cWild);
         }
@@ -156,7 +198,7 @@ namespace Chizl.SystemSearch
         public SearchCommand(CommandType searchPart, string search) 
         {
             CommandType = searchPart;
-            Search = (searchPart.Equals(CommandType.Ext) ? ($".{search.Replace(".", "")}".ToLower()) : search).Replace(Seps.cWild.ToString(), "");
+            Search = (searchPart.Equals(CommandType.ext) ? ($".{search.Replace(".", "")}".ToLower()) : search).Replace(Seps.cWild.ToString(), "");
         }
         public CommandType CommandType { get; }
         public string Search { get; }

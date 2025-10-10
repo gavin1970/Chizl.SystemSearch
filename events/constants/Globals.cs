@@ -31,10 +31,11 @@
         SearchResults,
         StatusMessage,
         SearchStatus,
+        SearchQueryUsed,
         DriveScanStatus,
         FileScanStatus,
         ScanComplete,
         ScanAborted,
-        UpdateInprogress
+        UpdateInProgress
     }
 }

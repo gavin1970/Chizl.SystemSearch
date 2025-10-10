@@ -185,6 +185,9 @@ namespace Chizl.SearchSystemUI
                 {
                     switch (e.MessageType)
                     {
+                        case SearchMessageType.SearchQueryUsed:
+                            this.TxtSearchName.Text = e.Message;
+                            break;
                         case SearchMessageType.Exception:
                         case SearchMessageType.Error:
                             // If we are hiding information message then errors
@@ -249,7 +252,7 @@ namespace Chizl.SearchSystemUI
                         case SearchMessageType.StatusMessage:
                             this.StatusToolStripStatusLabel.Text = $"[{e.MessageType}] {e.Message}";
                             break;
-                        case SearchMessageType.UpdateInprogress:
+                        case SearchMessageType.UpdateInProgress:
                             this.StatusToolStripStatusLabel.Text = $"[{e.MessageType}] {e.Message}";
                             ScanStarted();
                             break;

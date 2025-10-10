@@ -125,10 +125,10 @@
             // 
             this.PanelSearchText.Controls.Add(this.TxtSearchName);
             this.PanelSearchText.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.PanelSearchText.Location = new System.Drawing.Point(87, 0);
+            this.PanelSearchText.Location = new System.Drawing.Point(87, 2);
             this.PanelSearchText.Name = "PanelSearchText";
             this.PanelSearchText.Padding = new System.Windows.Forms.Padding(5, 5, 5, 0);
-            this.PanelSearchText.Size = new System.Drawing.Size(955, 30);
+            this.PanelSearchText.Size = new System.Drawing.Size(955, 31);
             this.PanelSearchText.TabIndex = 5;
             // 
             // TxtSearchName
@@ -136,10 +136,11 @@
             this.TxtSearchName.BackColor = System.Drawing.SystemColors.Control;
             this.TxtSearchName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.TxtSearchName.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.TxtSearchName.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.TxtSearchName.ForeColor = System.Drawing.SystemColors.MenuText;
             this.TxtSearchName.Location = new System.Drawing.Point(5, 5);
             this.TxtSearchName.Name = "TxtSearchName";
-            this.TxtSearchName.Size = new System.Drawing.Size(945, 20);
+            this.TxtSearchName.Size = new System.Drawing.Size(945, 23);
             this.TxtSearchName.TabIndex = 3;
             this.TxtSearchName.TextChanged += new System.EventHandler(this.TxtSearchName_TextChanged);
             // 
@@ -150,7 +151,7 @@
             this.PanelFindButton.Location = new System.Drawing.Point(21, 3);
             this.PanelFindButton.Name = "PanelFindButton";
             this.PanelFindButton.Padding = new System.Windows.Forms.Padding(3, 0, 0, 0);
-            this.PanelFindButton.Size = new System.Drawing.Size(88, 24);
+            this.PanelFindButton.Size = new System.Drawing.Size(88, 25);
             this.PanelFindButton.TabIndex = 6;
             // 
             // BtnFind
@@ -161,7 +162,7 @@
             this.BtnFind.ForeColor = System.Drawing.SystemColors.MenuText;
             this.BtnFind.Location = new System.Drawing.Point(3, 0);
             this.BtnFind.Name = "BtnFind";
-            this.BtnFind.Size = new System.Drawing.Size(85, 24);
+            this.BtnFind.Size = new System.Drawing.Size(85, 25);
             this.BtnFind.TabIndex = 4;
             this.BtnFind.Text = "Find";
             this.BtnFind.UseVisualStyleBackColor = true;
@@ -172,7 +173,7 @@
             this.BtnOptions.Dock = System.Windows.Forms.DockStyle.Left;
             this.BtnOptions.Location = new System.Drawing.Point(3, 3);
             this.BtnOptions.Name = "BtnOptions";
-            this.BtnOptions.Size = new System.Drawing.Size(18, 24);
+            this.BtnOptions.Size = new System.Drawing.Size(18, 25);
             this.BtnOptions.TabIndex = 5;
             this.BtnOptions.Text = "🔰";
             this.BtnOptions.UseVisualStyleBackColor = true;
@@ -188,7 +189,7 @@
             this.EventList.ItemHeight = 14;
             this.EventList.Location = new System.Drawing.Point(0, 0);
             this.EventList.Name = "EventList";
-            this.EventList.Size = new System.Drawing.Size(1144, 128);
+            this.EventList.Size = new System.Drawing.Size(1144, 126);
             this.EventList.TabIndex = 1;
             this.EventList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.InfoError_MouseDown);
             // 
@@ -211,10 +212,10 @@
             this.ResultsPanel.BackColor = System.Drawing.Color.DimGray;
             this.ResultsPanel.Controls.Add(this.MainSplitContainer);
             this.ResultsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ResultsPanel.Location = new System.Drawing.Point(0, 54);
+            this.ResultsPanel.Location = new System.Drawing.Point(0, 59);
             this.ResultsPanel.Name = "ResultsPanel";
             this.ResultsPanel.Padding = new System.Windows.Forms.Padding(5);
-            this.ResultsPanel.Size = new System.Drawing.Size(1154, 567);
+            this.ResultsPanel.Size = new System.Drawing.Size(1154, 562);
             this.ResultsPanel.TabIndex = 14;
             // 
             // MainSplitContainer
@@ -234,8 +235,8 @@
             // 
             this.MainSplitContainer.Panel2.BackColor = System.Drawing.Color.DarkGray;
             this.MainSplitContainer.Panel2.Controls.Add(this.panel5);
-            this.MainSplitContainer.Size = new System.Drawing.Size(1144, 557);
-            this.MainSplitContainer.SplitterDistance = 277;
+            this.MainSplitContainer.Size = new System.Drawing.Size(1144, 552);
+            this.MainSplitContainer.SplitterDistance = 274;
             this.MainSplitContainer.SplitterWidth = 10;
             this.MainSplitContainer.TabIndex = 16;
             this.MainSplitContainer.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.MainSplitContainer_SplitterMoved);
@@ -247,7 +248,7 @@
             this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel4.Location = new System.Drawing.Point(0, 0);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(1144, 277);
+            this.panel4.Size = new System.Drawing.Size(1144, 274);
             this.panel4.TabIndex = 4;
             // 
             // ResultsListView
@@ -257,7 +258,7 @@
             this.ResultsListView.HideSelection = false;
             this.ResultsListView.Location = new System.Drawing.Point(0, 0);
             this.ResultsListView.Name = "ResultsListView";
-            this.ResultsListView.Size = new System.Drawing.Size(1144, 259);
+            this.ResultsListView.Size = new System.Drawing.Size(1144, 256);
             this.ResultsListView.TabIndex = 2;
             this.ResultsListView.UseCompatibleStateImageBehavior = false;
             this.ResultsListView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ResultsListView_MouseUp);
@@ -366,7 +367,7 @@
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel3.Controls.Add(this.ChkHideInfo);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel3.Location = new System.Drawing.Point(0, 259);
+            this.panel3.Location = new System.Drawing.Point(0, 256);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(1144, 18);
             this.panel3.TabIndex = 3;
@@ -391,7 +392,7 @@
             this.panel5.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel5.Location = new System.Drawing.Point(0, 0);
             this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(1144, 270);
+            this.panel5.Size = new System.Drawing.Size(1144, 268);
             this.panel5.TabIndex = 16;
             // 
             // EventListsSplitContainer
@@ -413,8 +414,8 @@
             // 
             this.EventListsSplitContainer.Panel2.BackColor = System.Drawing.Color.DarkGray;
             this.EventListsSplitContainer.Panel2.Controls.Add(this.ErrorList);
-            this.EventListsSplitContainer.Size = new System.Drawing.Size(1144, 270);
-            this.EventListsSplitContainer.SplitterDistance = 146;
+            this.EventListsSplitContainer.Size = new System.Drawing.Size(1144, 268);
+            this.EventListsSplitContainer.SplitterDistance = 144;
             this.EventListsSplitContainer.SplitterWidth = 10;
             this.EventListsSplitContainer.TabIndex = 15;
             // 
@@ -424,7 +425,7 @@
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.ChkHideErrors);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 128);
+            this.panel1.Location = new System.Drawing.Point(0, 126);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1144, 18);
             this.panel1.TabIndex = 2;
@@ -550,10 +551,10 @@
             // 
             this.PanelScanButton.Controls.Add(this.BtnStartStopScan);
             this.PanelScanButton.Dock = System.Windows.Forms.DockStyle.Left;
-            this.PanelScanButton.Location = new System.Drawing.Point(0, 0);
+            this.PanelScanButton.Location = new System.Drawing.Point(0, 2);
             this.PanelScanButton.Name = "PanelScanButton";
             this.PanelScanButton.Padding = new System.Windows.Forms.Padding(3);
-            this.PanelScanButton.Size = new System.Drawing.Size(87, 30);
+            this.PanelScanButton.Size = new System.Drawing.Size(87, 31);
             this.PanelScanButton.TabIndex = 7;
             // 
             // BtnStartStopScan
@@ -562,7 +563,7 @@
             this.BtnStartStopScan.Dock = System.Windows.Forms.DockStyle.Fill;
             this.BtnStartStopScan.Location = new System.Drawing.Point(3, 3);
             this.BtnStartStopScan.Name = "BtnStartStopScan";
-            this.BtnStartStopScan.Size = new System.Drawing.Size(81, 24);
+            this.BtnStartStopScan.Size = new System.Drawing.Size(81, 25);
             this.BtnStartStopScan.TabIndex = 2;
             this.BtnStartStopScan.Text = "&Start Scan";
             this.BtnStartStopScan.UseVisualStyleBackColor = false;
@@ -713,7 +714,8 @@
             this.PanelSearchBar.Dock = System.Windows.Forms.DockStyle.Top;
             this.PanelSearchBar.Location = new System.Drawing.Point(0, 24);
             this.PanelSearchBar.Name = "PanelSearchBar";
-            this.PanelSearchBar.Size = new System.Drawing.Size(1154, 30);
+            this.PanelSearchBar.Padding = new System.Windows.Forms.Padding(0, 2, 0, 2);
+            this.PanelSearchBar.Size = new System.Drawing.Size(1154, 35);
             this.PanelSearchBar.TabIndex = 12;
             // 
             // panel2
@@ -721,10 +723,10 @@
             this.panel2.Controls.Add(this.PanelFindButton);
             this.panel2.Controls.Add(this.BtnOptions);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel2.Location = new System.Drawing.Point(1042, 0);
+            this.panel2.Location = new System.Drawing.Point(1042, 2);
             this.panel2.Name = "panel2";
             this.panel2.Padding = new System.Windows.Forms.Padding(3);
-            this.panel2.Size = new System.Drawing.Size(112, 30);
+            this.panel2.Size = new System.Drawing.Size(112, 31);
             this.panel2.TabIndex = 6;
             // 
             // StartupTimer
