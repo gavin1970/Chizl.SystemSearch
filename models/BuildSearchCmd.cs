@@ -48,6 +48,37 @@ namespace Chizl.SystemSearch
 
         public List<SearchCommand> Commands { get; } = new List<SearchCommand>();
         public string[] SearchCriteria => _searchCriteria;
+        private string DupSearchReplace(string text, string[] searches, string replaceWith, bool trim = true)
+        {
+            bool hadChange = true;
+            while (hadChange)
+            {
+                hadChange = false;
+                foreach (var search in searches)
+                {
+                    while (text.Contains(search))
+                    {
+                        hadChange = true;
+                        text = text.Replace(search, replaceWith);
+                        if (trim)
+                            text = text.Trim();
+                    }
+                }
+            }
+
+            return text;
+        }
+        private string DupSearchReplace(string text, string search, string replaceWith, bool trim = true) => DupSearchReplace(text, new string[] { search }, replaceWith, trim);
+        private string TrimOff(string search, char chr)
+        {
+            search = search.Trim();
+            while (search.StartsWith(chr.ToString()))
+                search = search.TrimStart(chr).Trim();
+
+            while (search.EndsWith(chr.ToString()))
+                search = search.TrimEnd(chr).Trim();
+            return search;
+        }
         private string[] FindCommands(ref string searchCriteria)
         {
             var hasPathSearch = false;
@@ -66,11 +97,7 @@ namespace Chizl.SystemSearch
                 //      "landon + ,  [path:code|gavin] ;  [ext: .txt | pdf |. doc | docx | .mp4]"
                 // to look like this:
                 //      "landon[path:code|gavin][ext:.txt|pdf|. doc|docx|.mp4]"
-                while (searchCriteria.Contains($"{ch} ") || searchCriteria.Contains($" {ch}"))
-                {
-                    searchCriteria = searchCriteria.Replace($"{ch} ", $"{ch}").Trim();
-                    searchCriteria = searchCriteria.Replace($" {ch}", $"{ch}").Trim();
-                }
+                searchCriteria = DupSearchReplace(searchCriteria, new string[] { $"{ch} ", $" {ch}" }, $"{ch}");
             }
 
             var retVal = searchCriteria;
@@ -82,12 +109,7 @@ namespace Chizl.SystemSearch
                                            .Replace($"{Seps.cEnd}", $"{Seps.cEnd}{Seps.cMulti}").Trim();
 
             // trim out any spaces around the multi-search extensions
-            while (searchCriteria.Contains($"{Seps.cMulti} ")
-                || searchCriteria.Contains($" {Seps.cMulti}"))
-            {
-                searchCriteria = searchCriteria.Replace($"{Seps.cMulti} ", $"{Seps.cMulti}").Trim();
-                searchCriteria = searchCriteria.Replace($" {Seps.cMulti}", $"{Seps.cMulti}").Trim();
-            }
+            searchCriteria = DupSearchReplace(searchCriteria, new string[] { $"{Seps.cMulti} ", $" {Seps.cMulti}" }, $"{Seps.cMulti}");
 
             // This is used for the search criteria
             var cmdPatterns = searchCriteria.SplitOn(Seps.cMulti);
@@ -96,15 +118,12 @@ namespace Chizl.SystemSearch
             // as a SearchMessageType.SearchQueryUsed event.
             // It will be up to the UI if it wants to update it's own search bar or not.
             searchCriteria = searchCriteria.Replace($"{Seps.cMulti}", "");
-            
             searchCriteria = searchCriteria.Replace($"{Seps.cStart}", $" + {Seps.cStart}");
             searchCriteria = searchCriteria.Replace($"{Seps.cEnd}", $"{Seps.cEnd} + ").Trim();
 
-            while (searchCriteria.StartsWith("+"))
-                searchCriteria = searchCriteria.TrimStart('+').Trim();
-
-            while (searchCriteria.EndsWith("+"))
-                searchCriteria = searchCriteria.TrimEnd('+').Trim();
+            searchCriteria = TrimOff(searchCriteria, '+');
+            searchCriteria = DupSearchReplace(searchCriteria, "  ", " ");
+            searchCriteria = DupSearchReplace(searchCriteria, " + + ", " + ");
 
             foreach (var cmd in cmdPatterns)
             {
