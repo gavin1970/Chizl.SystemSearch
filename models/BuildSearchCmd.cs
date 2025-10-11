@@ -48,21 +48,6 @@ namespace Chizl.SystemSearch
 
         public List<SearchCommand> Commands { get; } = new List<SearchCommand>();
         public string[] SearchCriteria => _searchCriteria;
-        /*
-        private string[] GetAllCommands(string searchCriteria)
-        {
-            var retVal = new List<string>();
-            var defVal = searchCriteria.SplitOn(Seps.cFilter);
-
-            if (!searchCriteria.Contains(Seps.cStart) || !searchCriteria.Contains(Seps.cEnd))
-                return defVal;
-
-            if (retVal.Count.Equals(0))
-                return defVal;
-            else
-                return retVal.ToArray();
-        }
-        /**/
         private string[] FindCommands(ref string searchCriteria)
         {
             var hasPathSearch = false;
@@ -96,6 +81,7 @@ namespace Chizl.SystemSearch
             searchCriteria = searchCriteria.Replace($"{Seps.cStart}", $"{Seps.cMulti}{Seps.cStart}")
                                            .Replace($"{Seps.cEnd}", $"{Seps.cEnd}{Seps.cMulti}").Trim();
 
+            // trim out any spaces around the multi-search extensions
             while (searchCriteria.Contains($"{Seps.cMulti} ")
                 || searchCriteria.Contains($" {Seps.cMulti}"))
             {
@@ -103,9 +89,22 @@ namespace Chizl.SystemSearch
                 searchCriteria = searchCriteria.Replace($" {Seps.cMulti}", $"{Seps.cMulti}").Trim();
             }
 
+            // This is used for the search criteria
             var cmdPatterns = searchCriteria.SplitOn(Seps.cMulti);
-            searchCriteria = searchCriteria.Replace($"{Seps.cMulti}", "").Replace($"{Seps.cStart}", $" + {Seps.cStart}");
-            //searchCriteria = searchCriteria.Replace($"[{CommandType.exclude}:", $"[{CommandType.filter}:");
+
+            // This is the search string being reformatted and will be what is sent
+            // as a SearchMessageType.SearchQueryUsed event.
+            // It will be up to the UI if it wants to update it's own search bar or not.
+            searchCriteria = searchCriteria.Replace($"{Seps.cMulti}", "");
+            
+            searchCriteria = searchCriteria.Replace($"{Seps.cStart}", $" + {Seps.cStart}");
+            searchCriteria = searchCriteria.Replace($"{Seps.cEnd}", $"{Seps.cEnd} + ").Trim();
+
+            while (searchCriteria.StartsWith("+"))
+                searchCriteria = searchCriteria.TrimStart('+').Trim();
+
+            while (searchCriteria.EndsWith("+"))
+                searchCriteria = searchCriteria.TrimEnd('+').Trim();
 
             foreach (var cmd in cmdPatterns)
             {
@@ -182,7 +181,7 @@ namespace Chizl.SystemSearch
         }
         private void MultiBuildCommands(CommandType cmdType, string search)
         {
-            var part = cmdType.ToString().ToLower();
+            var part = cmdType.ToString();
             search = search.StartsWith(part, StringComparison.CurrentCultureIgnoreCase) ? search.Substring(part.Length+1) : search;
             var multiPart = search.SplitOn(Seps.cOr);
             foreach (var cmd in multiPart)
@@ -195,9 +194,21 @@ namespace Chizl.SystemSearch
         public SearchCommand(CommandType searchPart, string search) 
         {
             CommandType = searchPart;
-            Search = (searchPart.Equals(CommandType.ext) ? ($".{search.Replace(".", "")}".ToLower()) : search).Replace(Seps.cWild.ToString(), "");
+            Search = (searchPart.Equals(CommandType.ext) 
+                ? SetExt(search)                            // strips all spaces and adds '.' at the start, if not there.
+                : search)
+                .Replace(Seps.cWild.ToString(), "");        // wild cards are not supported in search extensions
         }
         public CommandType CommandType { get; }
         public string Search { get; }
+
+        private string SetExt(string search)
+        {
+            search = search.Replace(" ", "").Trim();
+            if (search.StartsWith("."))     // File could have multiple '.', only checking the first char exists.
+                return search.Trim();
+            else
+                return $".{search.Trim()}";
+        }
     }
 }
