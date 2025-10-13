@@ -1,7 +1,7 @@
-﻿using System.IO;
-using Chizl.SystemSearch;
-using System.Windows.Forms;
+﻿using Chizl.SystemSearch;
 using System.Collections.Generic;
+using System.IO;
+using System.Windows.Forms;
 
 namespace Chizl.SearchSystemUI
 {
@@ -34,7 +34,31 @@ namespace Chizl.SearchSystemUI
 
     internal static class GlobalSetup
     {
-        public static IOFinder Finder { get; } = new IOFinder();
+        private static IOFinder _finder;
+        private static DriveInfo[] _drives;
+        public static DriveInfo[] DriveList
+        {
+            get { return _drives; }
+            set
+            {
+                _drives = value;
+                if (_finder != null)
+                    _finder.SetupWatcher(_drives);
+            }
+        }
+        public static IOFinder Finder
+        {
+            get
+            {
+                if (_finder == null)
+                {
+                    _finder = new IOFinder();
+                    if (_drives != null)
+                        _finder.SetupWatcher(_drives);
+                }
+                return _finder;
+            }
+        }
         public static ListViewItem[] GetFileInfo(string[] unfiltList)
         {
             var listViewItems = new List<ListViewItem>();

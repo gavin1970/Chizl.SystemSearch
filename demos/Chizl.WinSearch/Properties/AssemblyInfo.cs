@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
@@ -30,7 +29,7 @@ using System.Runtime.InteropServices;
 //      Revision
 // 
 [assembly: AssemblyVersion("5.10.0.0")]
-[assembly: AssemblyFileVersion("5.10.10.2209")]
+[assembly: AssemblyFileVersion("5.10.13.2030")]
 [assembly: AssemblyInformationalVersion("5.9.24.0")]
 [assembly: AssemblyKeyFileAttribute("")]
 [assembly: AssemblyDelaySignAttribute(false)]

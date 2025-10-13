@@ -5,9 +5,9 @@
         private SubFilterExclusion() { IsEmpty = true; }
         public SubFilterExclusion(string filter, FilterType type)
         {
-            this.Filter = filter.ToLower();
-            this.FilterRaw = filter;
-            this.Type = type != FilterType.Unknown ? type : FindType(filter);
+            Filter = filter.ToLower();
+            FilterRaw = filter;
+            Type = type != FilterType.Unknown ? type : FindType(filter);
         }
 
         public static SubFilterExclusion Empty { get { return new SubFilterExclusion(); } }
@@ -26,7 +26,7 @@
                 return FilterType.Drive;
             else if (string.IsNullOrWhiteSpace(trimmed))
                 return FilterType.NoExtension;
-            else 
+            else
                 return FilterType.Contains;
         }
     }

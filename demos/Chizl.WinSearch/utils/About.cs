@@ -6,20 +6,20 @@ namespace Chizl.Applications
 {
     internal static class About
     {
-        static readonly object _assemblyLock = new object();
+        private static readonly object _assemblyLock = new object();
 
-        static bool _loaded = false;
-        static string _fileVersion = null;
-        static string _productVersion = null;
-        static string _title = null;
-        static string _company = null;
-        static string _productName = null;
-        static string _copyright = null;
-        static string _description = null;
-        static string _trademark = null;
-        static string _appFullPath = null;
-        static string _appRootDir = null;  
-        static string _appFileName = null;
+        private static bool _loaded = false;
+        private static string _fileVersion = null;
+        private static string _productVersion = null;
+        private static string _title = null;
+        private static string _company = null;
+        private static string _productName = null;
+        private static string _copyright = null;
+        private static string _description = null;
+        private static string _trademark = null;
+        private static string _appFullPath = null;
+        private static string _appRootDir = null;
+        private static string _appFileName = null;
 
         static About() => LoadAppInfo();
         public static string FileVersion => _fileVersion;

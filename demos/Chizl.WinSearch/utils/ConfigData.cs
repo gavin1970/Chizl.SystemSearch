@@ -1,16 +1,15 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Drawing;
-using System.Diagnostics;
 
 namespace Chizl.Applications
 {
     internal static class ConfigData
     {
-        const int _configNameSize = 20;
+        private const int _configNameSize = 20;
         private static string FilePath = @".\config.dat";
 
         /// <summary>
@@ -49,7 +48,7 @@ namespace Chizl.Applications
 
             if (ConfigLabels.TryGetValue(configName, out object foundValue))
             {
-                foundValue = (object)foundValue.ToString().Trim();
+                foundValue = foundValue.ToString().Trim();
                 try
                 {
                     switch (typeof(T).Name)
@@ -57,7 +56,7 @@ namespace Chizl.Applications
                         case "Point":
                             var pnt = foundValue.ToString().Replace("{", "").Replace("}", "").Replace(" ", "").Split(',');
                             int x = 0, y = 0;
-                            if (pnt.Length==2)
+                            if (pnt.Length == 2)
                             {
                                 int.TryParse(pnt[0].Replace($"X=", ""), out x);
                                 int.TryParse(pnt[1].Replace($"Y=", ""), out y);
@@ -112,7 +111,7 @@ namespace Chizl.Applications
         {
             var configData = new List<string>();
             var keys = ConfigLabels.Keys;
-            
+
             if (keys.Count.Equals(0))
                 return;
 
@@ -146,7 +145,7 @@ namespace Chizl.Applications
                     var configName = confLine.Substring(0, sep).Trim();
                     var configValue = confLine.Substring(sep + 1).Trim();
 
-                    if (!string.IsNullOrWhiteSpace(configName) && 
+                    if (!string.IsNullOrWhiteSpace(configName) &&
                         !string.IsNullOrWhiteSpace(configValue))
                         AddItem(configName, configValue);
                 }

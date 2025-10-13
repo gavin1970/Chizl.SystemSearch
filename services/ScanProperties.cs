@@ -1,5 +1,4 @@
 ﻿using Chizl.ThreadSupport;
-using System.Threading;
 
 namespace Chizl.SystemSearch
 {

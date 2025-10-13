@@ -1,15 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace Chizl.SystemSearch
 {
     public class IOFinder : IDisposable
     {
-        const int _maxFindingsCount = 10000;
-        private static List<FileSystemWatcher> _watcher = new List<FileSystemWatcher>();
+        private const int _maxFindingsCount = 10000;
+        private static List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
 
         // since there will be a lot of threading going on, these status need to be seen by all threads.
         private static bool disposedValue;
@@ -33,7 +33,6 @@ namespace Chizl.SystemSearch
         public IOFinder()
         {
             SearchMessage.EventMessaging += SearchMessage_EventMessaging;
-            SetupWatcher();
         }
 
         #region Private
@@ -58,7 +57,19 @@ namespace Chizl.SystemSearch
 
             return searchTask;
         }
-        
+        private void StopWatchers()
+        {
+            if (_watchers.Count > 0)
+            {
+                foreach (var watcher in _watchers)
+                {
+                    watcher.Created -= OnCreated;
+                    watcher.Deleted -= OnDeleted;
+                    watcher.Renamed -= OnRenamed;
+                }
+                _watchers.Clear();
+            }
+        }
         private bool SearchCache(string[] drives, string searchCriteria, bool sendMsg = true)
         {
             var retVal = false;
@@ -78,7 +89,7 @@ namespace Chizl.SystemSearch
             }
 
             retVal = DeepDive(drives, buildSearchCriteria);
-            
+
             // send total count message, to ensure accuratness
             SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
 
@@ -112,11 +123,12 @@ namespace Chizl.SystemSearch
                         if (findings.Count > 0)
                             filters.AddRange(findings.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList());
                         else
-                            filters.AddRange(Scanner.GetFileList.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList());
+                            findings.AddRange(Scanner.GetFileList.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList());
                     }
 
                     findings.Clear();
-                    findings.AddRange(filters);
+                    if (filters.Count() > 0)
+                        findings.AddRange(filters);
                 }
                 else if (wc.Length == 1 && wc.Equals(Seps.cExtPos.ToString()) && extList.Count() > 0)
                 {
@@ -128,11 +140,12 @@ namespace Chizl.SystemSearch
                         if (findings.Count > 0)
                             filters.AddRange(findings.Where(w => w.ToLower().EndsWith(e.Search.ToLower())).ToList());
                         else
-                            filters.AddRange(Scanner.GetFileList.Where(w => w.ToLower().EndsWith(e.Search.ToLower())).ToList());
+                            findings.AddRange(Scanner.GetFileList.Where(w => w.ToLower().EndsWith(e.Search.ToLower())).ToList());
                     }
 
                     findings.Clear();
-                    findings.AddRange(filters);
+                    if (filters.Count() > 0)
+                        findings.AddRange(filters);
                 }
                 else if (wc.Length == 1 && wc.Equals(Seps.cFilterPos.ToString()) && filterList.Count() > 0)
                 {
@@ -143,6 +156,8 @@ namespace Chizl.SystemSearch
                     {
                         if (findings.Count > 0)
                             filters.AddRange(findings.Where(w => w.ToLower().Contains(f.Search.ToLower())).ToList());
+                        else
+                            findings.AddRange(Scanner.GetFileList.Where(w => !w.ToLower().Contains(f.Search.ToLower())).ToList());
                     }
 
                     foreach (var fnd in filters)
@@ -156,10 +171,13 @@ namespace Chizl.SystemSearch
                     if (findings.Count > 0)
                         filters.AddRange(findings.Where(w => w.ToLower().Contains(wc.ToLower())).ToList());
                     else
-                        filters.AddRange(Scanner.GetFileList.Where(w => w.ToLower().Contains(wc.ToLower())).ToList());
+                        findings.AddRange(Scanner.GetFileList.Where(w => w.ToLower().Contains(wc.ToLower())).ToList());
 
-                    findings.Clear();
-                    findings.AddRange(filters);
+                    if (filters.Count() > 0)
+                    {
+                        findings.Clear();
+                        findings.AddRange(filters);
+                    }
                 }
 
                 // at any time, we haven't found anything,
@@ -369,9 +387,10 @@ namespace Chizl.SystemSearch
             Task.WaitAll(renameList.ToArray());
             SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files");
         }
-        private void SetupWatcher()
+        public void SetupWatcher(DriveInfo[] drives)
         {
-            foreach (var drive in GlobalSettings.DriveList)
+            StopWatchers();
+            foreach (var drive in drives.Select(s => (s.Name.EndsWith("\\") ? s.Name : $"{s.Name}\\")))
             {
                 var watcher = new FileSystemWatcher(drive)
                 {
@@ -388,7 +407,7 @@ namespace Chizl.SystemSearch
                 watcher.IncludeSubdirectories = true;
                 watcher.EnableRaisingEvents = true;
 
-                _watcher.Add(watcher);
+                _watchers.Add(watcher);
             }
         }
         #endregion
@@ -405,8 +424,13 @@ namespace Chizl.SystemSearch
         /// </summary>
         /// <param name="reScan">true: Will clear the cache and start over.  false: will leave, but rescan for any new files to add to the cache.</param>
         public Task ScanToCache(bool isRescan = false) => Scan(GlobalSettings.DriveList, true, isRescan);
-        public Task ScanToCache(DriveInfo drive) => Scan(new string[] { drive.Name });
-        public Task ScanToCache(DriveInfo[] drives) => Scan(drives.Select(w => w.Name).ToArray());
+        public Task ScanToCache(DriveInfo drive, bool isRescan = false) => Scan(new string[] { drive.Name }, true, false);
+        public Task ScanToCache(DriveInfo[] drives, bool isRescan = false) => Scan(drives.Select(w => w.Name).ToArray(), true, false);
+
+        //public Task AddDrive(DriveInfo drive) => Task.Run(() => GlobalSettings.AddRemove($"{drive.Name}{(drive.Name.EndsWith("\\") ? "" : "\\")}", true));
+        //public Task RemoveDrive(DriveInfo drive) => Task.Run(() => GlobalSettings.AddRemove($"{drive.Name}{(drive.Name.EndsWith("\\") ? "" : "\\")}", false));
+        public Task AddDrive(DriveInfo drive) => ScanToCache(drive, false);
+        public Task RemoveDrive(DriveInfo drive) => Task.Run(() => GlobalSettings.AddRemove($"{drive.Name}{(drive.Name.EndsWith("\\") ? "" : "\\")}", false));
 
         /// <summary>
         /// Starts search in cache if exists. Defaults drives to all drives.
@@ -415,9 +439,10 @@ namespace Chizl.SystemSearch
         public Task Search(string searchCriteria) => Search(GlobalSettings.DriveList, searchCriteria);
         public Task Search(DriveInfo drive, string searchCriteria) => Search(new string[] { drive.Name }, searchCriteria);
         public Task Search(DriveInfo[] drives, string searchCriteria) => Search(drives.Select(w => w.Name).ToArray(), searchCriteria);
-
+        public void ResetCache() => Scanner.ResetCache();
         public void StopScan()
         {
+            StopWatchers();
             GlobalSettings.Shutdown();
         }
         #endregion

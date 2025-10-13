@@ -189,11 +189,13 @@ namespace Chizl.SystemSearch
                 MultiBuildCommands(cmdType, search);
             }
 
-            // add search tokens at the end if tokens exists.  Can have one or more tokens, but filter needs to be the last thing because it filters on the previous filters.
+            // Add search tokens at the end if tokens exists.
+            // Can have one or more tokens. Loading filters/exclude first, this removes
+            // the larger count of files before running the other extensions.
             retVal = retVal.Trim();
+            retVal += hasFilter ? $"*{Seps.GetCommandToken(CommandType.filter)}*" : "";
             retVal += hasExtSearch ? $"*{Seps.GetCommandToken(CommandType.ext)}*" : "";
             retVal += hasPathSearch ? $"*{Seps.GetCommandToken(CommandType.path)}*" : "";
-            retVal += hasFilter ? $"*{Seps.GetCommandToken(CommandType.filter)}*" : "";
 
             // SplitOn will auto strip ** by ignoring blank entries if exists.
             return retVal.Replace(",", "").SplitOn(Seps.cWild);
@@ -201,7 +203,7 @@ namespace Chizl.SystemSearch
         private void MultiBuildCommands(CommandType cmdType, string search)
         {
             var part = cmdType.ToString();
-            search = search.StartsWith(part, StringComparison.CurrentCultureIgnoreCase) ? search.Substring(part.Length+1) : search;
+            search = search.StartsWith(part, StringComparison.CurrentCultureIgnoreCase) ? search.Substring(part.Length + 1) : search;
             var multiPart = search.SplitOn(Seps.cOr);
             foreach (var cmd in multiPart)
                 Commands.Add(new SearchCommand(cmdType, cmd));
@@ -210,10 +212,10 @@ namespace Chizl.SystemSearch
 
     internal class SearchCommand
     {
-        public SearchCommand(CommandType searchPart, string search) 
+        public SearchCommand(CommandType searchPart, string search)
         {
             CommandType = searchPart;
-            Search = (searchPart.Equals(CommandType.ext) 
+            Search = (searchPart.Equals(CommandType.ext)
                 ? SetExt(search)                            // strips all spaces and adds '.' at the start, if not there.
                 : search)
                 .Replace(Seps.cWild.ToString(), "");        // wild cards are not supported in search extensions

@@ -32,7 +32,7 @@ namespace Chizl.WinSearch
 
         private void SubFilterOptions_Load(object sender, EventArgs e)
         {
-            this.TextPath.Text = _path;
+            TextPath.Text = _path;
             SetupListView(ListViewSubFilters, ListViewColumns());
             RefreshListView();
         }
@@ -51,9 +51,9 @@ namespace Chizl.WinSearch
         }
         private void ButtonAdd_Click(object sender, EventArgs e)
         {
-            int start = this.TextPath.SelectionStart;
-            int len = this.TextPath.SelectionLength;
-            var sel = this.TextPath.SelectedText;
+            int start = TextPath.SelectionStart;
+            int len = TextPath.SelectionLength;
+            var sel = TextPath.SelectedText;
 
             // add to temp if not exists, but if cancel is clicked,
             // we don't want to add it to the return list.
@@ -65,13 +65,13 @@ namespace Chizl.WinSearch
         }
         private void ButtonCancel_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
+            DialogResult = DialogResult.Cancel;
+            Close();
         }
         private void ButtonOk_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+            DialogResult = DialogResult.OK;
+            Close();
         }
         private void toolStripMenuRemoveItem_Click(object sender, EventArgs e)
         {
@@ -96,7 +96,7 @@ namespace Chizl.WinSearch
                 return false;
 
             selectedItem = ListViewSubFilters.SelectedItems[0].Text;
-            
+
             return true;
         }
 

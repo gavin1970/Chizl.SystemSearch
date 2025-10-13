@@ -34,7 +34,7 @@
             this.TxtSearchName = new System.Windows.Forms.TextBox();
             this.PanelFindButton = new System.Windows.Forms.Panel();
             this.BtnFind = new System.Windows.Forms.Button();
-            this.BtnOptions = new System.Windows.Forms.Button();
+            this.BtnFindOptions = new System.Windows.Forms.Button();
             this.EventList = new System.Windows.Forms.ListBox();
             this.CMenuInfoErr = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.CMenuInfoErrClear = new System.Windows.Forms.ToolStripMenuItem();
@@ -74,6 +74,7 @@
             this.ChkUserFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.PanelScanButton = new System.Windows.Forms.Panel();
             this.BtnStartStopScan = new System.Windows.Forms.Button();
+            this.BtnDriveOptions = new System.Windows.Forms.Button();
             this.StartupMenuStrip = new System.Windows.Forms.MenuStrip();
             this.FileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SetupTSMenu = new System.Windows.Forms.ToolStripMenuItem();
@@ -95,6 +96,7 @@
             this.LastScanTimer = new System.Windows.Forms.Timer(this.components);
             this.MnuAllowedFolders = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.AllowFoldersTitle = new System.Windows.Forms.ToolStripMenuItem();
+            this.CMenuDriveOptions = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.PanelSearchText.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
             this.CMenuInfoErr.SuspendLayout();
@@ -125,10 +127,10 @@
             // 
             this.PanelSearchText.Controls.Add(this.TxtSearchName);
             this.PanelSearchText.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.PanelSearchText.Location = new System.Drawing.Point(87, 2);
+            this.PanelSearchText.Location = new System.Drawing.Point(106, 2);
             this.PanelSearchText.Name = "PanelSearchText";
             this.PanelSearchText.Padding = new System.Windows.Forms.Padding(5, 5, 5, 0);
-            this.PanelSearchText.Size = new System.Drawing.Size(955, 31);
+            this.PanelSearchText.Size = new System.Drawing.Size(936, 31);
             this.PanelSearchText.TabIndex = 5;
             // 
             // TxtSearchName
@@ -140,7 +142,7 @@
             this.TxtSearchName.ForeColor = System.Drawing.SystemColors.MenuText;
             this.TxtSearchName.Location = new System.Drawing.Point(5, 5);
             this.TxtSearchName.Name = "TxtSearchName";
-            this.TxtSearchName.Size = new System.Drawing.Size(945, 23);
+            this.TxtSearchName.Size = new System.Drawing.Size(926, 23);
             this.TxtSearchName.TabIndex = 3;
             this.TxtSearchName.TextChanged += new System.EventHandler(this.TxtSearchName_TextChanged);
             // 
@@ -168,16 +170,16 @@
             this.BtnFind.UseVisualStyleBackColor = true;
             this.BtnFind.Click += new System.EventHandler(this.BtnFind_Click);
             // 
-            // BtnOptions
+            // BtnFindOptions
             // 
-            this.BtnOptions.Dock = System.Windows.Forms.DockStyle.Left;
-            this.BtnOptions.Location = new System.Drawing.Point(3, 3);
-            this.BtnOptions.Name = "BtnOptions";
-            this.BtnOptions.Size = new System.Drawing.Size(18, 25);
-            this.BtnOptions.TabIndex = 5;
-            this.BtnOptions.Text = "🔰";
-            this.BtnOptions.UseVisualStyleBackColor = true;
-            this.BtnOptions.Click += new System.EventHandler(this.BtnOptions_Click);
+            this.BtnFindOptions.Dock = System.Windows.Forms.DockStyle.Left;
+            this.BtnFindOptions.Location = new System.Drawing.Point(3, 3);
+            this.BtnFindOptions.Name = "BtnFindOptions";
+            this.BtnFindOptions.Size = new System.Drawing.Size(18, 25);
+            this.BtnFindOptions.TabIndex = 5;
+            this.BtnFindOptions.Text = "🔰";
+            this.BtnFindOptions.UseVisualStyleBackColor = true;
+            this.BtnFindOptions.Click += new System.EventHandler(this.BtnOptions_Click);
             // 
             // EventList
             // 
@@ -550,11 +552,12 @@
             // PanelScanButton
             // 
             this.PanelScanButton.Controls.Add(this.BtnStartStopScan);
+            this.PanelScanButton.Controls.Add(this.BtnDriveOptions);
             this.PanelScanButton.Dock = System.Windows.Forms.DockStyle.Left;
             this.PanelScanButton.Location = new System.Drawing.Point(0, 2);
             this.PanelScanButton.Name = "PanelScanButton";
             this.PanelScanButton.Padding = new System.Windows.Forms.Padding(3);
-            this.PanelScanButton.Size = new System.Drawing.Size(87, 31);
+            this.PanelScanButton.Size = new System.Drawing.Size(106, 31);
             this.PanelScanButton.TabIndex = 7;
             // 
             // BtnStartStopScan
@@ -563,12 +566,23 @@
             this.BtnStartStopScan.Dock = System.Windows.Forms.DockStyle.Fill;
             this.BtnStartStopScan.Location = new System.Drawing.Point(3, 3);
             this.BtnStartStopScan.Name = "BtnStartStopScan";
-            this.BtnStartStopScan.Size = new System.Drawing.Size(81, 25);
+            this.BtnStartStopScan.Size = new System.Drawing.Size(82, 25);
             this.BtnStartStopScan.TabIndex = 2;
             this.BtnStartStopScan.Text = "&Start Scan";
             this.BtnStartStopScan.UseVisualStyleBackColor = false;
             this.BtnStartStopScan.TextChanged += new System.EventHandler(this.BtnStartStopScan_TextChanged);
             this.BtnStartStopScan.Click += new System.EventHandler(this.BtnStartStopScan_Click);
+            // 
+            // BtnDriveOptions
+            // 
+            this.BtnDriveOptions.Dock = System.Windows.Forms.DockStyle.Right;
+            this.BtnDriveOptions.Location = new System.Drawing.Point(85, 3);
+            this.BtnDriveOptions.Name = "BtnDriveOptions";
+            this.BtnDriveOptions.Size = new System.Drawing.Size(18, 25);
+            this.BtnDriveOptions.TabIndex = 6;
+            this.BtnDriveOptions.Text = "🔰";
+            this.BtnDriveOptions.UseVisualStyleBackColor = true;
+            this.BtnDriveOptions.Click += new System.EventHandler(this.BtnDriveOptions_Click);
             // 
             // StartupMenuStrip
             // 
@@ -721,7 +735,7 @@
             // panel2
             // 
             this.panel2.Controls.Add(this.PanelFindButton);
-            this.panel2.Controls.Add(this.BtnOptions);
+            this.panel2.Controls.Add(this.BtnFindOptions);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel2.Location = new System.Drawing.Point(1042, 2);
             this.panel2.Name = "panel2";
@@ -761,6 +775,11 @@
             this.AllowFoldersTitle.Size = new System.Drawing.Size(177, 22);
             this.AllowFoldersTitle.Text = "Set Allowed Folders";
             this.AllowFoldersTitle.Paint += new System.Windows.Forms.PaintEventHandler(this.AllowFoldersTitle_Paint);
+            // 
+            // CMenuDriveOptions
+            // 
+            this.CMenuDriveOptions.Name = "CMenuDriveOptions";
+            this.CMenuDriveOptions.Size = new System.Drawing.Size(61, 4);
             // 
             // Starter
             // 
@@ -821,7 +840,7 @@
         private System.Windows.Forms.TextBox TxtSearchName;
         private System.Windows.Forms.Panel PanelFindButton;
         private System.Windows.Forms.Button BtnFind;
-        private System.Windows.Forms.Button BtnOptions;
+        private System.Windows.Forms.Button BtnFindOptions;
         private System.Windows.Forms.ListBox EventList;
         private System.Windows.Forms.Panel ResultsPanel;
         private System.Windows.Forms.ToolStripMenuItem ChkSystemFolder;
@@ -882,6 +901,8 @@
         private System.Windows.Forms.ToolStripMenuItem AllowFoldersTitle;
         private System.Windows.Forms.ToolStripMenuItem SetupTSMenu;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.Button BtnDriveOptions;
+        private System.Windows.Forms.ContextMenuStrip CMenuDriveOptions;
     }
 }
 

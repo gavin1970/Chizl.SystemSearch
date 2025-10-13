@@ -1,37 +1,25 @@
-﻿using System.IO;
+﻿using Chizl.ThreadSupport;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
-using Chizl.ThreadSupport;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System;
 
 namespace Chizl.SystemSearch
 {
     internal static class GlobalSettings
     {
-        internal static string SavePath { get { return GetCachedJson(); } }
         internal static readonly object _lockPath = new object();
 
-        private static string _savePath = ".\\FileDatails\\";
         private static long _scanStarted = 0;
         private static long _shutDown = 0;
         private static long _fullScanCompleted = 0;
         private static SystemScan _scanner = new SystemScan();
         private static Bool IsRefreshing = new Bool();
 
-        static GlobalSettings()
-        {
-            lock (_lockPath)
-            {
-                var dir = new DirectoryInfo(SavePath);
-                if (!dir.Exists)
-                    dir.Create();
-
-                _savePath = dir.FullName;
-            }
-        }
+        static GlobalSettings() { }
         public static ScanProperties ScanSettings { get; } = new ScanProperties();
 
         /// <summary>
@@ -78,11 +66,11 @@ namespace Chizl.SystemSearch
         }
         public static LookupStatus CurrentStatus { get; set; } = LookupStatus.NotStarted;
         public static string[] DriveList { get; } = DriveInfo.GetDrives().Select(s => CheckDriveName(s.Name)).ToArray();
-        public static void Startup(LookupStatus status = LookupStatus.NotStarted) 
-        { 
-            HasShutdown = false; 
-            CurrentStatus = status; 
-            Interlocked.Increment(ref _scanStarted); 
+        public static void Startup(LookupStatus status = LookupStatus.NotStarted)
+        {
+            HasShutdown = false;
+            CurrentStatus = status;
+            Interlocked.Increment(ref _scanStarted);
         }
         private static bool EndScanCount()
         {
@@ -96,34 +84,19 @@ namespace Chizl.SystemSearch
                 CurrentStatus = status;
         }
 
-        public static void Shutdown() 
+        public static void Shutdown()
         {
             HasShutdown = true;
             Ended(LookupStatus.Aborted);
             Internals.AutoEvents[AutoEvent.Shutdown].Set();
         }
-        public static bool HasShutdown 
+        public static bool HasShutdown
         {
             get => Interlocked.Read(ref _shutDown) == 1;
             set => Interlocked.Exchange(ref _shutDown, (value ? 1 : 0));
         }
         public static bool IgnoreChange => ScanSettings.IgnoreChange;
         private static string CheckDriveName(string driveName) => driveName.EndsWith("\\") ? driveName : $"{driveName}\\";
-        private static string GetCachedJson()
-        {
-            if (_savePath.StartsWith("."))
-            {
-                lock (_lockPath)
-                {
-                    var dir = new DirectoryInfo(_savePath);
-                    if (!dir.Exists)
-                        dir.Create();
-
-                    _savePath = dir.FullName;
-                }
-            }
-            return _savePath;
-        }
         #endregion
 
         internal static Task CheckRefresh()
@@ -133,7 +106,7 @@ namespace Chizl.SystemSearch
                 IsRefreshing.SetFalse();
                 return Task.CompletedTask;
             }
-            
+
             Startup(LookupStatus.Running);
             List<Task> queTasks = new List<Task>();
 
@@ -168,13 +141,13 @@ namespace Chizl.SystemSearch
                     await Tools.Delay(100, SleepType.Milliseconds);
 
                     SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
-                } 
-                catch(Exception ex)
+                }
+                catch (Exception ex)
                 {
                     SearchMessage.SendMsg(SearchMessageType.Exception, $"Exception during folder refresh: '{ex.Message}'");
                 }
-                finally 
-                { 
+                finally
+                {
                     Ended();
                     IsRefreshing.SetFalse();
                 }

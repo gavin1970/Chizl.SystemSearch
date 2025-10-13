@@ -155,7 +155,7 @@ public class ListViewHelper
             case LISTVIEW_ACTION.ADD:
                 if (lvItem != null)
                 {
-                    if (foundItem == null || 
+                    if (foundItem == null ||
                         action == LISTVIEW_ACTION.ADD_DUPLICATE)
                     {
                         lv.Items.Add(lvItem);
@@ -192,15 +192,15 @@ public class ListViewOptions
                             bool headerClickable = false, bool colSizable = false, ImageList imageListLarge = null,
                             ImageList imageListSmall = null)
     {
-        this.AllowColumnReorder = allowColumnReorder;
-        this.AutoSizeLastCol = autoSizeLastCol;
-        this.HideFirstCol = hideFirstCol;
-        this.HideHeader = hideHeader;
-        this.CheckBoxes = checkBoxes;
-        this.HeaderClickable = headerClickable;
-        this.ImageListLarge = imageListLarge;
-        this.ImageListSmall = imageListSmall;
-        this.ColSizable = colSizable;
+        AllowColumnReorder = allowColumnReorder;
+        AutoSizeLastCol = autoSizeLastCol;
+        HideFirstCol = hideFirstCol;
+        HideHeader = hideHeader;
+        CheckBoxes = checkBoxes;
+        HeaderClickable = headerClickable;
+        ImageListLarge = imageListLarge;
+        ImageListSmall = imageListSmall;
+        ColSizable = colSizable;
     }
 }
 

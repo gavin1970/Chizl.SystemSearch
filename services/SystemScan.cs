@@ -1,18 +1,16 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Globalization;
-using System.Diagnostics;
 
 namespace Chizl.SystemSearch
 {
     internal class SystemScan : IDisposable
     {
-        const int _maxSendInfoMsg = 5;
+        private const int _maxSendInfoMsg = 5;
         private static long _scannedFolders;
         private static long _fastPullScannedFolders;
         private static long _scannedFiles;
@@ -40,7 +38,7 @@ namespace Chizl.SystemSearch
             }
         }
         ~SystemScan() => Dispose(disposing: false);
-        void IDisposable.Dispose() => this.Dispose();
+        void IDisposable.Dispose() => Dispose();
         public void Dispose()
         {
             Dispose(disposing: true);
@@ -48,7 +46,7 @@ namespace Chizl.SystemSearch
         }
         #endregion
 
-        internal static long ScannedFolders 
+        internal static long ScannedFolders
         {
             get
             {
@@ -75,7 +73,7 @@ namespace Chizl.SystemSearch
         }
         internal static long ScannedFiles
         {
-            get 
+            get
             {
                 lock (_countLock)
                 {
@@ -107,7 +105,7 @@ namespace Chizl.SystemSearch
                 iEvent = WaitHandle.WaitAny(Internals.AutoEvents, waitTimer);
                 if (iEvent.Equals(AutoEvent.FileInfoQueue))
                 {
-                    while(!_fileInfoQueue.IsEmpty)
+                    while (!_fileInfoQueue.IsEmpty)
                     {
                         // insurance
                         if (GlobalSettings.HasShutdown)
@@ -117,11 +115,11 @@ namespace Chizl.SystemSearch
                         {
                             // if(_fileDictionary.TryGetValue(fileName, out string md5Hash))
                             // {
-                                // attempt to build a quicker db lookup id, by using Int instead of string.
-                                // TODO, get file info
-                                // using (var fd = new FileDetails(fileName, md5Hash))
-                                //    fd.SaveToFile();
-                                // Thread.Sleep(1);
+                            // attempt to build a quicker db lookup id, by using Int instead of string.
+                            // TODO, get file info
+                            // using (var fd = new FileDetails(fileName, md5Hash))
+                            //    fd.SaveToFile();
+                            // Thread.Sleep(1);
                             // }
                         }
                     }
@@ -143,7 +141,12 @@ namespace Chizl.SystemSearch
         internal ConcurrentDictionary<string, byte> FolderDictionary => _folderDictionary;
         internal bool IsDirectory(string path) => FolderDictionary.Where(w => w.Key.Equals(path)).Any();
         internal bool IsFile(string path) => FileDictionary.Where(w => w.Equals(path)).Any();
-
+        internal void ResetCache()
+        {
+            _fileDictionary.Clear();
+            _folderDictionary.Clear();
+            _deniedDictionary.Clear();
+        }
         internal Task ScanDrives(string[] driveLetter, bool sendMsg, bool isRescan = true)
         {
             GlobalSettings.Startup();
@@ -155,11 +158,7 @@ namespace Chizl.SystemSearch
             ScannedFolders = 0;
             ScannedFiles = 0;
 
-            if (isRescan)
-            {
-                _fileDictionary.Clear();
-                _folderDictionary.Clear();
-            }
+            if (isRescan) ResetCache();
 
             // setup status for UI
             SetStatus(LookupStatus.Running);
@@ -185,7 +184,7 @@ namespace Chizl.SystemSearch
                         // get all subfolders with each subfolder in their own thread/task
                         taskList.AddRange(ScanSubFolders(Directory.GetDirectories(drive)));
                     }
-                    catch (Exception ex) 
+                    catch (Exception ex)
                     {
                         SearchMessage.SendMsg(ex);
                         continue;

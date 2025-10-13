@@ -87,9 +87,9 @@ namespace Chizl.SystemSearch
             int s = 0;
             int e = str.IndexOf(splitString);
 
-            if(e > -1)
+            if (e > -1)
             {
-                while(e>-1)
+                while (e > -1)
                 {
                     retVal.Add(str.Substring(s, e));
                     s = e + splitString.Length;
