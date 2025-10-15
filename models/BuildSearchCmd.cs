@@ -35,6 +35,11 @@ namespace Chizl.SystemSearch
         public static string GetCommandToken(CommandType cmdType) => cmdType == CommandType.ext ? $"{cExtPos}" : (cmdType == CommandType.filter || cmdType == CommandType.exclude) ? $"{cFilterPos}" : $"{cPathPos}";
     }
 
+    internal static class SepsExt
+    {
+        public static string Str(this Seps @seps) => $"{@seps}";
+    }
+
     internal class BuildSearchCmd
     {
         private string[] _searchCriteria = new string[0];
@@ -185,17 +190,25 @@ namespace Chizl.SystemSearch
                 // replace the command with a token for search order
                 retVal = retVal.Replace(remove, "");
 
-                // Process one or more of existing type
-                MultiBuildCommands(cmdType, search);
+                if (hasPathSearch && search.IndexOf(Seps.cOr) == -1)
+                {
+                    hasPathSearch = false;
+                    var part = cmdType.ToString();
+                    search = search.StartsWith(part, StringComparison.CurrentCultureIgnoreCase) ? search.Substring(part.Length + 1) : search;
+                    retVal = $"{search}{Seps.cWild}{retVal}";
+                }
+                else
+                    // Process one or more of existing type
+                    MultiBuildCommands(cmdType, search);
             }
 
             // Add search tokens at the end if tokens exists.
             // Can have one or more tokens. Loading filters/exclude first, this removes
             // the larger count of files before running the other extensions.
             retVal = retVal.Trim();
-            retVal += hasFilter ? $"*{Seps.GetCommandToken(CommandType.filter)}*" : "";
-            retVal += hasExtSearch ? $"*{Seps.GetCommandToken(CommandType.ext)}*" : "";
-            retVal += hasPathSearch ? $"*{Seps.GetCommandToken(CommandType.path)}*" : "";
+            retVal += hasPathSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.path)}{Seps.cWild}" : "";
+            retVal += hasFilter ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.filter)}{Seps.cWild}" : "";
+            retVal += hasExtSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.ext)}{Seps.cWild}" : "";
 
             // SplitOn will auto strip ** by ignoring blank entries if exists.
             return retVal.Replace(",", "").SplitOn(Seps.cWild);

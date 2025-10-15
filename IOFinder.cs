@@ -98,6 +98,8 @@ namespace Chizl.SystemSearch
         private bool DeepDive(string[] drives, BuildSearchCmd searchCriteria)
         {
             var retVal = false;
+            var fullFileList = Scanner.GetFileList;
+            var fullFileListLen = fullFileList.Length;
             var findings = new List<string>();
             var filters = new List<string>();
 
@@ -123,7 +125,7 @@ namespace Chizl.SystemSearch
                         if (findings.Count > 0)
                             filters.AddRange(findings.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList());
                         else
-                            findings.AddRange(Scanner.GetFileList.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList());
+                            findings.AddRange(fullFileList.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList());
                     }
 
                     findings.Clear();
@@ -140,7 +142,7 @@ namespace Chizl.SystemSearch
                         if (findings.Count > 0)
                             filters.AddRange(findings.Where(w => w.ToLower().EndsWith(e.Search.ToLower())).ToList());
                         else
-                            findings.AddRange(Scanner.GetFileList.Where(w => w.ToLower().EndsWith(e.Search.ToLower())).ToList());
+                            findings.AddRange(fullFileList.Where(w => w.ToLower().EndsWith(e.Search.ToLower())).ToList());
                     }
 
                     findings.Clear();
@@ -155,13 +157,18 @@ namespace Chizl.SystemSearch
                     foreach (var f in filterList)
                     {
                         if (findings.Count > 0)
-                            filters.AddRange(findings.Where(w => w.ToLower().Contains(f.Search.ToLower())).ToList());
+                        {
+                            filters.AddRange(findings.Where(w => !w.ToLower().Contains(f.Search.ToLower())).ToList());
+                            if (filters.Count() > 0)
+                            {
+                                findings.Clear();
+                                findings.AddRange(filters);
+                                filters.Clear();
+                            }
+                        }
                         else
-                            findings.AddRange(Scanner.GetFileList.Where(w => !w.ToLower().Contains(f.Search.ToLower())).ToList());
+                            findings.AddRange(fullFileList.Where(w => !w.ToLower().Contains(f.Search.ToLower())).ToList());
                     }
-
-                    foreach (var fnd in filters)
-                        findings.Remove(fnd);
                 }
                 else
                 {
@@ -171,7 +178,7 @@ namespace Chizl.SystemSearch
                     if (findings.Count > 0)
                         filters.AddRange(findings.Where(w => w.ToLower().Contains(wc.ToLower())).ToList());
                     else
-                        findings.AddRange(Scanner.GetFileList.Where(w => w.ToLower().Contains(wc.ToLower())).ToList());
+                        findings.AddRange(fullFileList.Where(w => w.ToLower().Contains(wc.ToLower())).ToList());
 
                     if (filters.Count() > 0)
                     {
