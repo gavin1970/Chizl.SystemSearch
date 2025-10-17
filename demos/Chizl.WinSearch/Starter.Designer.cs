@@ -610,20 +610,20 @@
             // SetupTSMenu
             // 
             this.SetupTSMenu.Name = "SetupTSMenu";
-            this.SetupTSMenu.Size = new System.Drawing.Size(129, 22);
+            this.SetupTSMenu.Size = new System.Drawing.Size(180, 22);
             this.SetupTSMenu.Text = "&Setup";
             this.SetupTSMenu.Click += new System.EventHandler(this.SetupTSMenu_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(126, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(177, 6);
             // 
             // ExitTSMenu
             // 
             this.ExitTSMenu.Name = "ExitTSMenu";
-            this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.X)));
-            this.ExitTSMenu.Size = new System.Drawing.Size(129, 22);
+            this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X)));
+            this.ExitTSMenu.Size = new System.Drawing.Size(180, 22);
             this.ExitTSMenu.Text = "E&xit";
             this.ExitTSMenu.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 

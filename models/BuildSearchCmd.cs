@@ -157,6 +157,10 @@ namespace Chizl.SystemSearch
                 {
                     case "ext":
                         cmdType = CommandType.ext;
+                        // this will resolve "ext:.txt|pdf|. doc|docx|.mp4", to look like: "ext:.txt|pdf|.doc|docx|.mp4"
+                        // path and filter could have spaces within folder / file names, so we will not replace them.
+                        searchCriteria = searchCriteria.Replace(search, search.Replace(" ", ""));
+                        search = search.Replace(" ", "");
                         break;
                     case "path":
                         cmdType = CommandType.path;
@@ -170,14 +174,6 @@ namespace Chizl.SystemSearch
                     default:
                         // no idea what was passed, but it wasn't anything expected.
                         continue;
-                }
-
-                // this will resolve "ext:.txt|pdf|. doc|docx|.mp4", to look like: "ext:.txt|pdf|.doc|docx|.mp4"
-                // path and filter could have spaces within folder / file names, so we will not replace them.
-                if (cmdType.Equals(CommandType.ext))
-                {
-                    searchCriteria = searchCriteria.Replace(search, search.Replace(" ", ""));
-                    search = search.Replace(" ", "");
                 }
 
                 // use for token later.
