@@ -38,8 +38,8 @@ namespace Chizl.SystemSearch
         #region Private
         internal SystemScan Scanner => new SystemScan();
         public ScanProperties Criteria => GlobalSettings.ScanSettings;
-        private Task Scan(string[] drives, bool sendMsg = true, bool isRescan = true) => Scanner.ScanDrives(drives, sendMsg, isRescan);
-        private Task Search(string[] drives, string searchCriteria, bool isRescan = false)
+        private Task Scan(string[] drives, bool sendMsg, bool isRescan) => Scanner.ScanDrives(drives, sendMsg, isRescan);
+        private Task Search(string[] drives, string searchCriteria, bool isRescan)
         {
             var searchTask = Task.Run(async () =>
             {
@@ -306,7 +306,7 @@ namespace Chizl.SystemSearch
             }
             else if (Directory.Exists(e.FullPath))
             {
-                createList.AddRange(Scanner.ScanSubFolders(new string[] { e.FullPath }));
+                createList.AddRange(Scanner.ScanSubFolders(new string[] { e.FullPath }, false));
                 if (createList.Count > 0)
                     SearchMessage.SendMsg(SearchMessageType.Info, $"Adding: [{createList.Count}] files to cache.");
             }
@@ -369,7 +369,7 @@ namespace Chizl.SystemSearch
             fileGoodToGo = removedFolders > 0;
 
             if (isDir)
-                renameList.AddRange(Scanner.ScanSubFolders(new string[] { e.FullPath }));
+                renameList.AddRange(Scanner.ScanSubFolders(new string[] { e.FullPath }, false));
             else
                 renameList.Add(Task.Run(() => { Scanner.AddFile(e.FullPath); return Task.CompletedTask; }));
 
@@ -440,12 +440,19 @@ namespace Chizl.SystemSearch
         public Task RemoveDrive(DriveInfo drive) => Task.Run(() => GlobalSettings.AddRemove($"{drive.Name}{(drive.Name.EndsWith("\\") ? "" : "\\")}", false));
 
         /// <summary>
-        /// Starts search in cache if exists. Defaults drives to all drives.
+        /// Starts search in cache if exists.
         /// </summary>
-        /// <returns></returns>
-        public Task Search(string searchCriteria) => Search(GlobalSettings.DriveList, searchCriteria);
-        public Task Search(DriveInfo drive, string searchCriteria) => Search(new string[] { drive.Name }, searchCriteria);
-        public Task Search(DriveInfo[] drives, string searchCriteria) => Search(drives.Select(w => w.Name).ToArray(), searchCriteria);
+        /// <param name="drive">1 Drive to search</param>
+        /// <param name="searchCriteria">Query with search extensions accepted</param>
+        /// <returns>Task for wait results, all results are sent as Events</returns>
+        public Task Search(DriveInfo drive, string searchCriteria) => Search(new string[] { drive.Name }, searchCriteria, false);
+        /// <summary>
+        /// Starts search in cache if exists.
+        /// </summary>
+        /// <param name="drives">All drives to search through</param>
+        /// <param name="searchCriteria">Query with search extensions accepted</param>
+        /// <returns>Task for wait results, all results are sent as Events</returns>
+        public Task Search(DriveInfo[] drives, string searchCriteria) => Search(drives.Select(w => w.Name).ToArray(), searchCriteria, false);
         public void ResetCache() => Scanner.ResetCache();
         public void StopScan()
         {

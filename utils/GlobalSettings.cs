@@ -123,7 +123,7 @@ namespace Chizl.SystemSearch
                         // add that specific folder, without subfolders.
                         queTasks.Add(_scanner.ScanFolder(actionFolder, true));
                         // add all subfolders with each in their own thread task.
-                        queTasks.AddRange(_scanner.ScanSubFolders(Directory.GetDirectories(actionFolder)));
+                        queTasks.AddRange(_scanner.ScanSubFolders(Directory.GetDirectories(actionFolder), false));
                     }
 
                     foreach (var actionFolder in deleteList)

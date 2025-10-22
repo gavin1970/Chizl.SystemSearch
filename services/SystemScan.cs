@@ -147,7 +147,8 @@ namespace Chizl.SystemSearch
             _folderDictionary.Clear();
             _deniedDictionary.Clear();
         }
-        internal Task ScanDrives(string[] driveLetter, bool sendMsg, bool isRescan = true)
+        internal Task ScanDrives(string[] driveLetter, bool sendMsg, bool isRescan = true) => ScanDrives(driveLetter, sendMsg, CancellationToken.None, isRescan);
+        internal Task ScanDrives(string[] driveLetter, bool sendMsg, CancellationToken cancelToken, bool isRescan = true)
         {
             GlobalSettings.Startup();
             var taskList = new List<Task>();
@@ -177,12 +178,8 @@ namespace Chizl.SystemSearch
                     {
                         // get root files, skip subfolders.
                         taskList.Add(ScanFolder(drive, true));
-
-                        // foreach (var folder in Directory.EnumerateDirectories(drive))
-                        //    taskList.Add(ScanFolder(drive));
-
                         // get all subfolders with each subfolder in their own thread/task
-                        taskList.AddRange(ScanSubFolders(Directory.GetDirectories(drive)));
+                        taskList.AddRange(ScanSubFolders(Directory.GetDirectories(drive), true));
                     }
                     catch (Exception ex)
                     {
@@ -195,7 +192,7 @@ namespace Chizl.SystemSearch
                 SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"Scanning: ({drivesStr}) - Please wait.");
 
                 // asynchronously waits for all tasks
-                Task.WaitAll(taskList.ToArray());
+                Task.WaitAll(taskList.ToArray(), cancelToken);
 
                 var msgType = GlobalSettings.HasShutdown ? SearchMessageType.ScanAborted : SearchMessageType.ScanComplete;
                 var statusType = GlobalSettings.HasShutdown ? LookupStatus.Aborted : LookupStatus.Completed;
@@ -204,9 +201,9 @@ namespace Chizl.SystemSearch
 
                 SearchMessage.SendMsg(msgType, $"Cached: ({ScannedFolders.FormatByComma()}) Folders, ({ScannedFiles.FormatByComma()}) Files");
                 GlobalSettings.Ended();
-            });
+            }, cancelToken);
         }
-        internal List<Task> ScanSubFolders(string[] folderList)
+        internal List<Task> ScanSubFolders(string[] folderList, bool rootFolders)
         {
             List<Task> taskList = new List<Task>();
 
@@ -220,9 +217,13 @@ namespace Chizl.SystemSearch
                         // scan each root folder asynchronously.
                         taskList.Add(Task.Run(() =>
                         {
-                            // ScanFolder(subfolder);
+                            if (rootFolders)
+                                SearchMessage.SendMsg(SearchMessageType.Info, $"Scan Started: '{subfolder}'");
+
                             ScanFolder(subfolder);
-                            // Tools.Sleep(1, SleepType.Milliseconds);
+
+                            if (rootFolders)
+                                SearchMessage.SendMsg(SearchMessageType.Info, $"Scan Finished: '{subfolder}'");
                         }));
                     }
                 }

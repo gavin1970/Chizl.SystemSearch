@@ -107,8 +107,8 @@ namespace Chizl.SearchSystemUI
 
                 // this allows all messages to be posted, only
                 // need this setup during scan, which is too intense.
-                resetRefreshCnt = 0;
-                refreshCnt = 0;
+                Interlocked.Exchange(ref resetRefreshCnt, 0);
+                Interlocked.Exchange(ref refreshCnt, 0);
 
                 _endDate = DateTime.UtcNow;
                 var diff = _endDate - _startDate;
@@ -157,8 +157,9 @@ namespace Chizl.SearchSystemUI
 
                 // set refresh for folder/file count
                 // information to max setting for refeshes.
-                resetRefreshCnt = _maxRefreshCnt;
-                refreshCnt = 0;
+                Interlocked.Exchange(ref resetRefreshCnt, _maxRefreshCnt);
+                Interlocked.Exchange(ref refreshCnt, 0);
+
                 BtnFind.Enabled = false;
                 //BtnOptions.Enabled = false;
                 TxtSearchName.ReadOnly = true;
@@ -613,10 +614,10 @@ namespace Chizl.SearchSystemUI
         {
             if (e.MessageType.Equals(SearchMessageType.FileScanStatus))
             {
-                if (--refreshCnt <= 0)
+                if (Interlocked.Decrement(ref refreshCnt) <= 0)
                 {
                     ShowMsg(e);
-                    refreshCnt = resetRefreshCnt;
+                    Interlocked.Exchange(ref refreshCnt, resetRefreshCnt);
                     // something is wrong, this should be set, if we have file scans coming in.
                     if (_finder.CurrentStatus.Equals(LookupStatus.Running) &&
                         !BtnStartStopScan.Text.Equals(_stopScanText))
@@ -717,27 +718,26 @@ namespace Chizl.SearchSystemUI
 
                     reScan = true;
                 }
-                else
-                    reScan = false;
 
                 // start over
                 LastScanTimer.Stop();
                 _scanTime = TimeSpan.Zero;
 
                 _finder.ScanToCache(GetScanDriveList(), reScan)
-                    .ContinueWith(t =>
-                    {
-                        _driveFilterOn.SetVal(false);
-                        _extFilterOn.SetVal(false);
-                        _customFilterOn.SetVal(false);
+                       .ContinueWith(t =>
+                       {
+                           _driveFilterOn.SetVal(false);
+                           _extFilterOn.SetVal(false);
+                           _customFilterOn.SetVal(false);
 
-                        SetFilterStatus();
-                    });
+                            SetFilterStatus();
+                       });
             }
             else
             {
                 _scanAborted.SetVal(true);
                 _finder.StopScan();
+
                 if (driveList.Count() == 0)
                 {
                     BtnStartStopScan.Text = _startScanText;
