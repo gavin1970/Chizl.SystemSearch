@@ -97,6 +97,9 @@
             this.MnuAllowedFolders = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.AllowFoldersTitle = new System.Windows.Forms.ToolStripMenuItem();
             this.CMenuDriveOptions = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.Notifier = new System.Windows.Forms.NotifyIcon(this.components);
+            this.NotifierContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.SysTrayClose = new System.Windows.Forms.ToolStripMenuItem();
             this.PanelSearchText.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
             this.CMenuInfoErr.SuspendLayout();
@@ -121,6 +124,7 @@
             this.PanelSearchBar.SuspendLayout();
             this.panel2.SuspendLayout();
             this.MnuAllowedFolders.SuspendLayout();
+            this.NotifierContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // PanelSearchText
@@ -610,20 +614,20 @@
             // SetupTSMenu
             // 
             this.SetupTSMenu.Name = "SetupTSMenu";
-            this.SetupTSMenu.Size = new System.Drawing.Size(180, 22);
+            this.SetupTSMenu.Size = new System.Drawing.Size(129, 22);
             this.SetupTSMenu.Text = "&Setup";
             this.SetupTSMenu.Click += new System.EventHandler(this.SetupTSMenu_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(126, 6);
             // 
             // ExitTSMenu
             // 
             this.ExitTSMenu.Name = "ExitTSMenu";
-            this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X)));
-            this.ExitTSMenu.Size = new System.Drawing.Size(180, 22);
+            this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.X)));
+            this.ExitTSMenu.Size = new System.Drawing.Size(129, 22);
             this.ExitTSMenu.Text = "E&xit";
             this.ExitTSMenu.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
@@ -781,6 +785,26 @@
             this.CMenuDriveOptions.Name = "CMenuDriveOptions";
             this.CMenuDriveOptions.Size = new System.Drawing.Size(61, 4);
             // 
+            // Notifier
+            // 
+            this.Notifier.ContextMenuStrip = this.NotifierContextMenu;
+            this.Notifier.Text = "notifyIcon1";
+            this.Notifier.Visible = true;
+            // 
+            // NotifierContextMenu
+            // 
+            this.NotifierContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.SysTrayClose});
+            this.NotifierContextMenu.Name = "NotifierContextMenu";
+            this.NotifierContextMenu.Size = new System.Drawing.Size(181, 48);
+            // 
+            // SysTrayClose
+            // 
+            this.SysTrayClose.Name = "SysTrayClose";
+            this.SysTrayClose.Size = new System.Drawing.Size(180, 22);
+            this.SysTrayClose.Text = "&Close";
+            this.SysTrayClose.Click += new System.EventHandler(this.SysTrayClose_Click);
+            // 
             // Starter
             // 
             this.AcceptButton = this.BtnFind;
@@ -829,6 +853,7 @@
             this.PanelSearchBar.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.MnuAllowedFolders.ResumeLayout(false);
+            this.NotifierContextMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -903,6 +928,9 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.Button BtnDriveOptions;
         private System.Windows.Forms.ContextMenuStrip CMenuDriveOptions;
+        private System.Windows.Forms.NotifyIcon Notifier;
+        private System.Windows.Forms.ContextMenuStrip NotifierContextMenu;
+        private System.Windows.Forms.ToolStripMenuItem SysTrayClose;
     }
 }
 

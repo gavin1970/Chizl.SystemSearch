@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Chizl.SearchSystemUI
@@ -40,6 +42,7 @@ namespace Chizl.SearchSystemUI
         private static Bool _scanRunning = new Bool(false);
         private static bool _hideErrors = false;
         private static bool _hideInformation = false;
+        private static bool _hasDrives = true;
         private static int _mainSplitterDistance = -1;
 
         private static TimeSpan _scanTime = TimeSpan.Zero;
@@ -49,6 +52,8 @@ namespace Chizl.SearchSystemUI
         private static readonly Color _gray = Color.FromArgb(192, 192, 192);
         private static readonly Color _green = Color.FromArgb(128, 255, 128);
         private static readonly Color _red = Color.FromArgb(255, 128, 128);
+        private static readonly Color _fgTitleColor = Color.FromArgb(92, 92, 92);
+        private static readonly Color _bgTitleColor = Color.FromArgb(128, 128, 255);
 
         private static DateTime _startDate = DateTime.MinValue;
         private static DateTime _endDate = DateTime.MinValue;
@@ -67,6 +72,7 @@ namespace Chizl.SearchSystemUI
 
         private static IOFinder _finder = GlobalSetup.Finder;
         private static ScanProperties _criterias = _finder.Criteria;
+        private static SysNotify _systemNotify;
 
         private delegate void MessageDelegateEvent(SearchEventArgs e);
         private delegate void NoParmDelegateEvent();
@@ -215,6 +221,21 @@ namespace Chizl.SearchSystemUI
                             SearchStatusToolStripStatusLabel.Text = e.Message;
                             break;
                         case SearchMessageType.FileScanStatus:
+                            if (!_hasDrives && e.Message.Contains(") Files"))
+                            {
+                                _hasDrives = (GlobalSetup.DriveList.Length > 0);
+                            }
+                            else if (!_hasDrives)
+                            {
+                                // reset all objects, execute garbage collector, and start over.
+                                _finder.StopScan();
+                                _finder.ResetCache();
+                                _finder.Dispose();
+                                GlobalSetup.Finder.Dispose();
+                                _finder = GlobalSetup.Finder;
+                                _finder.EventMessaging += new SearchEventHandler(IOFinder_EventMessaging);
+                            }
+
                             FilesAvailableToolStripStatusLabel.Text = e.Message;
                             // multi-thread so, if one stops, it might set status as complete, but
                             // the libary will auto correct if still processing in another thread.
@@ -271,8 +292,27 @@ namespace Chizl.SearchSystemUI
                 }
             }
         }
+        private void ShowWindow()
+        {
+            if (!this.Visible)
+                this.Visible = true;
+            if (this.WindowState == FormWindowState.Minimized)
+                this.WindowState = FormWindowState.Normal;
+
+            this.Focus();
+            this.BringToFront();
+        }
+        private void SetupSysTray()
+        {
+            Notifier.Icon = this.Icon;
+            Notifier.Text = About.TitleWithFileVersion;
+
+            _systemNotify = new SysNotify(this, Notifier, new SysNotifyTitle(About.TitleWithFileVersion, _fgTitleColor, _bgTitleColor, new Padding(2)));
+            _systemNotify.DoubleClick += Notify_DoubleClick;
+        }
         private void SetupForm()
         {
+            SetupSysTray();
             LoadConfig();
             //required before Finder can be used.
             SetupListView(ResultsListView, ListViewColumns());
@@ -282,7 +322,7 @@ namespace Chizl.SearchSystemUI
             var driveInfoList = DriveInfo.GetDrives().ToList();
             foreach (ToolStripMenuItem drive in CMenuDriveOptions.Items)
             {
-                if (!drive.Checked)
+                if (!drive.Checked || !drive.Enabled)
                 {
                     var driveInfo = driveInfoList.FirstOrDefault(f => f.Name == drive.Tag.ToString());
                     if (driveInfo != null)
@@ -306,20 +346,28 @@ namespace Chizl.SearchSystemUI
 
             foreach (var drive in DriveInfo.GetDrives())
             {
+                // by checking drive.IsReady, it allows drive to be added to the Menu, but disabled to show it's unaccessiable.
+
                 var name = $"ChkScan_{drive.Name[0].ToString().ToUpper()}_Drive";
                 ConfigData.GetItem<bool>(name, true, out isChecked);
-                var chk = isChecked ? CheckState.Checked : CheckState.Unchecked;
+
+                var chk = isChecked && drive.IsReady ? CheckState.Checked : CheckState.Unchecked;
+                var text = $"{drive.Name} {(drive.IsReady ? "scan" : "(unavailable)")}";
 
                 var retVal = new ToolStripMenuItem()
                 {
-                    Text = $"{drive.Name} scan",
+                    Text = text,
                     Name = name,
                     Tag = drive.Name,
                     Image = null,
                     CheckOnClick = true,
-                    CheckState = chk
+                    Enabled = (drive.IsReady ? true : false),
+                    CheckState = chk,
                 };
-                retVal.Click += DriveScan_CheckedChanged;
+
+                if (drive.IsReady)
+                    retVal.Click += DriveScan_CheckedChanged;
+
                 CMenuDriveOptions.Items.Add(retVal);
             }
 
@@ -597,8 +645,17 @@ namespace Chizl.SearchSystemUI
         }
         private void Starter_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _finder.StopScan();
-            _finder.Dispose();
+            //var shuttingDown = false;
+            //if (e.CloseReason == CloseReason.WindowsShutDown ||
+            //    e.CloseReason == CloseReason.TaskManagerClosing)
+            //{
+            //    shuttingDown = true;
+            //    _finder.StopScan();
+            //    _finder.Dispose();
+            //}
+
+            //e.Cancel = !shuttingDown;
+            //this.Hide();
         }
         private void Starter_Resize(object sender, EventArgs e)
         {
@@ -742,6 +799,8 @@ namespace Chizl.SearchSystemUI
                     _finder.AddDrive(new DriveInfo(drive));
                 else
                     _finder.RemoveDrive(new DriveInfo(drive));
+
+                _hasDrives = (GlobalSetup.DriveList.Length > 0);
             }
         }
         private void Options_CheckedChanged(object sender, EventArgs e)
@@ -1046,6 +1105,10 @@ namespace Chizl.SearchSystemUI
         #endregion
 
         #region Information, Warning, & Error Context Menu Events
+        private void Notify_DoubleClick(object sender, EventArgs e)
+        {
+            ShowWindow();
+        }
         private void CMenuInfoErrClear_Click(object sender, EventArgs e)
         {
             _selListBox.Items.Clear();
@@ -1179,6 +1242,10 @@ namespace Chizl.SearchSystemUI
         private void SetupTSMenu_Click(object sender, EventArgs e)
         {
 
+        }
+        private void SysTrayClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 }

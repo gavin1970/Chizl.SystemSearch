@@ -69,6 +69,10 @@
     <Compile Include="utils\ConfigData.cs" />
     <Compile Include="utils\GlobalSetup.cs" />
     <Compile Include="utils\ListViewHelper.cs" />
+    <Compile Include="utils\systray\ModImg.cs" />
+    <Compile Include="utils\systray\ReplaceColor.cs" />
+    <Compile Include="utils\systray\SysNotify.cs" />
+    <Compile Include="utils\systray\SysNotifyTitle.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
