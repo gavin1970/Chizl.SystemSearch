@@ -1,4 +1,5 @@
 ﻿using Chizl.ThreadSupport;
+using System.Linq;
 
 namespace Chizl.SystemSearch
 {
@@ -45,7 +46,7 @@ namespace Chizl.SystemSearch
             if (!AllowRecycleBin && path.StartsWith(ScanPaths.RecycleBinDir))
                 return false;
 
-            return true;
+            return GlobalSettings.CustomExclusions.Where(w => path.ToLower().Contains(w.Key.ToLower())).Count() == 0;
         }
         #endregion
 

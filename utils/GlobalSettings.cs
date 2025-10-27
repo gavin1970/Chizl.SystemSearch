@@ -26,6 +26,7 @@ namespace Chizl.SystemSearch
         /// Scan options to be set from the parent application or use defaults.
         /// </summary>
         public static ConcurrentDictionary<string, bool> RefreshFolder { get; } = new ConcurrentDictionary<string, bool>();
+        internal static ConcurrentDictionary<string, bool> CustomExclusions { get; } = new ConcurrentDictionary<string, bool>();
 
         #region Shortcut Methods
         public static bool AllowDir(string path) => ScanSettings.AllowDir(path);

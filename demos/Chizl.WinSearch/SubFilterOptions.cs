@@ -9,6 +9,7 @@ namespace Chizl.WinSearch
 {
     public partial class SubFilterOptions : Form
     {
+        private readonly Color _bgAlwaysExclude = Color.FromArgb(255, 192, 192);
         private readonly ListViewHelper _lViewHelper = new ListViewHelper();
         private ColumnHeader[] _listViewColumns = new ColumnHeader[0];
         private bool _loaded = false;
@@ -17,6 +18,7 @@ namespace Chizl.WinSearch
 
         private string _path = string.Empty;
         private List<SubFilterExclusion> _excludeItems = new List<SubFilterExclusion>();
+        private List<SubFilterExclusion> _alwaysExcludeItems = new List<SubFilterExclusion>();
 
         public SubFilterOptions(string path)
         {
@@ -28,6 +30,7 @@ namespace Chizl.WinSearch
         /// Accessible from the outside.
         /// </summary>
         public List<SubFilterExclusion> ExcludeItems { get { return _excludeItems; } }
+        public List<SubFilterExclusion> AlwaysExcludeItems { get { return _alwaysExcludeItems; } }
         public List<string> RemovedFromExcludeItems { get { return _removedFromExclusionItems; } }
 
         private void SubFilterOptions_Load(object sender, EventArgs e)
@@ -45,6 +48,16 @@ namespace Chizl.WinSearch
 
             if (_excludeItems.Count > 0)
                 ListViewSubFilters.Items.AddRange(GlobalSetup.GetFilterInfo(_excludeItems.ToArray()));
+
+            if (_alwaysExcludeItems.Count == 0)
+            {
+                var exList = GlobalSetup.GetScanExclusions().Result;
+                if (exList.Length > 0)
+                    _alwaysExcludeItems.AddRange(exList.Select(s => new SubFilterExclusion(s, FilterType.Contains)));
+            }
+
+            if (_alwaysExcludeItems.Count > 0)
+                ListViewSubFilters.Items.AddRange(GlobalSetup.GetFilterInfo(_alwaysExcludeItems.ToArray(), _bgAlwaysExclude));
 
             ListViewSubFilters.ResumeLayout(true);
             ListViewSubFilters.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
@@ -75,13 +88,16 @@ namespace Chizl.WinSearch
         }
         private void toolStripMenuRemoveItem_Click(object sender, EventArgs e)
         {
-            if (GetSelectedItem(out string selectedItem))
+            if (GetSelectedItem(out string selectedItem, out _))
             {
                 _removedFromExclusionItems.Add(selectedItem);
                 _excludeItems = _excludeItems.Where(w => !w.FilterRaw.Equals(selectedItem)).ToList();
+                if (GlobalSetup.RemoveScanExclusion(selectedItem).Result)
+                    _alwaysExcludeItems = _alwaysExcludeItems.Where(w => !w.FilterRaw.Equals(selectedItem)).ToList();
                 ListViewSubFilters.Items.RemoveAt(ListViewSubFilters.SelectedIndices[0]);
             }
         }
+
         //private void ListBoxSubFilters_MouseDown(object sender, MouseEventArgs e)
         //{
         //    var id = ListBoxSubFilters.IndexFromPoint(e.Location);
@@ -89,13 +105,18 @@ namespace Chizl.WinSearch
         //        ListBoxSubFilters.SelectedIndex = id;
         //}
 
-        private bool GetSelectedItem(out string selectedItem)
+        private bool GetSelectedItem(out string selectedItem, out int index)
         {
             selectedItem = string.Empty;
-            if (ListViewSubFilters.SelectedItems.Count < 0)
+            index = -1;
+
+            if (ListViewSubFilters.SelectedItems.Count == 0)
                 return false;
 
-            selectedItem = ListViewSubFilters.SelectedItems[0].Text;
+            var item = ListViewSubFilters.SelectedItems[0];
+
+            selectedItem = item.Text;
+            index = item.Index;
 
             return true;
         }
@@ -192,5 +213,22 @@ namespace Chizl.WinSearch
             return cols;
         }
         #endregion
+
+        private void toolStripMenuAlwaysExclude_Click(object sender, EventArgs e)
+        {
+            if (GetSelectedItem(out string selectedItem, out int ndx))
+                AlwaysExclude(selectedItem, ndx);
+        }
+
+        private void AlwaysExclude(string item, int ndx = -1)
+        {
+            if (GlobalSetup.AddScanExclusion(item).Result)
+            {
+                _excludeItems = _excludeItems.Where(w => !w.FilterRaw.Equals(item)).ToList();
+                _alwaysExcludeItems.Add(new SubFilterExclusion(item, FilterType.Contains));
+                if (ndx > -1)
+                    ListViewSubFilters.Items[ndx].BackColor = _bgAlwaysExclude;
+            }
+        }
     }
 }

@@ -44,6 +44,7 @@
             this.panel6 = new System.Windows.Forms.Panel();
             this.ButtonCancel = new System.Windows.Forms.Button();
             this.ButtonOk = new System.Windows.Forms.Button();
+            this.toolStripMenuAlwaysExclude = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1.SuspendLayout();
             this.panel4.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -120,14 +121,15 @@
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuRemoveItem});
+            this.toolStripMenuRemoveItem,
+            this.toolStripMenuAlwaysExclude});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(118, 26);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 70);
             // 
             // toolStripMenuRemoveItem
             // 
             this.toolStripMenuRemoveItem.Name = "toolStripMenuRemoveItem";
-            this.toolStripMenuRemoveItem.Size = new System.Drawing.Size(117, 22);
+            this.toolStripMenuRemoveItem.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuRemoveItem.Text = "&Remove";
             this.toolStripMenuRemoveItem.Click += new System.EventHandler(this.toolStripMenuRemoveItem_Click);
             // 
@@ -207,6 +209,13 @@
             this.ButtonOk.UseVisualStyleBackColor = true;
             this.ButtonOk.Click += new System.EventHandler(this.ButtonOk_Click);
             // 
+            // toolStripMenuAlwaysExclude
+            // 
+            this.toolStripMenuAlwaysExclude.Name = "toolStripMenuAlwaysExclude";
+            this.toolStripMenuAlwaysExclude.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuAlwaysExclude.Text = "&Always Exclude";
+            this.toolStripMenuAlwaysExclude.Click += new System.EventHandler(this.toolStripMenuAlwaysExclude_Click);
+            // 
             // SubFilterOptions
             // 
             this.AcceptButton = this.ButtonOk;
@@ -250,5 +259,6 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuRemoveItem;
         private System.Windows.Forms.ListView ListViewSubFilters;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuAlwaysExclude;
     }
 }

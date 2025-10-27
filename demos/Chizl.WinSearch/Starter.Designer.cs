@@ -96,6 +96,7 @@
             this.LastScanTimer = new System.Windows.Forms.Timer(this.components);
             this.MnuAllowedFolders = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.AllowFoldersTitle = new System.Windows.Forms.ToolStripMenuItem();
+            this.customListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CMenuDriveOptions = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.Notifier = new System.Windows.Forms.NotifyIcon(this.components);
             this.NotifierContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -767,9 +768,10 @@
             this.ChkInternetCache,
             this.ChkWinFolder,
             this.ChkSystemFolder,
-            this.ChkUserFolder});
+            this.ChkUserFolder,
+            this.customListToolStripMenuItem});
             this.MnuAllowedFolders.Name = "MnuAllowedFolders";
-            this.MnuAllowedFolders.Size = new System.Drawing.Size(178, 158);
+            this.MnuAllowedFolders.Size = new System.Drawing.Size(178, 180);
             // 
             // AllowFoldersTitle
             // 
@@ -779,6 +781,13 @@
             this.AllowFoldersTitle.Size = new System.Drawing.Size(177, 22);
             this.AllowFoldersTitle.Text = "Set Allowed Folders";
             this.AllowFoldersTitle.Paint += new System.Windows.Forms.PaintEventHandler(this.AllowFoldersTitle_Paint);
+            // 
+            // customListToolStripMenuItem
+            // 
+            this.customListToolStripMenuItem.Name = "customListToolStripMenuItem";
+            this.customListToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.customListToolStripMenuItem.Text = "&Custom List";
+            this.customListToolStripMenuItem.Click += new System.EventHandler(this.ListMenuExclude_Click);
             // 
             // CMenuDriveOptions
             // 
@@ -796,12 +805,12 @@
             this.NotifierContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SysTrayClose});
             this.NotifierContextMenu.Name = "NotifierContextMenu";
-            this.NotifierContextMenu.Size = new System.Drawing.Size(181, 48);
+            this.NotifierContextMenu.Size = new System.Drawing.Size(104, 26);
             // 
             // SysTrayClose
             // 
             this.SysTrayClose.Name = "SysTrayClose";
-            this.SysTrayClose.Size = new System.Drawing.Size(180, 22);
+            this.SysTrayClose.Size = new System.Drawing.Size(103, 22);
             this.SysTrayClose.Text = "&Close";
             this.SysTrayClose.Click += new System.EventHandler(this.SysTrayClose_Click);
             // 
@@ -931,6 +940,7 @@
         private System.Windows.Forms.NotifyIcon Notifier;
         private System.Windows.Forms.ContextMenuStrip NotifierContextMenu;
         private System.Windows.Forms.ToolStripMenuItem SysTrayClose;
+        private System.Windows.Forms.ToolStripMenuItem customListToolStripMenuItem;
     }
 }
 

@@ -340,6 +340,9 @@ namespace Chizl.SearchSystemUI
             Text = About.TitleWithFileVersion;
             ConfigData.LoadConfig(_configFile);
 
+            // loads, if exists.
+            GlobalSetup.GetScanExclusions();
+
             ConfigData.GetItem<bool>("ChkFilename", true, out bool isChecked);
             _criterias.SearchFilename = isChecked;
             ConfigData.GetItem<bool>("ChkDirectoryName", false, out isChecked);

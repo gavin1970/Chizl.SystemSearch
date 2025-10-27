@@ -438,6 +438,9 @@ namespace Chizl.SystemSearch
         //public Task RemoveDrive(DriveInfo drive) => Task.Run(() => GlobalSettings.AddRemove($"{drive.Name}{(drive.Name.EndsWith("\\") ? "" : "\\")}", false));
         public Task AddDrive(DriveInfo drive) => ScanToCache(drive, false);
         public Task RemoveDrive(DriveInfo drive) => Task.Run(() => GlobalSettings.AddRemove($"{drive.Name}{(drive.Name.EndsWith("\\") ? "" : "\\")}", false));
+        public Task<bool> AddScanExclusion(string pathOrFileContains) => Task.Run(() => { return GlobalSettings.CustomExclusions.TryAdd(pathOrFileContains, true); });
+        public Task<string[]> GetScanExclusions() => Task.Run(() => { return GlobalSettings.CustomExclusions.Select(s=>s.Key).ToArray(); });
+        public Task<bool> RemoveScanExclusion(string pathOrFileContains) => Task.Run(() => { return GlobalSettings.CustomExclusions.TryRemove(pathOrFileContains, out _); });
 
         /// <summary>
         /// Starts search in cache if exists.

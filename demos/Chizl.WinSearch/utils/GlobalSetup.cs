@@ -1,7 +1,12 @@
 ﻿using Chizl.SystemSearch;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 
 namespace Chizl.SearchSystemUI
 {
@@ -34,6 +39,8 @@ namespace Chizl.SearchSystemUI
 
     internal static class GlobalSetup
     {
+        const string _customExclusions = @".\custExc.dat";
+
         private static IOFinder _finder;
         private static DriveInfo[] _drives;
         public static DriveInfo[] DriveList
@@ -80,16 +87,71 @@ namespace Chizl.SearchSystemUI
             }
             return listViewItems.ToArray();
         }
-        public static ListViewItem[] GetFilterInfo(SubFilterExclusion[] unfiltList)
+        public static ListViewItem[] GetFilterInfo(SubFilterExclusion[] unfiltList) => GetFilterInfo(unfiltList, Color.Empty);
+        public static ListViewItem[] GetFilterInfo(SubFilterExclusion[] unfiltList, Color bgColor)
         {
             var listViewItems = new List<ListViewItem>();
             foreach (var filter in unfiltList)
             {
                 var liv = new ListViewItem(filter.FilterRaw);
+                if (!bgColor.IsEmpty)
+                    liv.BackColor = bgColor;
                 liv.SubItems.Add(filter.Type.ToString());
                 listViewItems.Add(liv);
             }
             return listViewItems.ToArray();
         }
+        public static Task<string[]> GetScanExclusions() => Task.Run(() => 
+        {
+            var lst = Finder.GetScanExclusions().Result.ToArray();
+            if (lst.Length > 0)
+                return lst; //return all existing
+
+            if (!File.Exists(_customExclusions))
+                return lst; //return empty
+            
+            var lines = File.ReadAllLines(_customExclusions);
+            foreach (var confLine in lines)
+            {
+                if (!string.IsNullOrWhiteSpace(confLine))
+                    Finder.AddScanExclusion(confLine);
+            }
+
+            return Finder.GetScanExclusions().Result.ToArray(); 
+        });
+        public static Task<bool> AddScanExclusion(string pathOrFileContains) => Task.Run(() => 
+        {
+            if (!File.Exists(_customExclusions))
+                File.Create(_customExclusions).Close();
+
+            if (Finder.AddScanExclusion(pathOrFileContains).Result)
+            {
+                File.AppendAllText(_customExclusions, $"{pathOrFileContains}\n");
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
+        });
+        public static Task<bool> RemoveScanExclusion(string pathOrFileContains) => Task.Run(() => 
+        {
+            if (!File.Exists(_customExclusions))
+                File.Create(_customExclusions).Close();
+
+            if (Finder.RemoveScanExclusion(pathOrFileContains).Result)
+            {
+                var sb = new StringBuilder();
+                var list = Finder.GetScanExclusions().Result;
+                foreach(var item in list)
+                    sb.AppendLine(item);
+
+                if (list.Length > 0)
+                    sb.AppendLine();
+
+                File.WriteAllText(_customExclusions, sb.ToString());
+                return Task.FromResult(true);
+            }
+            
+            return Task.FromResult(false);
+        });
     }
 }
