@@ -192,12 +192,15 @@ namespace Chizl.Applications
             _headerFGColor = headerFGColor;
             _headerPadding = ((padding == Padding.Empty) ? new Padding(0) : padding);
 
-            foreach (ToolStripMenuItem item in contextMenuStrip.Items)
+            foreach (var item in contextMenuStrip.Items)
             {
-                if (item.Name == "mititle")
+                if (item.GetType() == typeof(ToolStripMenuItem))
                 {
-                    toolStripMenuItem = item;
-                    break;
+                    if (((ToolStripMenuItem)item).Name == "mititle")
+                    {
+                        toolStripMenuItem = ((ToolStripMenuItem)item);
+                        break;
+                    }
                 }
             }
 

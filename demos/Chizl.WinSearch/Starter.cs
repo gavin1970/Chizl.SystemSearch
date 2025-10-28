@@ -10,7 +10,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Chizl.SearchSystemUI
@@ -29,6 +28,7 @@ namespace Chizl.SearchSystemUI
 
         private static ListBox _selListBox;
         private static bool _loaded = false;
+        private static bool _shuttingDown = false;
 
         private static int resetRefreshCnt = 0;
         private static int refreshCnt = 0;
@@ -52,8 +52,8 @@ namespace Chizl.SearchSystemUI
         private static readonly Color _gray = Color.FromArgb(192, 192, 192);
         private static readonly Color _green = Color.FromArgb(128, 255, 128);
         private static readonly Color _red = Color.FromArgb(255, 128, 128);
-        private static readonly Color _fgTitleColor = Color.FromArgb(92, 92, 92);
-        private static readonly Color _bgTitleColor = Color.FromArgb(128, 128, 255);
+        private static readonly Color _fgTitleColor = Color.FromArgb(255, 168, 0);
+        private static readonly Color _bgTitleColor = Color.FromArgb(16, 6, 36);
 
         private static DateTime _startDate = DateTime.MinValue;
         private static DateTime _endDate = DateTime.MinValue;
@@ -86,6 +86,14 @@ namespace Chizl.SearchSystemUI
         }
 
         #region Helper Methods
+        private void CloseApp()
+        {
+            if (MessageBox.Show("Are you sure you want to exit?", About.TitleWithFileVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                _shuttingDown = true;
+                this.Close();
+            }
+        }
         private void ScanEnded()
         {
             if (InvokeRequired)
@@ -308,7 +316,7 @@ namespace Chizl.SearchSystemUI
             Notifier.Icon = this.Icon;
             Notifier.Text = About.TitleWithFileVersion;
 
-            _systemNotify = new SysNotify(this, Notifier, new SysNotifyTitle(About.TitleWithFileVersion, _fgTitleColor, _bgTitleColor, new Padding(2)));
+            _systemNotify = new SysNotify(this, Notifier, new SysNotifyTitle(About.Title, _fgTitleColor, _bgTitleColor, new Padding(4)));
             _systemNotify.DoubleClick += Notify_DoubleClick;
         }
         private void SetupForm()
@@ -649,17 +657,22 @@ namespace Chizl.SearchSystemUI
         }
         private void Starter_FormClosing(object sender, FormClosingEventArgs e)
         {
-            //var shuttingDown = false;
-            //if (e.CloseReason == CloseReason.WindowsShutDown ||
-            //    e.CloseReason == CloseReason.TaskManagerClosing)
-            //{
-            //    shuttingDown = true;
-            //    _finder.StopScan();
-            //    _finder.Dispose();
-            //}
+#if DEBUG
+            _shuttingDown = true;
+#endif
 
-            //e.Cancel = !shuttingDown;
-            //this.Hide();
+            if (e.CloseReason == CloseReason.WindowsShutDown ||
+                e.CloseReason == CloseReason.TaskManagerClosing ||
+                _shuttingDown)
+            {
+                _finder.StopScan();
+                _finder.Dispose();
+            }
+            else
+            {
+                e.Cancel = !_shuttingDown;
+                this.Hide();
+            }
         }
         private void Starter_Resize(object sender, EventArgs e)
         {
@@ -854,15 +867,8 @@ namespace Chizl.SearchSystemUI
         #endregion
 
         #region Toolbar Menu Events
-        private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (MessageBox.Show("Are you sure you want to exit?", About.TitleWithFileVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                Close();
-        }
-        private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show(this, "Not Implemented Yet.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
+        private void ExitToolStripMenuItem_Click(object sender, EventArgs e) => CloseApp();
+        private void AboutToolStripMenuItem_Click(object sender, EventArgs e) => MessageBox.Show(this, "Not Implemented Yet.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         #endregion
 
         #region Search Context Menu Events
@@ -1108,14 +1114,10 @@ namespace Chizl.SearchSystemUI
         #endregion
 
         #region Information, Warning, & Error Context Menu Events
-        private void Notify_DoubleClick(object sender, EventArgs e)
-        {
-            ShowWindow();
-        }
-        private void CMenuInfoErrClear_Click(object sender, EventArgs e)
-        {
-            _selListBox.Items.Clear();
-        }
+        private void Notify_DoubleClick(object sender, EventArgs e) => ShowWindow();
+        private void SysTrayOpen_Click(object sender, EventArgs e) => ShowWindow();
+        private void SysTrayClose_Click(object sender, EventArgs e) => CloseApp();
+        private void CMenuInfoErrClear_Click(object sender, EventArgs e) => _selListBox.Items.Clear();
         #endregion
 
         #region ListView Setup/Controls
@@ -1241,14 +1243,5 @@ namespace Chizl.SearchSystemUI
             return cols;
         }
         #endregion
-
-        private void SetupTSMenu_Click(object sender, EventArgs e)
-        {
-
-        }
-        private void SysTrayClose_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
     }
 }

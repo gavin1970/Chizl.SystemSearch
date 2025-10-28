@@ -77,11 +77,10 @@
             this.BtnDriveOptions = new System.Windows.Forms.Button();
             this.StartupMenuStrip = new System.Windows.Forms.MenuStrip();
             this.FileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SetupTSMenu = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.ExitTSMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.StartupStatusStrip = new System.Windows.Forms.StatusStrip();
             this.StatusToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.ToolStripStatusFilterLabel = new System.Windows.Forms.ToolStripStatusLabel();
@@ -100,6 +99,8 @@
             this.CMenuDriveOptions = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.Notifier = new System.Windows.Forms.NotifyIcon(this.components);
             this.NotifierContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.SysTrayOpen = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.SysTrayClose = new System.Windows.Forms.ToolStripMenuItem();
             this.PanelSearchText.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
@@ -196,7 +197,7 @@
             this.EventList.ItemHeight = 14;
             this.EventList.Location = new System.Drawing.Point(0, 0);
             this.EventList.Name = "EventList";
-            this.EventList.Size = new System.Drawing.Size(1144, 126);
+            this.EventList.Size = new System.Drawing.Size(1144, 125);
             this.EventList.TabIndex = 1;
             this.EventList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.InfoError_MouseDown);
             // 
@@ -243,7 +244,7 @@
             this.MainSplitContainer.Panel2.BackColor = System.Drawing.Color.DarkGray;
             this.MainSplitContainer.Panel2.Controls.Add(this.panel5);
             this.MainSplitContainer.Size = new System.Drawing.Size(1144, 552);
-            this.MainSplitContainer.SplitterDistance = 274;
+            this.MainSplitContainer.SplitterDistance = 273;
             this.MainSplitContainer.SplitterWidth = 10;
             this.MainSplitContainer.TabIndex = 16;
             this.MainSplitContainer.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.MainSplitContainer_SplitterMoved);
@@ -255,7 +256,7 @@
             this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel4.Location = new System.Drawing.Point(0, 0);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(1144, 274);
+            this.panel4.Size = new System.Drawing.Size(1144, 273);
             this.panel4.TabIndex = 4;
             // 
             // ResultsListView
@@ -265,7 +266,7 @@
             this.ResultsListView.HideSelection = false;
             this.ResultsListView.Location = new System.Drawing.Point(0, 0);
             this.ResultsListView.Name = "ResultsListView";
-            this.ResultsListView.Size = new System.Drawing.Size(1144, 256);
+            this.ResultsListView.Size = new System.Drawing.Size(1144, 255);
             this.ResultsListView.TabIndex = 2;
             this.ResultsListView.UseCompatibleStateImageBehavior = false;
             this.ResultsListView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ResultsListView_MouseUp);
@@ -374,7 +375,7 @@
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel3.Controls.Add(this.ChkHideInfo);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel3.Location = new System.Drawing.Point(0, 256);
+            this.panel3.Location = new System.Drawing.Point(0, 255);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(1144, 18);
             this.panel3.TabIndex = 3;
@@ -399,7 +400,7 @@
             this.panel5.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel5.Location = new System.Drawing.Point(0, 0);
             this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(1144, 268);
+            this.panel5.Size = new System.Drawing.Size(1144, 269);
             this.panel5.TabIndex = 16;
             // 
             // EventListsSplitContainer
@@ -421,8 +422,8 @@
             // 
             this.EventListsSplitContainer.Panel2.BackColor = System.Drawing.Color.DarkGray;
             this.EventListsSplitContainer.Panel2.Controls.Add(this.ErrorList);
-            this.EventListsSplitContainer.Size = new System.Drawing.Size(1144, 268);
-            this.EventListsSplitContainer.SplitterDistance = 144;
+            this.EventListsSplitContainer.Size = new System.Drawing.Size(1144, 269);
+            this.EventListsSplitContainer.SplitterDistance = 143;
             this.EventListsSplitContainer.SplitterWidth = 10;
             this.EventListsSplitContainer.TabIndex = 15;
             // 
@@ -432,7 +433,7 @@
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.ChkHideErrors);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 126);
+            this.panel1.Location = new System.Drawing.Point(0, 125);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1144, 18);
             this.panel1.TabIndex = 2;
@@ -461,7 +462,7 @@
             this.ErrorList.ItemHeight = 14;
             this.ErrorList.Location = new System.Drawing.Point(0, 0);
             this.ErrorList.Name = "ErrorList";
-            this.ErrorList.Size = new System.Drawing.Size(1144, 114);
+            this.ErrorList.Size = new System.Drawing.Size(1144, 116);
             this.ErrorList.TabIndex = 0;
             this.ErrorList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.InfoError_MouseDown);
             // 
@@ -605,27 +606,14 @@
             // FileToolStripMenuItem
             // 
             this.FileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.SetupTSMenu,
-            this.toolStripSeparator3,
             this.ExitTSMenu});
             this.FileToolStripMenuItem.Name = "FileToolStripMenuItem";
             this.FileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.FileToolStripMenuItem.Text = "&File";
             // 
-            // SetupTSMenu
-            // 
-            this.SetupTSMenu.Name = "SetupTSMenu";
-            this.SetupTSMenu.Size = new System.Drawing.Size(129, 22);
-            this.SetupTSMenu.Text = "&Setup";
-            this.SetupTSMenu.Click += new System.EventHandler(this.SetupTSMenu_Click);
-            // 
-            // toolStripSeparator3
-            // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(126, 6);
-            // 
             // ExitTSMenu
             // 
+            this.ExitTSMenu.Image = ((System.Drawing.Image)(resources.GetObject("ExitTSMenu.Image")));
             this.ExitTSMenu.Name = "ExitTSMenu";
             this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.X)));
             this.ExitTSMenu.Size = new System.Drawing.Size(129, 22);
@@ -639,6 +627,7 @@
             this.HelpToolStripMenuItem.Name = "HelpToolStripMenuItem";
             this.HelpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.HelpToolStripMenuItem.Text = "&Help";
+            this.HelpToolStripMenuItem.Visible = false;
             // 
             // AboutToolStripMenuItem
             // 
@@ -646,6 +635,11 @@
             this.AboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.AboutToolStripMenuItem.Text = "&About";
             this.AboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(126, 6);
             // 
             // StartupStatusStrip
             // 
@@ -668,7 +662,7 @@
             // StatusToolStripStatusLabel
             // 
             this.StatusToolStripStatusLabel.Name = "StatusToolStripStatusLabel";
-            this.StatusToolStripStatusLabel.Size = new System.Drawing.Size(717, 19);
+            this.StatusToolStripStatusLabel.Size = new System.Drawing.Size(686, 19);
             this.StatusToolStripStatusLabel.Spring = true;
             this.StatusToolStripStatusLabel.Text = "Ready...";
             this.StatusToolStripStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -681,6 +675,7 @@
             this.ToolStripStatusFilterLabel.Size = new System.Drawing.Size(53, 19);
             this.ToolStripStatusFilterLabel.Text = "Filtered:";
             this.ToolStripStatusFilterLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.ToolStripStatusFilterLabel.Visible = false;
             // 
             // StatusToolStripDriveFiltered
             // 
@@ -690,6 +685,7 @@
             this.StatusToolStripDriveFiltered.Name = "StatusToolStripDriveFiltered";
             this.StatusToolStripDriveFiltered.Size = new System.Drawing.Size(65, 19);
             this.StatusToolStripDriveFiltered.Text = "Drive";
+            this.StatusToolStripDriveFiltered.Visible = false;
             // 
             // StatusToolStripExtFiltered
             // 
@@ -699,6 +695,7 @@
             this.StatusToolStripExtFiltered.Name = "StatusToolStripExtFiltered";
             this.StatusToolStripExtFiltered.Size = new System.Drawing.Size(65, 19);
             this.StatusToolStripExtFiltered.Text = "Extension";
+            this.StatusToolStripExtFiltered.Visible = false;
             // 
             // StatusToolStripSubFiltered
             // 
@@ -708,6 +705,7 @@
             this.StatusToolStripSubFiltered.Name = "StatusToolStripSubFiltered";
             this.StatusToolStripSubFiltered.Size = new System.Drawing.Size(53, 19);
             this.StatusToolStripSubFiltered.Text = "Custom";
+            this.StatusToolStripSubFiltered.Visible = false;
             // 
             // SearchStatusToolStripStatusLabel
             // 
@@ -803,15 +801,31 @@
             // NotifierContextMenu
             // 
             this.NotifierContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.SysTrayOpen,
+            this.toolStripSeparator4,
             this.SysTrayClose});
             this.NotifierContextMenu.Name = "NotifierContextMenu";
-            this.NotifierContextMenu.Size = new System.Drawing.Size(104, 26);
+            this.NotifierContextMenu.Size = new System.Drawing.Size(104, 54);
+            // 
+            // SysTrayOpen
+            // 
+            this.SysTrayOpen.Image = ((System.Drawing.Image)(resources.GetObject("SysTrayOpen.Image")));
+            this.SysTrayOpen.Name = "SysTrayOpen";
+            this.SysTrayOpen.Size = new System.Drawing.Size(103, 22);
+            this.SysTrayOpen.Text = "&Open";
+            this.SysTrayOpen.Click += new System.EventHandler(this.SysTrayOpen_Click);
+            // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(100, 6);
             // 
             // SysTrayClose
             // 
+            this.SysTrayClose.Image = ((System.Drawing.Image)(resources.GetObject("SysTrayClose.Image")));
             this.SysTrayClose.Name = "SysTrayClose";
             this.SysTrayClose.Size = new System.Drawing.Size(103, 22);
-            this.SysTrayClose.Text = "&Close";
+            this.SysTrayClose.Text = "&Exit";
             this.SysTrayClose.Click += new System.EventHandler(this.SysTrayClose_Click);
             // 
             // Starter
@@ -933,7 +947,6 @@
         private System.Windows.Forms.Panel panel5;
         private System.Windows.Forms.ContextMenuStrip MnuAllowedFolders;
         private System.Windows.Forms.ToolStripMenuItem AllowFoldersTitle;
-        private System.Windows.Forms.ToolStripMenuItem SetupTSMenu;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.Button BtnDriveOptions;
         private System.Windows.Forms.ContextMenuStrip CMenuDriveOptions;
@@ -941,6 +954,8 @@
         private System.Windows.Forms.ContextMenuStrip NotifierContextMenu;
         private System.Windows.Forms.ToolStripMenuItem SysTrayClose;
         private System.Windows.Forms.ToolStripMenuItem customListToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem SysTrayOpen;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
     }
 }
 
