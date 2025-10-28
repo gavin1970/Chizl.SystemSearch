@@ -308,8 +308,10 @@ namespace Chizl.SearchSystemUI
             if (this.WindowState == FormWindowState.Minimized)
                 this.WindowState = FormWindowState.Normal;
 
-            this.Focus();
+            this.TopMost = true;
             this.BringToFront();
+            this.Focus();
+            this.TopMost = false;
         }
         private void SetupSysTray()
         {

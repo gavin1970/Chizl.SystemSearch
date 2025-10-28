@@ -1,4 +1,5 @@
 ﻿using System;
+using Chizl.Applications;
 using System.Windows.Forms;
 
 namespace Chizl.SearchSystemUI
@@ -11,9 +12,12 @@ namespace Chizl.SearchSystemUI
         [STAThread]
         private static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Starter());
+            if (!SingleInstance.IsRunning(About.Title))
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new Starter());
+            }
         }
     }
 }
