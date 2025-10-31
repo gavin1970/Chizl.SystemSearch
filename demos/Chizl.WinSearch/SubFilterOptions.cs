@@ -1,9 +1,9 @@
-﻿using Chizl.SearchSystemUI;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System;
 using System.Linq;
+using System.Drawing;
 using System.Windows.Forms;
+using Chizl.SearchSystemUI;
+using System.Collections.Generic;
 
 namespace Chizl.WinSearch
 {
@@ -20,10 +20,9 @@ namespace Chizl.WinSearch
         private List<SubFilterExclusion> _excludeItems = new List<SubFilterExclusion>();
         private List<SubFilterExclusion> _alwaysExcludeItems = new List<SubFilterExclusion>();
 
-        public SubFilterOptions(string path)
+        public SubFilterOptions()
         {
             InitializeComponent();
-            _path = string.IsNullOrWhiteSpace(path) ? "" : path;
         }
 
         /// <summary>
@@ -32,35 +31,14 @@ namespace Chizl.WinSearch
         public List<SubFilterExclusion> ExcludeItems { get { return _excludeItems; } }
         public List<SubFilterExclusion> AlwaysExcludeItems { get { return _alwaysExcludeItems; } }
         public List<string> RemovedFromExcludeItems { get { return _removedFromExclusionItems; } }
+        public string InitialPath { get { return _path; } set { _path = string.IsNullOrWhiteSpace(value) ? "" : value; } }
 
         private void SubFilterOptions_Load(object sender, EventArgs e)
         {
             TextPath.Text = _path;
+            _removedFromExclusionItems.Clear();
             SetupListView(ListViewSubFilters, ListViewColumns());
             RefreshListView();
-        }
-        private void RefreshListView()
-        {
-            ListViewSubFilters.SuspendLayout();
-
-            if (ListViewSubFilters.Items.Count > 0)
-                ListViewSubFilters.Items.Clear();
-
-            if (_excludeItems.Count > 0)
-                ListViewSubFilters.Items.AddRange(GlobalSetup.GetFilterInfo(_excludeItems.ToArray()));
-
-            if (_alwaysExcludeItems.Count == 0)
-            {
-                var exList = GlobalSetup.GetScanExclusions().Result;
-                if (exList.Length > 0)
-                    _alwaysExcludeItems.AddRange(exList.Select(s => new SubFilterExclusion(s, FilterType.Contains)));
-            }
-
-            if (_alwaysExcludeItems.Count > 0)
-                ListViewSubFilters.Items.AddRange(GlobalSetup.GetFilterInfo(_alwaysExcludeItems.ToArray(), _bgAlwaysExclude));
-
-            ListViewSubFilters.ResumeLayout(true);
-            ListViewSubFilters.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
         }
         private void ButtonAdd_Click(object sender, EventArgs e)
         {
@@ -98,6 +76,12 @@ namespace Chizl.WinSearch
         private void ButtonOk_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.OK;
+
+            //adding these to the array, so they are filtered on exit from the Parent form, but we don't want to add them to the list again as they are already there.
+            var missing = _alwaysExcludeItems.Where(w => _excludeItems.Where(ew => ew.FilterRaw == w.FilterRaw).Count() == 0).ToList();
+            if (missing.Count > 0)
+                _excludeItems.AddRange(missing.Select(s => new SubFilterExclusion(s.FilterRaw, FilterType.Contains)));
+
             Close();
         }
         private void toolStripMenuRemoveItem_Click(object sender, EventArgs e)
@@ -111,28 +95,10 @@ namespace Chizl.WinSearch
                 ListViewSubFilters.Items.RemoveAt(ListViewSubFilters.SelectedIndices[0]);
             }
         }
-
-        //private void ListBoxSubFilters_MouseDown(object sender, MouseEventArgs e)
-        //{
-        //    var id = ListBoxSubFilters.IndexFromPoint(e.Location);
-        //    if (id >= 0)
-        //        ListBoxSubFilters.SelectedIndex = id;
-        //}
-
-        private bool GetSelectedItem(out string selectedItem, out int index)
+        private void toolStripMenuAlwaysExclude_Click(object sender, EventArgs e)
         {
-            selectedItem = string.Empty;
-            index = -1;
-
-            if (ListViewSubFilters.SelectedItems.Count == 0)
-                return false;
-
-            var item = ListViewSubFilters.SelectedItems[0];
-
-            selectedItem = item.Text;
-            index = item.Index;
-
-            return true;
+            if (GetSelectedItem(out string selectedItem, out int ndx))
+                AlwaysExclude(selectedItem, ndx);
         }
 
         #region ListView Setup/Controls
@@ -228,12 +194,30 @@ namespace Chizl.WinSearch
         }
         #endregion
 
-        private void toolStripMenuAlwaysExclude_Click(object sender, EventArgs e)
+        private void RefreshListView()
         {
-            if (GetSelectedItem(out string selectedItem, out int ndx))
-                AlwaysExclude(selectedItem, ndx);
-        }
+            ListViewSubFilters.SuspendLayout();
 
+            if (ListViewSubFilters.Items.Count > 0)
+                ListViewSubFilters.Items.Clear();
+
+            if (_alwaysExcludeItems.Count == 0)
+            {
+                var exList = GlobalSetup.GetScanExclusions().Result;
+                if (exList.Length > 0)
+                    _alwaysExcludeItems.AddRange(exList.Select(s => new SubFilterExclusion(s, FilterType.Contains)));
+            }
+
+            if (_alwaysExcludeItems.Count > 0)
+                ListViewSubFilters.Items.AddRange(GlobalSetup.GetFilterInfo(_alwaysExcludeItems.ToArray(), _bgAlwaysExclude));
+
+            var missing = _excludeItems.Where(w => _alwaysExcludeItems.Where(aw => aw.FilterRaw == w.FilterRaw).Count() == 0).ToArray();
+            if (missing.Length > 0)
+                ListViewSubFilters.Items.AddRange(GlobalSetup.GetFilterInfo(missing));
+
+            ListViewSubFilters.ResumeLayout(true);
+            ListViewSubFilters.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+        }
         private void AlwaysExclude(string item, int ndx = -1)
         {
             if (GlobalSetup.AddScanExclusion(item).Result)
@@ -243,6 +227,21 @@ namespace Chizl.WinSearch
                 if (ndx > -1)
                     ListViewSubFilters.Items[ndx].BackColor = _bgAlwaysExclude;
             }
+        }
+        private bool GetSelectedItem(out string selectedItem, out int index)
+        {
+            selectedItem = string.Empty;
+            index = -1;
+
+            if (ListViewSubFilters.SelectedItems.Count == 0)
+                return false;
+
+            var item = ListViewSubFilters.SelectedItems[0];
+
+            selectedItem = item.Text;
+            index = item.Index;
+
+            return true;
         }
     }
 }

@@ -14,8 +14,8 @@
 				<Company>Chizl.com</Company>
 				<Copyright>© 2025 chizl.com</Copyright>
 				<PackageTags>file-search;library;in-console;on-desktop;standard;framework;no-deps</PackageTags>
-				<FileVersion>5.10.27.1613</FileVersion>
-				<Version>5.10.27.0</Version>
+				<FileVersion>5.10.31.2020</FileVersion>
+				<Version>5.10.31.0</Version>
 				<AssemblyVersion>5.10.0.0</AssemblyVersion>
 				<PackageReadmeFile>README.md</PackageReadmeFile>
 		</PropertyGroup>

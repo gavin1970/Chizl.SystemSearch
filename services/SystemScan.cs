@@ -22,7 +22,8 @@ namespace Chizl.SystemSearch
         private static readonly ConcurrentQueue<string> _fileInfoQueue = new ConcurrentQueue<string>();
         private static Thread _fileInfoThread;
 
-        private static readonly object _countLock = new object();
+        private static readonly object _countFldrLock = new object();
+        private static readonly object _countFileLock = new object();
 
         #region Deconstructor
         internal SystemScan() { }
@@ -50,12 +51,12 @@ namespace Chizl.SystemSearch
         {
             get
             {
-                lock (_countLock)
+                lock (_countFldrLock)
                 {
                     if (!_scannedFolders.Equals(_fastPullScannedFolders))
                     {
-                        _scannedFolders = _folderDictionary.Count;
-                        _fastPullScannedFolders = _scannedFolders;
+                        Interlocked.Exchange(ref _scannedFolders, _folderDictionary.Count); // slower call, than just using the static int var.
+                        Interlocked.Exchange(ref _fastPullScannedFolders, _scannedFolders);
                     }
                 }
 
@@ -64,10 +65,10 @@ namespace Chizl.SystemSearch
             // only used for overwriting a count and wnat to update both vars.
             set
             {
-                lock (_countLock)
+                lock (_countFldrLock)
                 {
-                    _scannedFolders = value;
-                    _fastPullScannedFolders = _scannedFolders;
+                    Interlocked.Exchange(ref _scannedFolders, value);
+                    Interlocked.Exchange(ref _fastPullScannedFolders, _scannedFolders);
                 }
             }
         }
@@ -75,12 +76,12 @@ namespace Chizl.SystemSearch
         {
             get
             {
-                lock (_countLock)
+                lock (_countFileLock)
                 {
                     if (!_scannedFiles.Equals(_fastPullScannedFiles))
                     {
-                        _scannedFiles = _fileDictionary.Count;   // slower call, than just using the static int var.
-                        _fastPullScannedFiles = _scannedFiles;
+                        Interlocked.Exchange(ref _scannedFiles, _fileDictionary.Count); // slower call, than just using the static int var.
+                        Interlocked.Exchange(ref _fastPullScannedFiles, _scannedFiles);
                     }
                 }
 
@@ -89,10 +90,10 @@ namespace Chizl.SystemSearch
             // only used for overwriting a count and wnat to update both vars.
             set
             {
-                lock (_countLock)
+                lock (_countFileLock)
                 {
-                    _scannedFiles = value;
-                    _fastPullScannedFiles = _scannedFiles;
+                    Interlocked.Exchange(ref _scannedFiles, value);
+                    Interlocked.Exchange(ref _fastPullScannedFiles, _scannedFiles);
                 }
             }
         }
@@ -111,17 +112,7 @@ namespace Chizl.SystemSearch
                         if (GlobalSettings.HasShutdown)
                             break;
 
-                        if (_fileInfoQueue.TryDequeue(out string fileName))
-                        {
-                            // if(_fileDictionary.TryGetValue(fileName, out string md5Hash))
-                            // {
-                            // attempt to build a quicker db lookup id, by using Int instead of string.
-                            // TODO, get file info
-                            // using (var fd = new FileDetails(fileName, md5Hash))
-                            //    fd.SaveToFile();
-                            // Thread.Sleep(1);
-                            // }
-                        }
+                        _fileInfoQueue.TryDequeue(out string fileName);
                     }
                 }
                 else if (iEvent != AutoEvent.Shutdown && iEvent != WaitHandle.WaitTimeout)

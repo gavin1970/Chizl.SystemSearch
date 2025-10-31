@@ -32,7 +32,11 @@ namespace Chizl.SystemSearch
         public static char cExtPos { get; } = '☻';      // Alt-258 = ☻
         public static char cPathPos { get; } = '♥';     // Alt-259 = ♥
         public static string GetCommandString(CommandType cmdType) => $"{cmdType}{cCmdEnd}";
-        public static string GetCommandToken(CommandType cmdType) => cmdType == CommandType.ext ? $"{cExtPos}" : (cmdType == CommandType.filter || cmdType == CommandType.exclude) ? $"{cFilterPos}" : $"{cPathPos}";
+        public static string GetCommandToken(CommandType cmdType) => 
+            cmdType == CommandType.ext ? $"{cExtPos}" 
+            : (cmdType == CommandType.filter || cmdType == CommandType.exclude) 
+            ? $"{cFilterPos}" 
+            : $"{cPathPos}";
     }
 
     internal static class SepsExt
@@ -91,9 +95,9 @@ namespace Chizl.SystemSearch
             var hasFilter = false;
 
             // confort chars people like to use to seperate things.
-            searchCriteria = searchCriteria.Replace($",", $"")
-                                           .Replace($"+", $"")
-                                           .Replace($";", $"").Trim();
+            searchCriteria = searchCriteria.Replace($",", "")
+                                           .Replace($"+", "")
+                                           .Replace($";", "").Trim();
 
             // replace all spaces in front of or after these chars.
             foreach (var ch in _spaceRemovals)
@@ -166,8 +170,6 @@ namespace Chizl.SystemSearch
                         cmdType = CommandType.path;
                         break;
                     case "filter":
-                        cmdType = CommandType.filter;
-                        break;
                     case "exclude":
                         cmdType = CommandType.exclude;
                         break;
@@ -181,21 +183,13 @@ namespace Chizl.SystemSearch
                 // use for token later.
                 hasExtSearch = hasExtSearch || cmdType == CommandType.ext;
                 // use for token later.
-                hasFilter = hasFilter || cmdType == CommandType.filter || cmdType == CommandType.exclude;
+                hasFilter = hasFilter || cmdType == CommandType.exclude;
 
                 // replace the command with a token for search order
                 retVal = retVal.Replace(remove, "");
 
-                if (hasPathSearch && search.IndexOf(Seps.cOr) == -1)
-                {
-                    hasPathSearch = false;
-                    var part = cmdType.ToString();
-                    search = search.StartsWith(part, StringComparison.CurrentCultureIgnoreCase) ? search.Substring(part.Length + 1) : search;
-                    retVal = $"{search}{Seps.cWild}{retVal}";
-                }
-                else
-                    // Process one or more of existing type
-                    MultiBuildCommands(cmdType, search);
+                // one or more search extension
+                MultiBuildCommands(cmdType, search);
             }
 
             // Add search tokens at the end if tokens exists.
@@ -203,8 +197,8 @@ namespace Chizl.SystemSearch
             // the larger count of files before running the other extensions.
             retVal = retVal.Trim();
             retVal += hasPathSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.path)}{Seps.cWild}" : "";
-            retVal += hasFilter ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.filter)}{Seps.cWild}" : "";
             retVal += hasExtSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.ext)}{Seps.cWild}" : "";
+            retVal += hasFilter ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.exclude)}{Seps.cWild}" : "";
 
             // SplitOn will auto strip ** by ignoring blank entries if exists.
             return retVal.Replace(",", "").SplitOn(Seps.cWild);

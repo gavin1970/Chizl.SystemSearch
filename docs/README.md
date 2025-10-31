@@ -1,4 +1,4 @@
-﻿# Chizl.SystemSearch Library /w Usable Demo UI
+# Chizl.SystemSearch Library /w Usable Demo UI
 
 ## Project Information
 - What Is It: 
@@ -36,14 +36,16 @@
 * Search Extensions
 	- All extension calls require square brackets around the whole extension.
 	- An extension group starts after the open bracket and must be labeled and followed by a colon.  e.g. `ext:`, `path:`, `filter:`, or `exclude:`.
-	- Filter and Exclude are the same, only there for personal preference.
-	- For multiple values in an extension group require a separation with `|`. e.g. `[ext:pdf|doc|docx]`
-	- Multiple search extensions can be used and can be separated with ` `, `,`, `+`, or `;`.  It's your personal preference.
+	- Path can be set, requiring path or parts of a path to exist. e.g. `[ path : \users\ | c:\windows ]`
+	- Filter and Exclude are the same, only there for personal preference. e.g. `[ exclude : \users\ | windows ]`
+	- For multiple values in an extension group require a separation with `|` and can have spaces for visual appearance, but spaces will be auto removed if exists. Dot `.` are not required, but can exists. e.g. `[ext:pdf|doc|docx]`, `[ext:.pdf|.doc|.docx]` or `[ ext : pdf | doc | docx ]`
+	- Multiple search extensions can be used and can be separated with ` ` or  ` + `.  It's your personal preference.
 * Search Example and Expected Results
-	- `version + [path:git|nuget] + [exclude:\godaddy\|win] + [ext:xml|txt]`
-		- `version` - If File and Folder Results is on, the folder or filename must contain `version`.
+  - Ex1: `microsoft + [exclude:\windows\] + [ext:pdf|docx|xls|xlsx|txt] + [path:\downloads\|drive]`
+	- Ex2: `version + [path:git|nuget] + [exclude:\godaddy\|win] + [ext:xml|txt]`
+		- `version` - If File and Folder Results are checked in the UI, the folder or filename must contain `version`.
 		- `[path:git|nuget]` - The path **must** contain `git` **or** `nuget`.  This is applied even if you have Folder Results set to off.
-		- `[exclude:\godaddy\|win]` - The path can **not** contain `\godaddy\` **or** `win`.  This would include `c:\Windows`.
+		- `[exclude:\godaddy\|win]` - The path can **not** contain `\godaddy\` **or** `win`.  This would include `C:\Windows` as an example.
 		- `[ext:xml|txt]` - The file **must** have a `.xml` **or** `.txt` file extension.
 
 		- Accepted Examples:
