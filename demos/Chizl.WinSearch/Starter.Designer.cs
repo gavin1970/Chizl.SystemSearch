@@ -483,7 +483,7 @@
             this.ChkDirectoryName,
             this.MnuSkipFolders});
             this.CMenuOptions.Name = "CMenuOptions";
-            this.CMenuOptions.Size = new System.Drawing.Size(178, 70);
+            this.CMenuOptions.Size = new System.Drawing.Size(181, 92);
             // 
             // ChkFilename
             // 
@@ -491,7 +491,7 @@
             this.ChkFilename.CheckOnClick = true;
             this.ChkFilename.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkFilename.Name = "ChkFilename";
-            this.ChkFilename.Size = new System.Drawing.Size(177, 22);
+            this.ChkFilename.Size = new System.Drawing.Size(180, 22);
             this.ChkFilename.Text = "Search File Name";
             this.ChkFilename.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -499,7 +499,7 @@
             // 
             this.ChkDirectoryName.CheckOnClick = true;
             this.ChkDirectoryName.Name = "ChkDirectoryName";
-            this.ChkDirectoryName.Size = new System.Drawing.Size(177, 22);
+            this.ChkDirectoryName.Size = new System.Drawing.Size(180, 22);
             this.ChkDirectoryName.Text = "Search Path Name";
             this.ChkDirectoryName.Click += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -507,7 +507,7 @@
             // 
             this.MnuSkipFolders.Image = ((System.Drawing.Image)(resources.GetObject("MnuSkipFolders.Image")));
             this.MnuSkipFolders.Name = "MnuSkipFolders";
-            this.MnuSkipFolders.Size = new System.Drawing.Size(177, 22);
+            this.MnuSkipFolders.Size = new System.Drawing.Size(180, 22);
             this.MnuSkipFolders.Text = "Set Allowed Folders";
             this.MnuSkipFolders.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MnuSkipFolders_MouseUp);
             // 
@@ -662,7 +662,7 @@
             // StatusToolStripStatusLabel
             // 
             this.StatusToolStripStatusLabel.Name = "StatusToolStripStatusLabel";
-            this.StatusToolStripStatusLabel.Size = new System.Drawing.Size(686, 19);
+            this.StatusToolStripStatusLabel.Size = new System.Drawing.Size(953, 19);
             this.StatusToolStripStatusLabel.Spring = true;
             this.StatusToolStripStatusLabel.Text = "Ready...";
             this.StatusToolStripStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;

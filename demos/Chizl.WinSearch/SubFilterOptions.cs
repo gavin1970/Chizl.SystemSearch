@@ -64,9 +64,23 @@ namespace Chizl.WinSearch
         }
         private void ButtonAdd_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(TextPath.Text))
+                return;
+
             int start = TextPath.SelectionStart;
             int len = TextPath.SelectionLength;
             var sel = TextPath.SelectedText;
+
+            if (string.IsNullOrWhiteSpace(sel))
+            {
+                TextPath.SelectAll();
+                start = TextPath.SelectionStart;
+                len = TextPath.SelectionLength;
+                sel = TextPath.SelectedText;
+            }
+
+            if (string.IsNullOrWhiteSpace(sel))
+                return;
 
             // add to temp if not exists, but if cancel is clicked,
             // we don't want to add it to the return list.

@@ -37,6 +37,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuRemoveItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuAlwaysExclude = new System.Windows.Forms.ToolStripMenuItem();
             this.panel2 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
             this.ListViewSubFilters = new System.Windows.Forms.ListView();
@@ -44,7 +45,6 @@
             this.panel6 = new System.Windows.Forms.Panel();
             this.ButtonCancel = new System.Windows.Forms.Button();
             this.ButtonOk = new System.Windows.Forms.Button();
-            this.toolStripMenuAlwaysExclude = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1.SuspendLayout();
             this.panel4.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -84,7 +84,6 @@
             this.TextPath.Location = new System.Drawing.Point(0, 0);
             this.TextPath.Multiline = true;
             this.TextPath.Name = "TextPath";
-            this.TextPath.ReadOnly = true;
             this.TextPath.Size = new System.Drawing.Size(688, 46);
             this.TextPath.TabIndex = 0;
             // 
@@ -114,8 +113,8 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(780, 23);
             this.label1.TabIndex = 1;
-            this.label1.Text = "Highlight parts from path below and click add to make those parts filtered from y" +
-    "our search.";
+            this.label1.Text = "Use existing full path, highlight parts, or use your own path \"contains\" path bel" +
+    "ow and click add to make those parts filtered from your search results.";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // contextMenuStrip1
@@ -124,14 +123,21 @@
             this.toolStripMenuRemoveItem,
             this.toolStripMenuAlwaysExclude});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 70);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(155, 48);
             // 
             // toolStripMenuRemoveItem
             // 
             this.toolStripMenuRemoveItem.Name = "toolStripMenuRemoveItem";
-            this.toolStripMenuRemoveItem.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuRemoveItem.Size = new System.Drawing.Size(154, 22);
             this.toolStripMenuRemoveItem.Text = "&Remove";
             this.toolStripMenuRemoveItem.Click += new System.EventHandler(this.toolStripMenuRemoveItem_Click);
+            // 
+            // toolStripMenuAlwaysExclude
+            // 
+            this.toolStripMenuAlwaysExclude.Name = "toolStripMenuAlwaysExclude";
+            this.toolStripMenuAlwaysExclude.Size = new System.Drawing.Size(154, 22);
+            this.toolStripMenuAlwaysExclude.Text = "&Always Exclude";
+            this.toolStripMenuAlwaysExclude.Click += new System.EventHandler(this.toolStripMenuAlwaysExclude_Click);
             // 
             // panel2
             // 
@@ -208,13 +214,6 @@
             this.ButtonOk.Text = "&OK";
             this.ButtonOk.UseVisualStyleBackColor = true;
             this.ButtonOk.Click += new System.EventHandler(this.ButtonOk_Click);
-            // 
-            // toolStripMenuAlwaysExclude
-            // 
-            this.toolStripMenuAlwaysExclude.Name = "toolStripMenuAlwaysExclude";
-            this.toolStripMenuAlwaysExclude.Size = new System.Drawing.Size(180, 22);
-            this.toolStripMenuAlwaysExclude.Text = "&Always Exclude";
-            this.toolStripMenuAlwaysExclude.Click += new System.EventHandler(this.toolStripMenuAlwaysExclude_Click);
             // 
             // SubFilterOptions
             // 
