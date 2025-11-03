@@ -244,9 +244,9 @@ namespace Chizl.SystemSearch
             Interlocked.Exchange(ref toFolderSentMsg, _maxSendInfoMsg);
 
             // get all files under folder path.
-            var fileKeys = _fileDictionary.Keys.Where(w => w.ToLower().StartsWith(folder)).ToList();
+            var fileKeys = _fileDictionary.Keys.Where(w => w.ToLower().Contains(folder)).ToList();
             // get all folders under folder path.
-            var folderKeys = _folderDictionary.Keys.Where(w => w.ToLower().StartsWith(folder)).ToList();
+            var folderKeys = _folderDictionary.Keys.Where(w => w.ToLower().Contains(folder)).ToList();
 
             // send a quick message
             SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"Deleting '{fileKeys.Count}' file entries and '{folderKeys.Count}' folder entries from cache. - Please wait.");
@@ -417,16 +417,17 @@ namespace Chizl.SystemSearch
         }
         internal bool RemoveFile(string fileName, bool sendInfoMsg = true)
         {
+            var retVal = false;
             // verifies root folder of file and determines if it should continue.
             if (_fileDictionary.TryRemove(fileName, out _))
             {
+                retVal = true;
                 Interlocked.Decrement(ref _scannedFiles);
                 if (sendInfoMsg)
                     SearchMessage.SendMsg(SearchMessageType.Info, $"Removed '{fileName}' from cache.");
-                return true;
             }
-            else
-                return false;
+
+            return retVal;
         }
         internal void SetStatus(LookupStatus status, bool andFullStatus = false)
         {

@@ -26,7 +26,7 @@ namespace Chizl.SystemSearch
         /// Scan options to be set from the parent application or use defaults.
         /// </summary>
         public static ConcurrentDictionary<string, bool> RefreshFolder { get; } = new ConcurrentDictionary<string, bool>();
-        internal static ConcurrentDictionary<string, bool> CustomExclusions { get; } = new ConcurrentDictionary<string, bool>();
+        public static ConcurrentDictionary<string, bool> CustomExclusions { get; } = new ConcurrentDictionary<string, bool>();
 
         #region Shortcut Methods
         public static bool AllowDir(string path) => ScanSettings.AllowDir(path);
@@ -121,10 +121,15 @@ namespace Chizl.SystemSearch
                     foreach (var actionFolder in addList)
                     {
                         RefreshFolder.TryRemove(actionFolder, out _);
-                        // add that specific folder, without subfolders.
-                        queTasks.Add(_scanner.ScanFolder(actionFolder, true));
-                        // add all subfolders with each in their own thread task.
-                        queTasks.AddRange(_scanner.ScanSubFolders(Directory.GetDirectories(actionFolder), false));
+                        if (Directory.Exists(actionFolder))
+                        {
+                            // add that specific folder, without subfolders.
+                            queTasks.Add(_scanner.ScanFolder(actionFolder, true));
+                            // add all subfolders with each in their own thread task.
+                            queTasks.AddRange(_scanner.ScanSubFolders(Directory.GetDirectories(actionFolder), false));
+                        }
+                        else
+                            SearchMessage.SendMsg(SearchMessageType.Warning, $"Refresh folder '{actionFolder}' doesn't exist.");
                     }
 
                     foreach (var actionFolder in deleteList)
@@ -135,10 +140,11 @@ namespace Chizl.SystemSearch
 
                     // wait for all thread/tasks to complete.
                     Task.WaitAll(queTasks.ToArray());
+                    //clear array
                     queTasks.Clear();
                     // send complete message to UI
                     SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
-                    // wait 0.10 sec
+                    // wait one hundredth of a sec
                     await Tools.Delay(100, SleepType.Milliseconds);
 
                     SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
