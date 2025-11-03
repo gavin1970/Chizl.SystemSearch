@@ -10,7 +10,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Chizl.SearchSystemUI
@@ -141,9 +140,9 @@ namespace Chizl.SearchSystemUI
 
                 if (ResultsListView.Items.Count > 0)
                 {
-                    _driveFilterOn.SetVal(false);
-                    _extFilterOn.SetVal(false);
-                    _customFilterOn.SetVal(false);
+                    _driveFilterOn.SetFalse();
+                    _extFilterOn.SetFalse();
+                    _customFilterOn.SetFalse();
                 }
             }
         }
@@ -283,7 +282,7 @@ namespace Chizl.SearchSystemUI
                             (var added, var removed) = CheckFilterData();
                             if (added > 0 || removed > 0)
                             {
-                                _driveFilterOn.SetVal(true);
+                                _driveFilterOn.SetTrue();
                                 SetFilterStatus();
                             }
                             else
@@ -744,9 +743,9 @@ namespace Chizl.SearchSystemUI
             _finder.Search(GetScanDriveList(), TxtSearchName.Text)
                 .ContinueWith(t =>
                 {
-                    _driveFilterOn.SetVal(false);
-                    _extFilterOn.SetVal(false);
-                    _customFilterOn.SetVal(false);
+                    _driveFilterOn.SetFalse();
+                    _extFilterOn.SetFalse();
+                    _customFilterOn.SetFalse();
                     SetFilterStatus();
                 });
         }
@@ -776,16 +775,16 @@ namespace Chizl.SearchSystemUI
                 _finder.ScanToCache(GetScanDriveList(), reScan)
                        .ContinueWith(t =>
                        {
-                           _driveFilterOn.SetVal(false);
-                           _extFilterOn.SetVal(false);
-                           _customFilterOn.SetVal(false);
+                           _driveFilterOn.SetFalse();
+                           _extFilterOn.SetFalse();
+                           _customFilterOn.SetFalse();
 
-                            SetFilterStatus();
+                           SetFilterStatus();
                        });
             }
             else
             {
-                _scanAborted.SetVal(true);
+                _scanAborted.SetTrue();
                 _finder.StopScan();
 
                 if (driveList.Count() == 0)
@@ -934,7 +933,7 @@ namespace Chizl.SearchSystemUI
                     (var added, var removed) = CheckFilterData();
                     if (added > 0 || removed > 0)
                     {
-                        _driveFilterOn.SetVal(true);
+                        _driveFilterOn.SetTrue();
                         ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}\n" +
                                                                 $"Last filter added '{added}' and removed '{removed}'.");
                         SetFilterStatus();
@@ -972,7 +971,7 @@ namespace Chizl.SearchSystemUI
                     (var added, var removed) = CheckFilterData();
                     if (added > 0 || removed > 0)
                     {
-                        _extFilterOn.SetVal(true);
+                        _extFilterOn.SetTrue();
                         ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}\n" +
                                                                 $"Last filter added '{added}' and removed '{removed}'.");
                         SetFilterStatus();
@@ -990,9 +989,9 @@ namespace Chizl.SearchSystemUI
             ResultsListView.Items.AddRange(_unfilteredItemsList.ToArray());
 
             _excludeItems.Clear();
-            _driveFilterOn.SetVal(false);
-            _extFilterOn.SetVal(false);
-            _customFilterOn.SetVal(false);
+            _driveFilterOn.SetFalse();
+            _extFilterOn.SetFalse();
+            _customFilterOn.SetFalse();
 
             SetFilterStatus();
             ShowMsg(SearchMessageType.SearchStatus, _lastFilteringStatus);
@@ -1000,7 +999,12 @@ namespace Chizl.SearchSystemUI
         private void ListMenuClearList_Click(object sender, EventArgs e)
         {
             ResultsListView.Items.Clear();
-            ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}");
+            _unfilteredItemsList.Clear();
+            _extFilterOn.SetFalse();
+            _driveFilterOn.SetFalse();
+            _customFilterOn.SetFalse();
+            SetFilterStatus();
+            //ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}");
         }
         private bool LoadExcludesFromForm()
         {
@@ -1046,9 +1050,9 @@ namespace Chizl.SearchSystemUI
                 if (_subFilterForm.RemovedFromExcludeItems.Count() > 0)
                 {
                     _excludeItems.Clear();
-                    _driveFilterOn.SetVal(false);
-                    _extFilterOn.SetVal(false);
-                    _customFilterOn.SetVal(false);
+                    _driveFilterOn.SetFalse();
+                    _extFilterOn.SetFalse();
+                    _customFilterOn.SetFalse();
                     change = true;
                 }
 
@@ -1059,7 +1063,7 @@ namespace Chizl.SearchSystemUI
                     (var added, var removed) = CheckFilterData();
                     if (added > 0 || removed > 0)
                     {
-                        _customFilterOn.SetVal(true);
+                        _customFilterOn.SetTrue();
                         ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}\n" +
                                                                 $"Last filter added '{added}' and removed '{removed}'.");
                         SetFilterStatus();
