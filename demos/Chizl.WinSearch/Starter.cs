@@ -756,8 +756,6 @@ namespace Chizl.SearchSystemUI
 
             if (!BtnStartStopScan.Text.Equals(_stopScanText) && driveList.Count() > 0)
             {
-                //if (BtnStartStopScan.Text.Equals(_startScanText) || BtnStartStopScan.Text.Equals(_scannedText))
-
                 if (reScan && BtnStartStopScan.Text.Equals(_scannedText))
                 {
                     if (MessageBox.Show("Are you sure you want to rescan?",
@@ -999,12 +997,12 @@ namespace Chizl.SearchSystemUI
         private void ListMenuClearList_Click(object sender, EventArgs e)
         {
             ResultsListView.Items.Clear();
+            _excludeItems.Clear();
             _unfilteredItemsList.Clear();
             _extFilterOn.SetFalse();
             _driveFilterOn.SetFalse();
             _customFilterOn.SetFalse();
             SetFilterStatus();
-            //ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}");
         }
         private bool LoadExcludesFromForm()
         {
