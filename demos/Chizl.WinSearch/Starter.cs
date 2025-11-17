@@ -90,7 +90,7 @@ namespace Chizl.SearchSystemUI
         #region Helper Methods
         private void CloseApp()
         {
-            if (MessageBox.Show("Are you sure you want to exit?", About.TitleWithFileVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (MessageBox.Show("Are you sure you want to exit?", GlobalSetup.WindowTitlebarText, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 _shuttingDown = true;
                 this.Close();
@@ -331,7 +331,7 @@ namespace Chizl.SearchSystemUI
         private void SetupSysTray()
         {
             Notifier.Icon = this.Icon;
-            Notifier.Text = About.TitleWithFileVersion;
+            Notifier.Text = GlobalSetup.WindowTitlebarText;
 
             _systemNotify = new SysNotify(this, Notifier, new SysNotifyTitle(About.Title, _fgTitleColor, _bgTitleColor, new Padding(4)));
             _systemNotify.DoubleClick += Notify_DoubleClick;
@@ -362,7 +362,7 @@ namespace Chizl.SearchSystemUI
             //not ready yet
             ListMenuExportList.Visible = false;
 
-            Text = About.TitleWithFileVersion;
+            Text = GlobalSetup.WindowTitlebarText;
             ConfigData.LoadConfig(_configFile);
 
             // loads, if exists.
@@ -1013,6 +1013,9 @@ namespace Chizl.SearchSystemUI
             if (_subFilterForm == null)
                 return retVal;
 
+            if (!_subFilterForm.ExcludeItems.Count.Equals(_excludeItems.Count))
+                _excludeItems.Clear();
+
             foreach (var item in _subFilterForm.ExcludeItems)
             {
                 if (!extFilterOn)
@@ -1044,17 +1047,7 @@ namespace Chizl.SearchSystemUI
                 var change = false;
                 var removeStrItem = new List<ListViewItem>();
 
-                //checking to see if what came back from the exclusion form where removed from the list. 
-                if (_subFilterForm.RemovedFromExcludeItems.Count() > 0)
-                {
-                    _excludeItems.Clear();
-                    _driveFilterOn.SetFalse();
-                    _extFilterOn.SetFalse();
-                    _customFilterOn.SetFalse();
-                    change = true;
-                }
-
-                change = change || LoadExcludesFromForm();
+                change = LoadExcludesFromForm();
 
                 if (change)
                 {

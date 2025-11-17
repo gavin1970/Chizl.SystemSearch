@@ -40,6 +40,7 @@ namespace Chizl.SearchSystemUI
     internal static class GlobalSetup
     {
         const string _customExclusions = @".\custExc.dat";
+        public static string WindowTitlebarText { get; set; }
 
         private static IOFinder _finder;
         private static DriveInfo[] _drives;
