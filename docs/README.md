@@ -25,6 +25,8 @@
 * On startup, library sets FileWatcher up on all drives and auto update cached files when the system add, removes, or renames files/folders. A new scan is not required until UI is closed and reopened.
 * With 1.2 Terabytes and over 1 1/2 million files across 2 drives, a full scan takes less than one minute during first scan.  An hour later the same full scan takes less than 30 seconds.  This is done by storing ONLY full paths of each file in a ConcurrentDictionary and only held there while the UI is running.  No files are stored to disc and with 1 1/2 million files paths in memory, takes up 400MB in memory.  Still less than most applications running normally.
 * After a full scan is done and before you close the UI, any search looks at the dictionary and returns in seconds.
+<img width="1642" height="953" alt="image" src="https://github.com/user-attachments/assets/da2e70af-b722-4b6e-9ee6-88008e150b15" /><br/>
+<img width="1642" height="953" alt="image" src="https://github.com/user-attachments/assets/196f601e-4fac-4d8a-8b9b-e37d06e53e57" />
 
 ### Search Understanding with Extension:
 * Literal Search.
