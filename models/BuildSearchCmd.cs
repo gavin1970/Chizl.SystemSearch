@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Chizl.SystemSearch
 {
@@ -209,7 +210,11 @@ namespace Chizl.SystemSearch
             search = search.StartsWith(part, StringComparison.CurrentCultureIgnoreCase) ? search.Substring(part.Length + 1) : search;
             var multiPart = search.SplitOn(Seps.cOr);
             foreach (var cmd in multiPart)
-                Commands.Add(new SearchCommand(cmdType, cmd));
+            {
+                // Ignore dups.  Using ToLower() - to ensure to reject '.ico | .ICO'.  Both will be found with either format.
+                if (!Commands.Where(w => w.CommandType == cmdType && w.Search.ToLower() == cmd.ToLower()).Any())
+                    Commands.Add(new SearchCommand(cmdType, cmd));
+            }
         }
     }
 

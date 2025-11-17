@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -100,7 +101,9 @@ namespace Chizl.SystemSearch
             var retVal = false;
             var fullFileList = Scanner.GetFileList;
             var fullFileListLen = fullFileList.Length;
-            var findings = new List<string>();
+            // Moved from List<string> to ConcurrentDictionary to prevent Duplication.
+            // TryAdd() is faster than List.Contains() + List.Add().
+            var findingsDic = new ConcurrentDictionary<string, byte>();
             var filters = new List<string>();
 
             var pathList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.path).ToList();
@@ -122,15 +125,21 @@ namespace Chizl.SystemSearch
 
                     foreach (var p in pathList)
                     {
-                        if (findings.Count > 0)
-                            filters.AddRange(findings.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList());
+                        if (findingsDic.Count > 0)
+                            filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(p.Search.ToLower())).Select(s => s.Key).ToList());
                         else
-                            findings.AddRange(fullFileList.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList());
+                        {
+                            foreach (var item in fullFileList.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList())
+                                findingsDic.TryAdd(item, 0);
+                        }
                     }
 
-                    findings.Clear();
+                    findingsDic.Clear();
                     if (filters.Count() > 0)
-                        findings.AddRange(filters);
+                    {
+                        foreach (var item in filters.ToList())
+                            findingsDic.TryAdd(item, 0);
+                    }
                 }
                 else if (wc.Length == 1 && wc.Equals(Seps.cExtPos.ToString()) && extList.Count() > 0)
                 {
@@ -139,15 +148,21 @@ namespace Chizl.SystemSearch
 
                     foreach (var e in extList)
                     {
-                        if (findings.Count > 0)
-                            filters.AddRange(findings.Where(w => w.ToLower().EndsWith(e.Search.ToLower())).ToList());
+                        if (findingsDic.Count > 0)
+                            filters.AddRange(findingsDic.Where(w => w.Key.ToLower().EndsWith(e.Search.ToLower())).Select(s => s.Key).ToList());
                         else
-                            findings.AddRange(fullFileList.Where(w => w.ToLower().EndsWith(e.Search.ToLower())).ToList());
+                        {
+                            foreach (var item in fullFileList.Where(w => w.ToLower().Contains(e.Search.ToLower())).ToList())
+                                findingsDic.TryAdd(item, 0);
+                        }
                     }
 
-                    findings.Clear();
+                    findingsDic.Clear();
                     if (filters.Count() > 0)
-                        findings.AddRange(filters);
+                    {
+                        foreach (var item in filters.ToList())
+                            findingsDic.TryAdd(item, 0);
+                    }
                 }
                 else if (wc.Length == 1 && wc.Equals(Seps.cFilterPos.ToString()) && filterList.Count() > 0)
                 {
@@ -156,18 +171,22 @@ namespace Chizl.SystemSearch
 
                     foreach (var f in filterList)
                     {
-                        if (findings.Count > 0)
+                        if (findingsDic.Count > 0)
                         {
-                            filters.AddRange(findings.Where(w => !w.ToLower().Contains(f.Search.ToLower())).ToList());
+                            filters.AddRange(findingsDic.Where(w => !w.Key.ToLower().Contains(f.Search.ToLower())).Select(s => s.Key).ToList());
                             if (filters.Count() > 0)
                             {
-                                findings.Clear();
-                                findings.AddRange(filters);
+                                findingsDic.Clear();
+                                foreach (var item in filters.ToList())
+                                    findingsDic.TryAdd(item, 0);
                                 filters.Clear();
                             }
                         }
                         else
-                            findings.AddRange(fullFileList.Where(w => !w.ToLower().Contains(f.Search.ToLower())).ToList());
+                        {
+                            foreach (var item in fullFileList.Where(w => w.ToLower().Contains(f.Search.ToLower())).ToList())
+                                findingsDic.TryAdd(item, 0);
+                        }
                     }
                 }
                 else
@@ -175,30 +194,34 @@ namespace Chizl.SystemSearch
                     filters.Clear();
 
                     // if we have content, we now need to filter down for each criteria.
-                    if (findings.Count > 0)
-                        filters.AddRange(findings.Where(w => w.ToLower().Contains(wc.ToLower())).ToList());
+                    if (findingsDic.Count > 0)
+                        filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(wc.ToLower())).Select(s => s.Key).ToList());
                     else
-                        findings.AddRange(fullFileList.Where(w => w.ToLower().Contains(wc.ToLower())).ToList());
+                    {
+                        foreach (var item in fullFileList.Where(w => w.ToLower().Contains(wc.ToLower())).ToList())
+                            findingsDic.TryAdd(item, 0);
+                    }
 
                     if (filters.Count() > 0)
                     {
-                        findings.Clear();
-                        findings.AddRange(filters);
+                        findingsDic.Clear();
+                        foreach (var item in filters.ToList())
+                            findingsDic.TryAdd(item, 0);
                     }
                 }
 
                 // at any time, we haven't found anything,
                 // then we haven't met the criteria
-                if (findings.Count.Equals(0))
+                if (findingsDic.Count.Equals(0))
                     break;
             }
 
             var verifiedFiles = 0;
             var fileList = new List<string>();
-            if (findings != null && findings.Count > 0)
+            if (findingsDic != null && findingsDic.Count > 0)
             {
                 retVal = true;
-                foreach (var file in findings)
+                foreach (var file in findingsDic.Keys)
                 {
                     if (GlobalSettings.HasShutdown)
                         break;
