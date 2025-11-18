@@ -210,7 +210,7 @@ namespace Chizl.SearchSystemUI
                         case SearchMessageType.Error:
                             // If we are hiding information message then errors
                             // can't be seen anyway. Stop backend overhead.
-                            if (!_hideErrors && !_hideInformation)
+                            if (!_hideErrors)
                             {
                                 var msg = e.Message;
                                 if (e.Message.Contains("Access to the"))
@@ -224,7 +224,8 @@ namespace Chizl.SearchSystemUI
                         case SearchMessageType.Info:
                             if (!_hideInformation)
                             {
-                                EventList.Items.Add($"[{e.MessageType}] {e.Message}");
+                                var preMsg = e.MessageType == SearchMessageType.Warning ? $"[{DateTime.Now:HH:mm:ss}-{e.MessageType}]" : $"[{DateTime.Now:HH:mm:ss}]";
+                                EventList.Items.Add($"{preMsg} {e.Message}");
                                 EventList.SelectedIndex = EventList.Items.Count - 1;
                             }
                             break;
@@ -674,7 +675,7 @@ namespace Chizl.SearchSystemUI
                 if (e.MessageType.Equals(SearchMessageType.SearchStatus) && e.Message.StartsWith("Filtered: "))
                     _lastFilteringStatus = e.Message;
 
-                if (e.MessageType == SearchMessageType.Error && (_hideErrors || _hideInformation))
+                if (e.MessageType == SearchMessageType.Error && _hideErrors)
                     return;
 
                 if (e.MessageType == SearchMessageType.Info && _hideInformation)
@@ -807,28 +808,33 @@ namespace Chizl.SearchSystemUI
         private void UIOptions_CheckedChanged(object sender, EventArgs e)
         {
             var chkBox = sender as CheckBox;
+            var chkBoxName = chkBox.Name;
             var isChecked = chkBox.Checked;
 
             if (!_loaded)
                 return;
 
-            switch (chkBox.Name)
+            switch (chkBoxName)
             {
                 case "ChkHideErrors":
                     _hideErrors = isChecked;
                     EventListsSplitContainer.Panel2Collapsed = _hideErrors;
                     break;
                 case "ChkHideInfo":
+                    // If Info and Errors are visible, set Errors to hide first, since Errors are seen under Info.
+                    if (isChecked && !_hideErrors)
+                        ChkHideErrors.Checked = isChecked;
+
                     _hideInformation = isChecked;
                     MainSplitContainer.Panel2Collapsed = _hideInformation;
                     break;
                 default:
-                    MessageBox.Show($"'{chkBox.Name}' is setup for UI Options, but not coded for it.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show($"'{chkBoxName}' is setup for UI Options, but not coded for it.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     break;
             }
 
-            if (!ConfigData.AddItem(chkBox.Name, isChecked, true))
-                MessageBox.Show($"'{chkBox.Name}' failed to save to configuration file.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            if (!ConfigData.AddItem(chkBoxName, isChecked, true))
+                MessageBox.Show($"'{chkBoxName}' failed to save to configuration file.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         private void DriveScan_CheckedChanged(object sender, EventArgs e)
         {
