@@ -474,7 +474,7 @@
             this.ChkSystemFolder.Name = "ChkSystemFolder";
             this.ChkSystemFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkSystemFolder.Text = "System";
-            this.ChkSystemFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
+            this.ChkSystemFolder.CheckedChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // CMenuOptions
             // 
@@ -493,7 +493,7 @@
             this.ChkFilename.Name = "ChkFilename";
             this.ChkFilename.Size = new System.Drawing.Size(177, 22);
             this.ChkFilename.Text = "Search File Name";
-            this.ChkFilename.Click += new System.EventHandler(this.Options_CheckedChanged);
+            this.ChkFilename.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // ChkDirectoryName
             // 
@@ -501,7 +501,7 @@
             this.ChkDirectoryName.Name = "ChkDirectoryName";
             this.ChkDirectoryName.Size = new System.Drawing.Size(177, 22);
             this.ChkDirectoryName.Text = "Search Path Name";
-            this.ChkDirectoryName.Click += new System.EventHandler(this.Options_CheckedChanged);
+            this.ChkDirectoryName.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // MnuSkipFolders
             // 
@@ -517,7 +517,7 @@
             this.ChkRecycleBin.Name = "ChkRecycleBin";
             this.ChkRecycleBin.Size = new System.Drawing.Size(177, 22);
             this.ChkRecycleBin.Text = "Recycle Bin";
-            this.ChkRecycleBin.Click += new System.EventHandler(this.Options_CheckedChanged);
+            this.ChkRecycleBin.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // ChkTempFolder
             // 
@@ -525,7 +525,7 @@
             this.ChkTempFolder.Name = "ChkTempFolder";
             this.ChkTempFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkTempFolder.Text = "Temp Folder";
-            this.ChkTempFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
+            this.ChkTempFolder.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // ChkInternetCache
             // 
@@ -533,7 +533,7 @@
             this.ChkInternetCache.Name = "ChkInternetCache";
             this.ChkInternetCache.Size = new System.Drawing.Size(177, 22);
             this.ChkInternetCache.Text = "Internet Cache";
-            this.ChkInternetCache.Click += new System.EventHandler(this.Options_CheckedChanged);
+            this.ChkInternetCache.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // ChkWinFolder
             // 
@@ -543,7 +543,7 @@
             this.ChkWinFolder.Name = "ChkWinFolder";
             this.ChkWinFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkWinFolder.Text = "Windows";
-            this.ChkWinFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
+            this.ChkWinFolder.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // ChkUserFolder
             // 
@@ -553,7 +553,7 @@
             this.ChkUserFolder.Name = "ChkUserFolder";
             this.ChkUserFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkUserFolder.Text = "User";
-            this.ChkUserFolder.Click += new System.EventHandler(this.Options_CheckedChanged);
+            this.ChkUserFolder.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // PanelScanButton
             // 

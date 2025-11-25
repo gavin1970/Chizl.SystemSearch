@@ -29,6 +29,8 @@ namespace Chizl.SearchSystemUI
         private static ListBox _selListBox;
         private static bool _loaded = false;
         private static bool _shuttingDown = false;
+        private static Dictionary<string, ToolStripMenuItem> 
+            _scanFolders = new Dictionary<string, ToolStripMenuItem>();
 
         private static int resetRefreshCnt = 0;
         private static int refreshCnt = 0;
@@ -358,6 +360,20 @@ namespace Chizl.SearchSystemUI
             }
             return driveInfoList.ToArray();
         }
+        
+        private bool PathIsEnabled(List<String> disabledDrives, string path, ref bool isChecked, bool defIfMissing = false)
+        {
+            if (!disabledDrives.Contains(path.ToLower().Substring(0, 3)))
+            {
+                ConfigData.GetItem<bool>(_scanFolders[path].Name, defIfMissing, out isChecked);
+                return true;
+            }
+            else
+            {
+                _scanFolders[path].Enabled = false;
+                return false;
+            }
+        }
         private void LoadConfig()
         {
             //not ready yet
@@ -374,6 +390,7 @@ namespace Chizl.SearchSystemUI
             ConfigData.GetItem<bool>("ChkDirectoryName", false, out isChecked);
             _criterias.SearchDirectory = isChecked;
 
+            var disabledDrives = new List<string>();
             foreach (var drive in DriveInfo.GetDrives())
             {
                 // by checking drive.IsReady, it allows drive to be added to the Menu, but disabled to show it's unaccessiable.
@@ -398,24 +415,59 @@ namespace Chizl.SearchSystemUI
                 if (drive.IsReady)
                     retVal.Click += DriveScan_CheckedChanged;
 
+                if (chk == CheckState.Unchecked)
+                    disabledDrives.Add(drive.Name.ToLower());
+
                 CMenuDriveOptions.Items.Add(retVal);
             }
 
+            if (_scanFolders.Count > 0)
+                _scanFolders.Clear();
+
+            _scanFolders = new Dictionary<string, ToolStripMenuItem>
+                {
+                    { _criterias.WindowsDir, ChkWinFolder },
+                    { _criterias.UserDir, ChkUserFolder },
+                    { _criterias.InternetCache, ChkInternetCache },
+                    { _criterias.TempDir, ChkTempFolder },
+                    { _criterias.RecycleBinDir, ChkRecycleBin }
+                };
+
+            if (!_scanFolders.ContainsKey(_criterias.SystemDir))
+                _scanFolders.Add(_criterias.SystemDir, ChkSystemFolder);
+
             GlobalSetup.DriveList = GetScanDriveList();
             _finder = GlobalSetup.Finder;
+            
+            bool checkIt = false;
+            if (PathIsEnabled(disabledDrives, _criterias.InternetCache, ref checkIt))
+                _criterias.AllowInternetCache = checkIt;
 
-            ConfigData.GetItem<bool>("ChkInternetCache", false, out isChecked);
-            _criterias.AllowInternetCache = isChecked;
-            ConfigData.GetItem<bool>("ChkRecycleBin", false, out isChecked);
-            _criterias.AllowRecycleBin = isChecked;
-            ConfigData.GetItem<bool>("ChkSystemFolder", false, out isChecked);
-            _criterias.AllowSystem = isChecked;
-            ConfigData.GetItem<bool>("ChkTempFolder", false, out isChecked);
-            _criterias.AllowTemp = isChecked;
-            ConfigData.GetItem<bool>("ChkUserFolder", true, out isChecked);
-            _criterias.AllowUser = isChecked;
-            ConfigData.GetItem<bool>("ChkWinFolder", true, out isChecked);
-            _criterias.AllowWindows = isChecked;
+            if (PathIsEnabled(disabledDrives, _criterias.RecycleBinDir, ref checkIt))
+                _criterias.AllowRecycleBin = checkIt;
+
+            if (!string.IsNullOrWhiteSpace(_criterias.SystemDir) 
+                && _criterias.SystemDir != _criterias.WindowsDir)
+            {
+                if (PathIsEnabled(disabledDrives, _criterias.SystemDir, ref checkIt))
+                    _criterias.AllowSystem = isChecked;
+            }
+            else
+                ChkSystemFolder.Visible = false;
+
+            if (PathIsEnabled(disabledDrives, _criterias.TempDir, ref checkIt))
+                _criterias.AllowTemp = isChecked;
+
+            if (PathIsEnabled(disabledDrives, _criterias.UserDir, ref checkIt, true))
+                _criterias.AllowUser = isChecked;
+            else
+                _criterias.AllowUser = false;
+
+            if (PathIsEnabled(disabledDrives, _criterias.WindowsDir, ref checkIt, true))
+                _criterias.AllowWindows = isChecked;
+            else
+                _criterias.AllowWindows = false;
+
             ConfigData.GetItem<bool>("ChkHideInfo", false, out isChecked);
             _hideInformation = isChecked;
             ConfigData.GetItem<bool>("ChkHideErrors", true, out isChecked);
@@ -838,13 +890,36 @@ namespace Chizl.SearchSystemUI
         }
         private void DriveScan_CheckedChanged(object sender, EventArgs e)
         {
+            if (!_loaded)
+                return;
+
             var chkBox = sender as ToolStripMenuItem;
             var isChecked = chkBox.Checked;
+            var driveLetter = chkBox.Name.Replace("ChkScan_", "").Replace("_Drive", ":").ToLower();
 
             if (!ConfigData.AddItem(chkBox.Name, isChecked, true))
                 MessageBox.Show($"'{chkBox.Name}' failed to save to configuration file.", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             else
             {
+                foreach (var f in _scanFolders)
+                {
+                    var key = f.Key.ToLower();
+                    if (key.StartsWith(driveLetter))
+                    {
+                        // so that the check event isn't kicked off, it already checked.
+                        if (f.Value.Checked != isChecked)
+                        {
+                            _criterias.IgnoreChange = true;
+                            _loc = Point.Empty;
+                            // f.Value.Checked = isChecked;
+                            f.Value.CheckState = isChecked ? CheckState.Checked : CheckState.Unchecked;
+                        }
+                        f.Value.Enabled = isChecked;
+                    }
+                }
+
+                _criterias.IgnoreChange = false;
+
                 GlobalSetup.DriveList = GetScanDriveList();
                 string drive = chkBox.Tag.ToString();
 
@@ -858,6 +933,9 @@ namespace Chizl.SearchSystemUI
         }
         private void Options_CheckedChanged(object sender, EventArgs e)
         {
+            if (!_loaded)
+                return;
+
             var chkBox = sender as ToolStripMenuItem;
             var isChecked = chkBox.Checked;
             Point loc = _loc;
