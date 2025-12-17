@@ -102,6 +102,7 @@
             this.SysTrayOpen = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.SysTrayClose = new System.Windows.Forms.ToolStripMenuItem();
+            this.BtnHide = new System.Windows.Forms.Button();
             this.PanelSearchText.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
             this.CMenuInfoErr.SuspendLayout();
@@ -251,8 +252,9 @@
             // 
             // panel4
             // 
-            this.panel4.Controls.Add(this.ResultsListView);
             this.panel4.Controls.Add(this.panel3);
+            this.panel4.Controls.Add(this.ResultsListView);
+            this.panel4.Controls.Add(this.BtnHide);
             this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel4.Location = new System.Drawing.Point(0, 0);
             this.panel4.Name = "panel4";
@@ -266,7 +268,7 @@
             this.ResultsListView.HideSelection = false;
             this.ResultsListView.Location = new System.Drawing.Point(0, 0);
             this.ResultsListView.Name = "ResultsListView";
-            this.ResultsListView.Size = new System.Drawing.Size(1144, 255);
+            this.ResultsListView.Size = new System.Drawing.Size(1144, 273);
             this.ResultsListView.TabIndex = 2;
             this.ResultsListView.UseCompatibleStateImageBehavior = false;
             this.ResultsListView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ResultsListView_MouseUp);
@@ -615,8 +617,8 @@
             // 
             this.ExitTSMenu.Image = ((System.Drawing.Image)(resources.GetObject("ExitTSMenu.Image")));
             this.ExitTSMenu.Name = "ExitTSMenu";
-            this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.X)));
-            this.ExitTSMenu.Size = new System.Drawing.Size(129, 22);
+            this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
+            this.ExitTSMenu.Size = new System.Drawing.Size(180, 22);
             this.ExitTSMenu.Text = "E&xit";
             this.ExitTSMenu.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
@@ -828,12 +830,26 @@
             this.SysTrayClose.Text = "&Exit";
             this.SysTrayClose.Click += new System.EventHandler(this.SysTrayClose_Click);
             // 
+            // BtnHide
+            // 
+            this.BtnHide.BackColor = System.Drawing.SystemColors.Control;
+            this.BtnHide.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.BtnHide.ForeColor = System.Drawing.SystemColors.MenuText;
+            this.BtnHide.Location = new System.Drawing.Point(1058, 3);
+            this.BtnHide.Name = "BtnHide";
+            this.BtnHide.Size = new System.Drawing.Size(74, 25);
+            this.BtnHide.TabIndex = 5;
+            this.BtnHide.Text = "Hide";
+            this.BtnHide.UseVisualStyleBackColor = true;
+            this.BtnHide.Click += new System.EventHandler(this.BtnHide_Click);
+            // 
             // Starter
             // 
             this.AcceptButton = this.BtnFind;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Silver;
+            this.CancelButton = this.BtnHide;
             this.ClientSize = new System.Drawing.Size(1154, 645);
             this.Controls.Add(this.ResultsPanel);
             this.Controls.Add(this.PanelSearchBar);
@@ -956,6 +972,7 @@
         private System.Windows.Forms.ToolStripMenuItem customListToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SysTrayOpen;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.Button BtnHide;
     }
 }
 

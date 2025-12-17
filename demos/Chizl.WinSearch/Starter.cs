@@ -112,9 +112,10 @@ namespace Chizl.SearchSystemUI
             }
             else if (!Disposing && !IsDisposed)
             {
-                if ((_finder.CurrentStatus & LookupStatus.Ended) == 0)
+                //if ((_finder.CurrentStatus & LookupStatus.Ended) == 0)
+                if (!_finder.CurrentStatus.HasFlag(LookupStatus.Ended))
                     return;
-
+                
                 _scanRunning.SetFalse();
 
                 // this allows all messages to be posted, only
@@ -787,6 +788,7 @@ namespace Chizl.SearchSystemUI
         #endregion
 
         #region Buttons Events
+        private void BtnHide_Click(object sender, EventArgs e) => this.Close();
         private void BtnFind_Click(object sender, EventArgs e)
         {
             var search = TxtSearchName.Text.Trim();
