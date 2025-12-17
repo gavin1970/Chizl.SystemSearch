@@ -23,7 +23,7 @@ namespace Chizl.SearchSystemUI
         private const int _maxRefreshCnt = 1000;
         private const string _stopScanText = "&Stop Scan";
         private const string _startScanText = "&Start Scan";
-        private const string _scannedText = "&ReScan";
+        private const string _reScanText = "&ReScan";
         private const string _configFile = @".\config.dat";
 
         private static ListBox _selListBox;
@@ -112,8 +112,7 @@ namespace Chizl.SearchSystemUI
             }
             else if (!Disposing && !IsDisposed)
             {
-                //if ((_finder.CurrentStatus & LookupStatus.Ended) == 0)
-                if (!_finder.CurrentStatus.HasFlag(LookupStatus.Ended))
+                if (!_finder.CurrentStatus.HasFlag(LookupStatus.Completed))
                     return;
                 
                 _scanRunning.SetFalse();
@@ -130,7 +129,7 @@ namespace Chizl.SearchSystemUI
                 TxtSearchName.ReadOnly = false;
 
                 var fullScanned = _finder.FullScanCompleted;
-                BtnStartStopScan.Text = _scanAborted ? _startScanText : fullScanned ? _scannedText : _startScanText;
+                BtnStartStopScan.Text = _scanAborted ? _startScanText : fullScanned ? _reScanText : _startScanText;
 
                 if (!_scanAborted && _scanTime.Equals(TimeSpan.Zero))
                     _scanTime = diff;
@@ -457,15 +456,15 @@ namespace Chizl.SearchSystemUI
                 ChkSystemFolder.Visible = false;
 
             if (PathIsEnabled(disabledDrives, _criterias.TempDir, ref checkIt))
-                _criterias.AllowTemp = isChecked;
+                _criterias.AllowTemp = checkIt;
 
             if (PathIsEnabled(disabledDrives, _criterias.UserDir, ref checkIt, true))
-                _criterias.AllowUser = isChecked;
+                _criterias.AllowUser = checkIt;
             else
                 _criterias.AllowUser = false;
 
             if (PathIsEnabled(disabledDrives, _criterias.WindowsDir, ref checkIt, true))
-                _criterias.AllowWindows = isChecked;
+                _criterias.AllowWindows = checkIt;
             else
                 _criterias.AllowWindows = false;
 
@@ -811,7 +810,7 @@ namespace Chizl.SearchSystemUI
 
             if (!BtnStartStopScan.Text.Equals(_stopScanText) && driveList.Count() > 0)
             {
-                if (reScan && BtnStartStopScan.Text.Equals(_scannedText))
+                if (reScan && BtnStartStopScan.Text.Equals(_reScanText))
                 {
                     if (MessageBox.Show("Are you sure you want to rescan?",
                             About.Title, MessageBoxButtons.YesNo,
@@ -852,7 +851,7 @@ namespace Chizl.SearchSystemUI
         {
             if (BtnStartStopScan.Text.Equals(_startScanText))
                 BtnStartStopScan.BackColor = _green;
-            else if (BtnStartStopScan.Text.Equals(_scannedText))
+            else if (BtnStartStopScan.Text.Equals(_reScanText))
                 BtnStartStopScan.BackColor = _gray;
             else
                 BtnStartStopScan.BackColor = _red;
@@ -1155,9 +1154,16 @@ namespace Chizl.SearchSystemUI
         private void LastScanTimer_Tick(object sender, EventArgs e)
         {
             if (!_scanTime.Equals(TimeSpan.Zero))
-            {
                 ShowMsg(SearchMessageType.StatusMessage, $"Last full scan completed in {_scanTime.TotalSeconds} sec.");
-                LastScanTimer.Stop();
+
+            // Insurance
+            if (_scanRunning && !BtnStartStopScan.Text.Equals(_stopScanText)
+            || !_scanRunning && !(new List<string> { _reScanText, _startScanText }).Contains(BtnStartStopScan.Text))
+            {
+                BtnStartStopScan.Text = !_scanRunning 
+                                            ? _stopScanText : _scanAborted 
+                                            ? _startScanText : _finder.FullScanCompleted 
+                                            ? _reScanText : _startScanText;
             }
         }
         private void ListMenuCopyPath_Click(object sender, EventArgs e)

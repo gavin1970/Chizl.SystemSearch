@@ -41,6 +41,8 @@
             this.ResultsPanel = new System.Windows.Forms.Panel();
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.ChkHideInfo = new System.Windows.Forms.CheckBox();
             this.ResultsListView = new System.Windows.Forms.ListView();
             this.CMenuList = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ListMenuFilters = new System.Windows.Forms.ToolStripMenuItem();
@@ -55,8 +57,7 @@
             this.ListMenuCopyPath = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuCopyList = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuExportList = new System.Windows.Forms.ToolStripMenuItem();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.ChkHideInfo = new System.Windows.Forms.CheckBox();
+            this.BtnHide = new System.Windows.Forms.Button();
             this.panel5 = new System.Windows.Forms.Panel();
             this.EventListsSplitContainer = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -102,7 +103,6 @@
             this.SysTrayOpen = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.SysTrayClose = new System.Windows.Forms.ToolStripMenuItem();
-            this.BtnHide = new System.Windows.Forms.Button();
             this.PanelSearchText.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
             this.CMenuInfoErr.SuspendLayout();
@@ -112,8 +112,8 @@
             this.MainSplitContainer.Panel2.SuspendLayout();
             this.MainSplitContainer.SuspendLayout();
             this.panel4.SuspendLayout();
-            this.CMenuList.SuspendLayout();
             this.panel3.SuspendLayout();
+            this.CMenuList.SuspendLayout();
             this.panel5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.EventListsSplitContainer)).BeginInit();
             this.EventListsSplitContainer.Panel1.SuspendLayout();
@@ -261,6 +261,31 @@
             this.panel4.Size = new System.Drawing.Size(1144, 273);
             this.panel4.TabIndex = 4;
             // 
+            // panel3
+            // 
+            this.panel3.BackColor = System.Drawing.Color.Gray;
+            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel3.Controls.Add(this.ChkHideInfo);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel3.Location = new System.Drawing.Point(0, 255);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(1144, 18);
+            this.panel3.TabIndex = 3;
+            // 
+            // ChkHideInfo
+            // 
+            this.ChkHideInfo.AutoSize = true;
+            this.ChkHideInfo.Checked = true;
+            this.ChkHideInfo.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ChkHideInfo.Dock = System.Windows.Forms.DockStyle.Right;
+            this.ChkHideInfo.Location = new System.Drawing.Point(1029, 0);
+            this.ChkHideInfo.Name = "ChkHideInfo";
+            this.ChkHideInfo.Size = new System.Drawing.Size(113, 16);
+            this.ChkHideInfo.TabIndex = 0;
+            this.ChkHideInfo.Text = "Hide All Messages";
+            this.ChkHideInfo.UseVisualStyleBackColor = true;
+            this.ChkHideInfo.CheckedChanged += new System.EventHandler(this.UIOptions_CheckedChanged);
+            // 
             // ResultsListView
             // 
             this.ResultsListView.ContextMenuStrip = this.CMenuList;
@@ -371,30 +396,18 @@
             this.ListMenuExportList.Text = "&Export List (CSV)";
             this.ListMenuExportList.Click += new System.EventHandler(this.ListMenuExportList_Click);
             // 
-            // panel3
+            // BtnHide
             // 
-            this.panel3.BackColor = System.Drawing.Color.Gray;
-            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel3.Controls.Add(this.ChkHideInfo);
-            this.panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel3.Location = new System.Drawing.Point(0, 255);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(1144, 18);
-            this.panel3.TabIndex = 3;
-            // 
-            // ChkHideInfo
-            // 
-            this.ChkHideInfo.AutoSize = true;
-            this.ChkHideInfo.Checked = true;
-            this.ChkHideInfo.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ChkHideInfo.Dock = System.Windows.Forms.DockStyle.Right;
-            this.ChkHideInfo.Location = new System.Drawing.Point(1029, 0);
-            this.ChkHideInfo.Name = "ChkHideInfo";
-            this.ChkHideInfo.Size = new System.Drawing.Size(113, 16);
-            this.ChkHideInfo.TabIndex = 0;
-            this.ChkHideInfo.Text = "Hide All Messages";
-            this.ChkHideInfo.UseVisualStyleBackColor = true;
-            this.ChkHideInfo.CheckedChanged += new System.EventHandler(this.UIOptions_CheckedChanged);
+            this.BtnHide.BackColor = System.Drawing.SystemColors.Control;
+            this.BtnHide.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.BtnHide.ForeColor = System.Drawing.SystemColors.MenuText;
+            this.BtnHide.Location = new System.Drawing.Point(1058, 3);
+            this.BtnHide.Name = "BtnHide";
+            this.BtnHide.Size = new System.Drawing.Size(74, 25);
+            this.BtnHide.TabIndex = 5;
+            this.BtnHide.Text = "Hide";
+            this.BtnHide.UseVisualStyleBackColor = true;
+            this.BtnHide.Click += new System.EventHandler(this.BtnHide_Click);
             // 
             // panel5
             // 
@@ -618,7 +631,7 @@
             this.ExitTSMenu.Image = ((System.Drawing.Image)(resources.GetObject("ExitTSMenu.Image")));
             this.ExitTSMenu.Name = "ExitTSMenu";
             this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
-            this.ExitTSMenu.Size = new System.Drawing.Size(180, 22);
+            this.ExitTSMenu.Size = new System.Drawing.Size(134, 22);
             this.ExitTSMenu.Text = "E&xit";
             this.ExitTSMenu.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
@@ -830,19 +843,6 @@
             this.SysTrayClose.Text = "&Exit";
             this.SysTrayClose.Click += new System.EventHandler(this.SysTrayClose_Click);
             // 
-            // BtnHide
-            // 
-            this.BtnHide.BackColor = System.Drawing.SystemColors.Control;
-            this.BtnHide.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.BtnHide.ForeColor = System.Drawing.SystemColors.MenuText;
-            this.BtnHide.Location = new System.Drawing.Point(1058, 3);
-            this.BtnHide.Name = "BtnHide";
-            this.BtnHide.Size = new System.Drawing.Size(74, 25);
-            this.BtnHide.TabIndex = 5;
-            this.BtnHide.Text = "Hide";
-            this.BtnHide.UseVisualStyleBackColor = true;
-            this.BtnHide.Click += new System.EventHandler(this.BtnHide_Click);
-            // 
             // Starter
             // 
             this.AcceptButton = this.BtnFind;
@@ -873,9 +873,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).EndInit();
             this.MainSplitContainer.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
-            this.CMenuList.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
+            this.CMenuList.ResumeLayout(false);
             this.panel5.ResumeLayout(false);
             this.EventListsSplitContainer.Panel1.ResumeLayout(false);
             this.EventListsSplitContainer.Panel2.ResumeLayout(false);
