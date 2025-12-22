@@ -638,21 +638,26 @@ namespace Chizl.SearchSystemUI
 
                 List<string> keepItems = _unfilteredItemsList.Cast<ListViewItem>()
                                                 .Where(w => (remNoExt ? w.Text.Contains(".") : w.Text.Length > 0))
-                                                .Select(s => s.SubItems[5].Text).ToList();
+                                                .Select(s => s.SubItems[5].Text.ToLower()).ToList();
 
-                var excExt = _excludeItems.Where(w => w.Value.Type == FilterType.Extension || w.Value.Type == FilterType.NoExtension).Select(s => s.Value.Filter).ToArray();
+                var excExt = _excludeItems.Where(w => w.Value.Type == FilterType.Extension 
+                                                   || w.Value.Type == FilterType.NoExtension)
+                                          .Select(s => s.Value.Filter.ToLower())
+                                          .ToArray();
                 // This helps focus on mostly extension as there are some folders with . in them, but if
                 // the filter starts with a '.', lets assume this is an extension.  Extensions are not Case Sensitive
                 keepItems = keepItems.Where(w => !excExt.Contains(Path.GetExtension(w).ToLower())).ToList();
 
                 // Filter drives
                 keepItems = keepItems.Where(w => _excludeItems
-                                            .Where(k => k.Value.Type.Equals(FilterType.Drive) && w.StartsWith(k.Key))
+                                            .Where(k => k.Value.Type.Equals(FilterType.Drive) 
+                                                     && w.StartsWith(k.Key.ToLower()))
                                             .Count().Equals(0)).ToList();
 
                 // Remove any left overs.
                 keepItems = keepItems.Where(w => _excludeItems
-                                            .Where(k => k.Value.Type.Equals(FilterType.Contains) && w.Contains(k.Key))
+                                            .Where(k => k.Value.Type.Equals(FilterType.Contains)
+                                                     && w.IndexOf(k.Key.ToLower()) > -1)
                                             .Count().Equals(0)).ToList();
 
                 if (!keepItems.Count.Equals(ResultsListView.Items.Count))
@@ -661,7 +666,7 @@ namespace Chizl.SearchSystemUI
                 {
                     foreach (ListViewItem item in ResultsListView.Items)
                     {
-                        if (!keepItems.Contains(item.SubItems[5].Text))
+                        if (!keepItems.Contains(item.SubItems[5].Text.ToLower()))
                         {
                             changed = true;
                             break;
@@ -673,10 +678,10 @@ namespace Chizl.SearchSystemUI
                 {
                     var wasPaths = ResultsListView.Items.Cast<ListViewItem>().Select(w => w.SubItems[5].Text).ToArray();
 
-                    // This ensure the list doesn't show rows being removed then readded.  It's an instantant replace of data.
+                    // This ensure the list doesn't show rows being removed then re-added.  It's an instant replace of data.
                     ResultsListView.SuspendLayout();
                     ResultsListView.Items.Clear();
-                    ResultsListView.Items.AddRange(_unfilteredItemsList.Where(w => keepItems.Contains(w.SubItems[5].Text)).ToArray());
+                    ResultsListView.Items.AddRange(_unfilteredItemsList.Where(w => keepItems.Contains(w.SubItems[5].Text.ToLower())).ToArray());
                     ResultsListView.ResumeLayout(true);
 
                     var nowPaths = ResultsListView.Items.Cast<ListViewItem>().Select(w => w.SubItems[5].Text).ToArray();
