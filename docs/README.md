@@ -14,10 +14,11 @@
 ## Target Frameworks and Compatibility
 
 ### Library:
-* Is compatible with a wide range of .NET implementations, from older versions to the latest.
+* Is compatible with a wide range of .NET implementations, from older versions to the latest.  The library has been built under net6.0 without issues for those that need to downgrade.
   * <b>netstandard2.0</b>
-  * netstandard2.1
-  * net8.0
+  * <b>netstandard2.1</b>
+  * <b>net8.0</b>
+  * <b>net10.0</b>
 
 ### UI:
 * Is UI is build in Framework 4.8.1 as a demo, but fully usable for Window scans and searches.
