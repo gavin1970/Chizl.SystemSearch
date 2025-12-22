@@ -525,7 +525,8 @@ namespace Chizl.SearchSystemUI
                 string fullHeader = "";
                 foreach (ColumnHeader col in ResultsListView.Columns)
                 {
-                    if (col.Width == 0 || (pathOnly && col.Index != ResultsListView.Columns.Count - 1))
+                    //if (col.Width == 0 || (pathOnly && col.Index != ResultsListView.Columns.Count - 1))
+                    if ((pathOnly && col.Index != ResultsListView.Columns.Count - 1))
                         continue;
 
                     if (!string.IsNullOrWhiteSpace(fullHeader))
@@ -543,7 +544,12 @@ namespace Chizl.SearchSystemUI
                 if (pathOnly)
                     selected.Add($"{quotes}{lineItem.SubItems[5].Text}{quotes}");
                 else
-                    selected.Add($"{quotes}{lineItem.Text}{quotes}\t{quotes}{lineItem.SubItems[2].Text}{quotes}\t{quotes}{lineItem.SubItems[3].Text}{quotes}\t{quotes}{lineItem.SubItems[4].Text}{quotes}\t{quotes}{lineItem.SubItems[5].Text}{quotes}");
+                    selected.Add($"{quotes}{lineItem.Text}{quotes}" +
+                               $"\t{quotes}{lineItem.SubItems[1].Text}{quotes}" +
+                               $"\t{quotes}{lineItem.SubItems[2].Text}{quotes}" +
+                               $"\t{quotes}{lineItem.SubItems[3].Text}{quotes}" +
+                               $"\t{quotes}{lineItem.SubItems[4].Text}{quotes}" +
+                               $"\t{quotes}{lineItem.SubItems[5].Text}{quotes}");
             }
 
             selectedItems = selected.ToArray();
@@ -1088,7 +1094,7 @@ namespace Chizl.SearchSystemUI
         {
             _unfilteredItemsList.Clear();
             ResultsListView.Items.Clear();
-            _subFilterForm.ExcludeItems.Clear();
+            _subFilterForm?.ExcludeItems.Clear();
             TxtSearchName.Text = "";
             _lastFilteringStatus = "Filtered: 0";
             ShowMsg(SearchMessageType.SearchStatus, _lastFilteringStatus);
