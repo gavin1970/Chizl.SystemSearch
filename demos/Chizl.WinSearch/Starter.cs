@@ -1077,8 +1077,8 @@ namespace Chizl.SearchSystemUI
             ResultsListView.Items.AddRange(_unfilteredItemsList.ToArray());
 
             _excludeItems.Clear();
-            _driveFilterOn.SetFalse();
             _extFilterOn.SetFalse();
+            _driveFilterOn.SetFalse();
             _customFilterOn.SetFalse();
 
             SetFilterStatus();
@@ -1086,12 +1086,19 @@ namespace Chizl.SearchSystemUI
         }
         private void ListMenuClearList_Click(object sender, EventArgs e)
         {
-            ResultsListView.Items.Clear();
-            _excludeItems.Clear();
             _unfilteredItemsList.Clear();
+            ResultsListView.Items.Clear();
+            _subFilterForm.ExcludeItems.Clear();
+            TxtSearchName.Text = "";
+            _lastFilteringStatus = "Filtered: 0";
+            ShowMsg(SearchMessageType.SearchStatus, _lastFilteringStatus);
+            SetFilterStatus();
+
+            _excludeItems.Clear();
             _extFilterOn.SetFalse();
             _driveFilterOn.SetFalse();
             _customFilterOn.SetFalse();
+
             SetFilterStatus();
         }
         private bool LoadExcludesFromForm()
