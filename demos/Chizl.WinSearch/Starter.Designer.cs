@@ -311,7 +311,7 @@
             this.ListMenuCopyList,
             this.ListMenuExportList});
             this.CMenuList.Name = "CMenuList";
-            this.CMenuList.Size = new System.Drawing.Size(190, 192);
+            this.CMenuList.Size = new System.Drawing.Size(190, 170);
             // 
             // ListMenuFilters
             // 
