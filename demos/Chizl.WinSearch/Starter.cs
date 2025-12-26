@@ -1,4 +1,5 @@
 ﻿using Chizl.Applications;
+using Chizl.Graphix;
 using Chizl.SystemSearch;
 using Chizl.ThreadSupport;
 using Chizl.WinSearch;
@@ -107,7 +108,7 @@ namespace Chizl.SearchSystemUI
                 {
                     try { Invoke(d); }
                     catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
-                    catch { /* Ingore, shutting down. */ }
+                    catch { /* Ignore, shutting down. */ }
                 }
             }
             else if (!Disposing && !IsDisposed)
@@ -116,6 +117,9 @@ namespace Chizl.SearchSystemUI
                     return;
                 
                 _scanRunning.SetFalse();
+
+                var appIcon = IconImageList.Images["Search_AI.ico"];
+                _systemNotify.SetIcon(ModImg.ImgToIco(appIcon, new Size(32, 32)), null);
 
                 // this allows all messages to be posted, only
                 // need this setup during scan, which is too intense.
@@ -157,7 +161,7 @@ namespace Chizl.SearchSystemUI
                 {
                     try { Invoke(d); }
                     catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
-                    catch { /* Ingore, shutting down. */ }
+                    catch { /* Ignore, shutting down. */ }
                 }
             }
             else if (!Disposing && !IsDisposed)
@@ -167,8 +171,11 @@ namespace Chizl.SearchSystemUI
                 else
                     _scanAborted.SetFalse();
 
+                var appIcon = IconImageList.Images["Search_AI_Working.ico"];
+                _systemNotify.SetIcon(ModImg.ImgToIco(appIcon, new Size(32, 32)), null);
+
                 // set refresh for folder/file count
-                // information to max setting for refeshes.
+                // information to max setting for refreshes.
                 Interlocked.Exchange(ref resetRefreshCnt, _maxRefreshCnt);
                 Interlocked.Exchange(ref refreshCnt, 0);
 
@@ -196,7 +203,7 @@ namespace Chizl.SearchSystemUI
                 {
                     try { Invoke(d, e); }
                     catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
-                    catch { /* Ingore, shutting down. */ }
+                    catch { /* Ignore, shutting down. */ }
                 }
             }
             else if (!Disposing && !IsDisposed)
@@ -333,7 +340,9 @@ namespace Chizl.SearchSystemUI
         }
         private void SetupSysTray()
         {
-            Notifier.Icon = this.Icon;
+            // haven't scanned yet, so stays working until scan is ran.
+            var appIcon = IconImageList.Images["Search_AI_Working.ico"];
+            Notifier.Icon = ModImg.ImgToIco(appIcon, new Size(16, 16));
             Notifier.Text = GlobalSetup.WindowTitlebarText;
 
             _systemNotify = new SysNotify(this, Notifier, new SysNotifyTitle(About.Title, _fgTitleColor, _bgTitleColor, new Padding(4)));
@@ -575,7 +584,7 @@ namespace Chizl.SearchSystemUI
                 {
                     try { Invoke(d); }
                     catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
-                    catch { /* Ingore, shutting down. */ }
+                    catch { /* Ignore, shutting down. */ }
                 }
             }
             else if (!Disposing && !IsDisposed)
@@ -630,7 +639,7 @@ namespace Chizl.SearchSystemUI
                 {
                     try { return (Tuple<int, int>)Invoke(d); }
                     catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
-                    catch { /* Ingore, shutting down. */ }
+                    catch { /* Ignore, shutting down. */ }
                 }
                 return retVal;
             }
@@ -823,7 +832,7 @@ namespace Chizl.SearchSystemUI
             {
                 if (reScan && BtnStartStopScan.Text.Equals(_reScanText))
                 {
-                    if (MessageBox.Show("Are you sure you want to rescan?",
+                    if (MessageBox.Show("Are you sure you want to re-scan?",
                             About.Title, MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question) == DialogResult.No)
                         return;
