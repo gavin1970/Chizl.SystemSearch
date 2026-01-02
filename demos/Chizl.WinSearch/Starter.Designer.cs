@@ -191,6 +191,7 @@
             // 
             // EventList
             // 
+            this.EventList.BackColor = System.Drawing.Color.Beige;
             this.EventList.ContextMenuStrip = this.CMenuInfoErr;
             this.EventList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.EventList.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -253,8 +254,8 @@
             // 
             // panel4
             // 
-            this.panel4.Controls.Add(this.panel3);
             this.panel4.Controls.Add(this.ResultsListView);
+            this.panel4.Controls.Add(this.panel3);
             this.panel4.Controls.Add(this.BtnHide);
             this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel4.Location = new System.Drawing.Point(0, 0);
@@ -289,12 +290,14 @@
             // 
             // ResultsListView
             // 
+            this.ResultsListView.BackColor = System.Drawing.Color.AliceBlue;
+            this.ResultsListView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.ResultsListView.ContextMenuStrip = this.CMenuList;
             this.ResultsListView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ResultsListView.HideSelection = false;
             this.ResultsListView.Location = new System.Drawing.Point(0, 0);
             this.ResultsListView.Name = "ResultsListView";
-            this.ResultsListView.Size = new System.Drawing.Size(1144, 273);
+            this.ResultsListView.Size = new System.Drawing.Size(1144, 255);
             this.ResultsListView.TabIndex = 2;
             this.ResultsListView.UseCompatibleStateImageBehavior = false;
             this.ResultsListView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ResultsListView_MouseUp);
@@ -470,6 +473,7 @@
             // 
             // ErrorList
             // 
+            this.ErrorList.BackColor = System.Drawing.Color.MistyRose;
             this.ErrorList.ContextMenuStrip = this.CMenuInfoErr;
             this.ErrorList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ErrorList.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
