@@ -80,6 +80,7 @@ namespace Chizl.SearchSystemUI
                     liv.SubItems.Add($"{fi.Length.FormatByteSize()}");
                     liv.SubItems.Add(fi.CreationTime.ToString("MM/dd/yyyy HH:mm:ss"));
                     liv.SubItems.Add(fi.LastWriteTime.ToString("MM/dd/yyyy HH:mm:ss"));
+                    liv.SubItems.Add(fi.Extension);
                     liv.SubItems.Add(fi.FullName);
 
                     listViewItems.Add(liv);

@@ -528,6 +528,7 @@ namespace Chizl.SearchSystemUI
             selectedItems = new string[0] { };
             var selected = new List<string>();
             var quotes = !pathOnly ? "\"" : ""; //using this for possible change in future
+            var pathColumnId = ListViewColumns().Length - 1;
 
             if (withHeader)
             {
@@ -535,7 +536,7 @@ namespace Chizl.SearchSystemUI
                 foreach (ColumnHeader col in ResultsListView.Columns)
                 {
                     //if (col.Width == 0 || (pathOnly && col.Index != ResultsListView.Columns.Count - 1))
-                    if ((pathOnly && col.Index != ResultsListView.Columns.Count - 1))
+                    if ((pathOnly && col.Index != pathColumnId))
                         continue;
 
                     if (!string.IsNullOrWhiteSpace(fullHeader))
@@ -551,14 +552,18 @@ namespace Chizl.SearchSystemUI
             foreach (ListViewItem lineItem in ResultsListView.SelectedItems)
             {
                 if (pathOnly)
-                    selected.Add($"{quotes}{lineItem.SubItems[5].Text}{quotes}");
+                {
+                    // expects path to be the last column
+                    selected.Add($"{quotes}{lineItem.SubItems[pathColumnId].Text}{quotes}");
+                }
                 else
-                    selected.Add($"{quotes}{lineItem.Text}{quotes}" +
-                               $"\t{quotes}{lineItem.SubItems[1].Text}{quotes}" +
-                               $"\t{quotes}{lineItem.SubItems[2].Text}{quotes}" +
-                               $"\t{quotes}{lineItem.SubItems[3].Text}{quotes}" +
-                               $"\t{quotes}{lineItem.SubItems[4].Text}{quotes}" +
-                               $"\t{quotes}{lineItem.SubItems[5].Text}{quotes}");
+                {
+                    // by doing it this way, if a column is added or removed, code below will not be to be changed.
+                    var lineMerged = $"{quotes}{lineItem.Text}{quotes}";
+                    for (int i = 0; i < pathColumnId; i++)
+                        lineMerged += $"\t{quotes}{lineItem.SubItems[i + 1].Text}{quotes}";
+                    selected.Add(lineMerged);
+                }
             }
 
             selectedItems = selected.ToArray();
@@ -645,7 +650,7 @@ namespace Chizl.SearchSystemUI
             }
             else if (!Disposing && !IsDisposed)
             {
-
+                var pathColumnId = ListViewColumns().Length - 1;
                 var changed = false;
 
                 // If NoExtensions is found, then remove we don't want them in keepItems.
@@ -653,7 +658,7 @@ namespace Chizl.SearchSystemUI
 
                 List<string> keepItems = _unfilteredItemsList.Cast<ListViewItem>()
                                                 .Where(w => (remNoExt ? w.Text.Contains(".") : w.Text.Length > 0))
-                                                .Select(s => s.SubItems[5].Text.ToLower()).ToList();
+                                                .Select(s => s.SubItems[pathColumnId].Text.ToLower()).ToList();
 
                 var excExt = _excludeItems.Where(w => w.Value.Type == FilterType.Extension 
                                                    || w.Value.Type == FilterType.NoExtension)
@@ -681,7 +686,7 @@ namespace Chizl.SearchSystemUI
                 {
                     foreach (ListViewItem item in ResultsListView.Items)
                     {
-                        if (!keepItems.Contains(item.SubItems[5].Text.ToLower()))
+                        if (!keepItems.Contains(item.SubItems[pathColumnId].Text.ToLower()))
                         {
                             changed = true;
                             break;
@@ -691,15 +696,15 @@ namespace Chizl.SearchSystemUI
 
                 if (changed)
                 {
-                    var wasPaths = ResultsListView.Items.Cast<ListViewItem>().Select(w => w.SubItems[5].Text).ToArray();
+                    var wasPaths = ResultsListView.Items.Cast<ListViewItem>().Select(w => w.SubItems[pathColumnId].Text).ToArray();
 
                     // This ensure the list doesn't show rows being removed then re-added.  It's an instant replace of data.
                     ResultsListView.SuspendLayout();
                     ResultsListView.Items.Clear();
-                    ResultsListView.Items.AddRange(_unfilteredItemsList.Where(w => keepItems.Contains(w.SubItems[5].Text.ToLower())).ToArray());
+                    ResultsListView.Items.AddRange(_unfilteredItemsList.Where(w => keepItems.Contains(w.SubItems[pathColumnId].Text.ToLower())).ToArray());
                     ResultsListView.ResumeLayout(true);
 
-                    var nowPaths = ResultsListView.Items.Cast<ListViewItem>().Select(w => w.SubItems[5].Text).ToArray();
+                    var nowPaths = ResultsListView.Items.Cast<ListViewItem>().Select(w => w.SubItems[pathColumnId].Text).ToArray();
 
                     var removed = wasPaths.Where(w => !nowPaths.Contains(w)).ToList().Count();
                     var added = nowPaths.Where(w => !wasPaths.Contains(w)).ToList().Count();
@@ -1020,13 +1025,14 @@ namespace Chizl.SearchSystemUI
         {
             if (GetSelectedItems(out string[] selectedItem, true))
             {
+                var pathColumnId = ListViewColumns().Length - 1;
                 var change = false;
                 var drives = selectedItem.Select(s => s.Substring(0, 2));
 
                 // Find all drives that wasn't selected.
                 List<string> removeItems = _unfilteredItemsList.Cast<ListViewItem>()
-                                                .Where(w => !drives.Contains(w.SubItems[5].Text.Substring(0, 2)))
-                                                .Select(s => s.SubItems[5].Text.Substring(0, 2)).Distinct().ToList();
+                                                .Where(w => !drives.Contains(w.SubItems[pathColumnId].Text.Substring(0, 2)))
+                                                .Select(s => s.SubItems[pathColumnId].Text.Substring(0, 2)).Distinct().ToList();
 
                 foreach (var rm in removeItems)
                     change = _excludeItems.TryAdd(rm, new SubFilterExclusion(rm, FilterType.Drive)) || change;
@@ -1052,12 +1058,13 @@ namespace Chizl.SearchSystemUI
         {
             if (GetSelectedItems(out string[] selectedItems, true))
             {
+                var pathColumnId = ListViewColumns().Length - 1;
                 // Extensions are not to be Case Sensitive.
                 var change = false;
                 var exts = selectedItems.Select(s => Path.GetExtension(s).ToLower()).ToList();
 
                 var currFilter = _unfilteredItemsList.Cast<ListViewItem>()
-                                    .Select(s => s.SubItems[5].Text.ToLower()).ToList();
+                                    .Select(s => s.SubItems[pathColumnId].Text.ToLower()).ToList();
 
                 List<string> removeItems = currFilter
                                             .Where(w => exts.Where(ew => w.EndsWith(ew))
@@ -1390,6 +1397,13 @@ namespace Chizl.SearchSystemUI
                     Name = "ModifiedDate",
                     Text = "Modified",
                     Width = 30,
+                    TextAlign = HorizontalAlignment.Left,
+                },
+                new ColumnHeader
+                {
+                    Name = "FileExt",
+                    Text = "Ext",
+                    Width = 10,
                     TextAlign = HorizontalAlignment.Left,
                 },
                 new ColumnHeader
