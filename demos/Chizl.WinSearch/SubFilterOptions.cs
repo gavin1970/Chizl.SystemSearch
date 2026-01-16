@@ -110,7 +110,7 @@ namespace Chizl.WinSearch
             if (e.Column == 2)
                 colClickEvtArgs = new ColumnClickEventArgs(1);
 
-            _lViewHelper.ListView_Column_Sort(lv, colClickEvtArgs);
+            _lViewHelper.Lv_Column_Sort(lv, colClickEvtArgs);
         }
         private void ListView_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
         {

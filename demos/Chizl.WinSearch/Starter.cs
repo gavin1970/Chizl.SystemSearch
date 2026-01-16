@@ -353,7 +353,12 @@ namespace Chizl.SearchSystemUI
             SetupSysTray();
             LoadConfig();
             //required before Finder can be used.
-            SetupListView(ResultsListView, ListViewColumns());
+            var columns = ListViewColumns();
+            var hiddenCols = new ListViewOptions(allowColumnReorder: true, autoSizeLastCol:true, colSizable: true,
+                                        hideColumns: columns.Where(w => w.Tag != null && w.Tag.ToString().Contains("vis:0")).ToArray()
+                                        );
+
+            _lViewHelper.SetupListView(ResultsListView, columns, hiddenCols);
         }
         private DriveInfo[] GetScanDriveList()
         {
@@ -1290,74 +1295,6 @@ namespace Chizl.SearchSystemUI
         #endregion
 
         #region ListView Setup/Controls
-        private void ListView_ColumnClick(object sender, ColumnClickEventArgs e)
-        {
-            var lv = (ListView)sender;
-            ColumnClickEventArgs colClickEvtArgs = e;
-
-            if (e.Column == 2)
-                colClickEvtArgs = new ColumnClickEventArgs(1);
-
-            _lViewHelper.ListView_Column_Sort(lv, colClickEvtArgs);
-        }
-        private void ListView_ColumnWidthChanged(object sender, ColumnWidthChangedEventArgs e)
-        {
-            if (!_loaded)
-                return;
-            _loaded = false;
-
-            var lv = (ListView)sender;
-            if (lv.Columns.Count > 0 && e.ColumnIndex != lv.Columns.Count - 1)
-            {
-                lv.Columns[1].Width = 0;
-                lv.AutoResizeColumn(lv.Columns.Count - 1, ColumnHeaderAutoResizeStyle.HeaderSize);
-            }
-
-            _loaded = true;
-        }
-        private void SetupListView(ListView lv, ColumnHeader[] ch)
-        {
-            if (lv.View != View.Details)
-            {
-                // setup for sorting..
-                lv.HeaderStyle = ColumnHeaderStyle.Clickable;
-                // sort based on column click
-                lv.ColumnClick += ListView_ColumnClick;
-                // resizes last column, when any other columns are changed.
-                lv.ColumnWidthChanged += ListView_ColumnWidthChanged;
-
-                // removed multi-select
-                lv.MultiSelect = true;
-                // allow scrolls
-                lv.Scrollable = true;
-                // Set the view to show details.
-                lv.View = View.Details;
-                // Allow the user to edit item text.
-                lv.LabelEdit = false;
-                // Allow the user to rearrange columns.
-                lv.AllowColumnReorder = false;
-                // Display check boxes.
-                lv.CheckBoxes = false;
-                // Select the item and subitems when selection is made.
-                lv.FullRowSelect = true;
-                // Display grid lines.
-                lv.GridLines = true;
-                // Sort the items in the list in ascending order.
-                lv.Sorting = SortOrder.Descending;
-                // Text color
-                lv.ForeColor = Color.Black;
-
-                // more sorting
-                _lViewHelper.LvColumnSorter = new ListViewColumnSorter();
-                lv.ListViewItemSorter = _lViewHelper.LvColumnSorter;
-            }
-
-            if (lv.Columns.Count == 0)
-            {
-                lv.Columns.AddRange(ch);
-                lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
-            }
-        }
         internal ColumnHeader[] ListViewColumns()
         {
             if (_listViewColumns != null && _listViewColumns.Length > 0)
@@ -1377,6 +1314,7 @@ namespace Chizl.SearchSystemUI
                     Name = "SizeSort",
                     Text = "Size Bytes",
                     Width = 0,
+                    Tag = "vis:0",
                 },
                 new ColumnHeader
                 {

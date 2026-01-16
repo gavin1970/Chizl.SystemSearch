@@ -16,7 +16,7 @@ namespace Chizl.SearchSystemUI
             var winTitle = instName;
             // Two things:
             //  1. Using file version also allows multiple versions to be ran, just in case testing of before and after.
-            //  2. In case Relase version is running in memory, the developer can still change and test with Debug version.
+            //  2. In case Release version is running in memory, the developer can still change and test with Debug version.
 #if DEBUG
             winTitle += " (DEBUG)";
             instName += " DEBUG";
