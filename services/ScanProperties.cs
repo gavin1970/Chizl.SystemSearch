@@ -6,16 +6,16 @@ namespace Chizl.SystemSearch
     public sealed class ScanProperties
     {
         // Thread safe boolean
-        private Bool _file = new Bool(true);
-        private Bool _dir = new Bool(false);
+        private Bool _file = Bool.True;
+        private Bool _dir = Bool.False;
 
-        private Bool _ignoreChange = new Bool(true);
-        private Bool _allowWinRoot = new Bool(true);
-        private Bool _allowSysRoot = new Bool(true);
-        private Bool _allowUser = new Bool(true);
-        private Bool _allowTemp = new Bool(false);
-        private Bool _allowInternetCache = new Bool(false);
-        private Bool _allowRecycleBin = new Bool(false);
+        private Bool _ignoreChange = Bool.True;
+        private Bool _allowWinRoot = Bool.True;
+        private Bool _allowSysRoot = Bool.True;
+        private Bool _allowUser = Bool.True;
+        private Bool _allowTemp = Bool.False;
+        private Bool _allowInternetCache = Bool.False;
+        private Bool _allowRecycleBin = Bool.False;
 
         // prevent public constructor of class.
         internal ScanProperties() { }
@@ -60,7 +60,7 @@ namespace Chizl.SystemSearch
         public bool IgnoreChange
         {
             get => _ignoreChange;
-            set => _ignoreChange.SetVal(value);
+            set => _ignoreChange.TrySetValue(value);
         }
         /// <summary>
         /// ** Thread Safe **<br/>
@@ -74,7 +74,7 @@ namespace Chizl.SystemSearch
             get => _allowWinRoot;
             set
             {
-                if (_allowWinRoot.SetVal(value) != value)  //set only if there is a difference
+                if (_allowWinRoot.TrySetValue(value))  //set only if there is a difference
                     GlobalSettings.AddRemove(WindowsDir, _allowWinRoot);
 
                 CheckWinSys();
@@ -92,12 +92,13 @@ namespace Chizl.SystemSearch
             get => _allowSysRoot;
             set
             {
-                if (_allowSysRoot.SetVal(value) != value)  //set only if there is a difference
+                if (_allowSysRoot.TrySetValue(value))  //set only if there is a difference
                     GlobalSettings.AddRemove(SystemDir, _allowSysRoot);
 
                 CheckWinSys();
             }
         }
+
         /// <summary>
         /// ** Thread Safe **<br/>
         /// Allow YourProfile path to be scanned.<br/>
@@ -108,7 +109,7 @@ namespace Chizl.SystemSearch
             get => _allowUser;
             set
             {
-                if (_allowUser.SetVal(value) != value)  //set only if there is a difference
+                if (_allowUser.TrySetValue(value))  //set only if there is a difference
                     GlobalSettings.AddRemove(UserDir, _allowUser);
             }
         }
@@ -122,7 +123,7 @@ namespace Chizl.SystemSearch
             get => _allowTemp;
             set
             {
-                if (_allowTemp.SetVal(value) != value)  //set only if there is a difference
+                if (_allowTemp.TrySetValue(value))  //set only if there is a difference
                     GlobalSettings.AddRemove(TempDir, _allowTemp);
             }
         }
@@ -136,7 +137,7 @@ namespace Chizl.SystemSearch
             get => _allowInternetCache;
             set
             {
-                if (_allowInternetCache.SetVal(value) != value)  //set only if there is a difference
+                if (_allowInternetCache.TrySetValue(value))  //set only if there is a difference
                     GlobalSettings.AddRemove(InternetCache, _allowInternetCache);
             }
         }
@@ -150,7 +151,7 @@ namespace Chizl.SystemSearch
             get => _allowRecycleBin;
             set
             {
-                if (_allowRecycleBin.SetVal(value) != value)  //set only if there is a difference
+                if (_allowRecycleBin.TrySetValue(value))  //set only if there is a difference
                     GlobalSettings.AddRemove(RecycleBinDir, _allowRecycleBin);
             }
         }

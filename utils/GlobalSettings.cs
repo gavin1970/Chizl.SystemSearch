@@ -17,7 +17,7 @@ namespace Chizl.SystemSearch
         private static long _shutDown = 0;
         private static long _fullScanCompleted = 0;
         private static SystemScan _scanner = new SystemScan();
-        private static Bool IsRefreshing = new Bool();
+        private static Bool IsRefreshing = Bool.False;
 
         static GlobalSettings() { }
         public static ScanProperties ScanSettings { get; } = new ScanProperties();
