@@ -233,8 +233,6 @@ namespace Chizl.SystemSearch
                         verifiedFiles++;
                     }
                 }
-                // I found sending a message for each file found became really slow, so,
-                // SearchMessage.SendMsg(SearchMessageType.SearchResults, file);
 
                 // Bulk send of all findings by split of '\n', instant...  Balances Windows with Linux strings.
                 var arrData = string.Join("\n", fileList);
@@ -262,6 +260,9 @@ namespace Chizl.SystemSearch
             {
                 foreach (var sArr in searchCriteria.SearchCriteria)
                 {
+                    if (string.IsNullOrWhiteSpace(sArr))
+                        continue;
+
                     // met criteria, get out.
                     if (findCount >= searchCriteria.SearchCriteria.Length)
                         break;

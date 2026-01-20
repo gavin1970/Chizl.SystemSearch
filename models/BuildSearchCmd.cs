@@ -89,6 +89,7 @@ namespace Chizl.SystemSearch
                 search = search.TrimEnd(chr).Trim();
             return search;
         }
+
         private string[] FindCommands(ref string searchCriteria)
         {
             var hasPathSearch = false;
