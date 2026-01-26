@@ -30,6 +30,11 @@ namespace Chizl.SystemSearch
 
         #region Shortcut Methods
         public static bool AllowDir(string path) => ScanSettings.AllowDir(path);
+        public static void AddRemove(string[] dir, bool add) 
+        { 
+            foreach(var d in dir)
+                AddRemove(d, add);
+        }
         public static void AddRemove(string dir, bool add)
         {
             if (!IgnoreChange)
@@ -123,9 +128,9 @@ namespace Chizl.SystemSearch
                         RefreshFolder.TryRemove(actionFolder, out _);
                         if (Directory.Exists(actionFolder))
                         {
-                            // add that specific folder, without subfolders.
+                            // add that specific folder, without sub-folders.
                             queTasks.Add(_scanner.ScanFolder(actionFolder, true));
-                            // add all subfolders with each in their own thread task.
+                            // add all sub-folders with each in their own thread task.
                             queTasks.AddRange(_scanner.ScanSubFolders(Directory.GetDirectories(actionFolder), false));
                         }
                         else

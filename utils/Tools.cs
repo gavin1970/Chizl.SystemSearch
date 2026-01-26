@@ -57,16 +57,31 @@ namespace Chizl.SystemSearch
         /// </summary>
         /// <param name="input">String to create MD5 hash.</param>
         /// <returns>MD5 Hash without dashes</returns>
-        internal static string CreateMD5(string input, ReturnCase caseType = ReturnCase.Upper)
+        internal static string CreateMD5(string text, ReturnCase caseType = ReturnCase.Upper)
         {
             // Use input string to calculate MD5 hash
             using (MD5 md5 = MD5.Create())
-                return BytesToString(md5.ComputeHash(Encoding.ASCII.GetBytes(input)), caseType);
+                return BytesToString(md5.ComputeHash(Encoding.ASCII.GetBytes(text)), caseType, true);
         }
-        private static string BytesToString(byte[] input, ReturnCase caseType)
+
+        /// <summary>
+        /// Converts byte[] into a string with options for Case settings as well as remove dashes.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="caseType"></param>
+        /// <param name="removeDashs"></param>
+        /// <returns></returns>
+        internal static string BytesToString(byte[] byteArray, ReturnCase caseType = ReturnCase.AsIs, bool removeDashs = false)
         {
-            var hashReturn = BitConverter.ToString(input).Replace("-", "");
-            return caseType.Equals(ReturnCase.Upper) ? hashReturn.ToUpper() : hashReturn.ToLower();
+            var retVal = BitConverter.ToString(byteArray);
+            if (removeDashs)
+                retVal = retVal.Replace("-", "");
+
+            return caseType.Equals(ReturnCase.AsIs) 
+                ? retVal 
+                : caseType.Equals(ReturnCase.Upper) 
+                    ? retVal.ToUpper() 
+                    : retVal.ToLower();
         }
         public static string[] SplitOn(this string @this, char[] sep) => @this.Split(sep, StringSplitOptions.RemoveEmptyEntries);
         public static string[] SplitOn(this string @this, char sep) => @this.Split(new char[] { sep }, StringSplitOptions.RemoveEmptyEntries);

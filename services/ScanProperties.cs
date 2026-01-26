@@ -43,7 +43,7 @@ namespace Chizl.SystemSearch
             if (!AllowInternetCache && path.StartsWith(ScanPaths.InternetCache))
                 return false;
 
-            if (!AllowRecycleBin && path.StartsWith(ScanPaths.RecycleBinDir))
+            if (!AllowRecycleBin && path.Substring(2).StartsWith(ScanPaths.RecycleBinDir))
                 return false;
 
             return GlobalSettings.CustomExclusions.Where(w => path.ToLower().Contains(w.Key.ToLower())).Count() == 0;
@@ -98,7 +98,6 @@ namespace Chizl.SystemSearch
                 CheckWinSys();
             }
         }
-
         /// <summary>
         /// ** Thread Safe **<br/>
         /// Allow YourProfile path to be scanned.<br/>
@@ -156,7 +155,8 @@ namespace Chizl.SystemSearch
             }
         }
         /// <summary>
-        /// 
+        /// ** Thread Safe **<br/>
+        /// Setting to allow Search of within File name
         /// </summary>
         public bool SearchFilename
         {
@@ -168,6 +168,10 @@ namespace Chizl.SystemSearch
                     _dir.SetVal(true);
             }
         }
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Setting to allow Search of within Folder name
+        /// </summary>
         public bool SearchDirectory
         {
             get => _dir;
@@ -178,11 +182,42 @@ namespace Chizl.SystemSearch
                     _file.SetVal(true);
             }
         }
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow scan of Windows Directory
+        /// </summary>
         public string WindowsDir => ScanPaths.WindowsDir;
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow scan of System Directory.</br>
+        /// NOTE: Windows directory and System Directory are the same 
+        /// when ran on a windows platform.
+        /// </summary>
         public string SystemDir => ScanPaths.SystemDir;
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow scan of \users\--profile-- directory.
+        /// </summary>
         public string UserDir => ScanPaths.UserDir;
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow scan of Temp directory.<br/>
+        /// NOTE: Windows has many different locations for Temp files.  
+        /// This only pertains windows API: Path.GetTempPath()<br/>
+        /// Use custom to set other temp paths you are aware of.
+        /// </summary>
         public string TempDir => ScanPaths.TempDir;
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Allow scan of edge Internet cache directory.<br/>
+        /// NOTE: Since most users have many web browsers, this 
+        /// only pertains to Environment.SpecialFolder.InternetCache.
+        /// </summary>
         public string InternetCache => ScanPaths.InternetCache;
+        /// <summary>
+        /// ** Thread Safe **<br/>
+        /// Covers scan for all drives :\$Recycle.Bin
+        /// </summary>
         public string RecycleBinDir => ScanPaths.RecycleBinDir;
         #endregion
 

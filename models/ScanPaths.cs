@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -11,7 +12,7 @@ namespace Chizl.SystemSearch
         private static string _userRoot = string.Empty;
         private static string _tempRoot = string.Empty;
         private static string _internetCache = string.Empty;
-        private static string _recycleBin = "C:\\$Recycle.Bin";
+        private static string _recycleBin = string.Empty;
 
         static ScanPaths()
         {
@@ -20,11 +21,7 @@ namespace Chizl.SystemSearch
             _winRoot = ProperCase(Environment.GetFolderPath(Environment.SpecialFolder.Windows));
             _internetCache = ProperCase(Environment.GetFolderPath(Environment.SpecialFolder.InternetCache));
             _userRoot = ProperCase(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-
-            if (!Directory.Exists(_recycleBin))
-                _recycleBin = string.Empty;
-            else
-                _recycleBin = ProperCase(_recycleBin);
+            _recycleBin = "\\$Recycle.Bin";
         }
 
         public static string WindowsDir => _winRoot;
@@ -36,7 +33,7 @@ namespace Chizl.SystemSearch
 
         #region Private Helper Methods
         /// <summary>
-        /// Only have to Propercase 1 time, to match with what exists.  This is so, 
+        /// Only have to Proper-case 1 time, to match with what exists.  This is so, 
         /// we don't have to IgnoreCase for every folder and slow the process down.
         /// C:\WINDOWS is the biggest issue.
         /// </summary>

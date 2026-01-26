@@ -34,8 +34,9 @@ namespace Chizl.SystemSearch
     }
     internal enum ReturnCase
     {
-        Upper = 0,
-        Lower = 1
+        AsIs = 0,
+        Upper = 1,
+        Lower = 2
     }
 
     internal static class SearchExt

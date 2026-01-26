@@ -19,8 +19,8 @@ namespace Chizl.SystemSearch
         private static readonly ConcurrentDictionary<string, string> _fileDictionary = new ConcurrentDictionary<string, string>();
         private static readonly ConcurrentDictionary<string, byte> _folderDictionary = new ConcurrentDictionary<string, byte>();
         private static readonly ConcurrentDictionary<string, byte> _deniedDictionary = new ConcurrentDictionary<string, byte>();
-        private static readonly ConcurrentQueue<string> _fileInfoQueue = new ConcurrentQueue<string>();
-        private static Thread _fileInfoThread;
+        // private static readonly ConcurrentQueue<string> _fileInfoQueue = new ConcurrentQueue<string>();
+        // private static Thread _fileInfoThread;
 
         private static readonly object _countFldrLock = new object();
         private static readonly object _countFileLock = new object();
@@ -97,6 +97,11 @@ namespace Chizl.SystemSearch
                 }
             }
         }
+        /*
+        /// <summary>
+        /// This is how Thread object with use of AutoResetEvent classes used to be handled before Task.<br/>
+        /// Since Thread is being phased out, though I disagree, this isn't used at the moment.
+        /// </summary>
         internal static void ThreadEventMonitor()
         {
             var waitTimer = TimeSpan.FromSeconds(50);
@@ -113,6 +118,7 @@ namespace Chizl.SystemSearch
                             break;
 
                         _fileInfoQueue.TryDequeue(out string fileName);
+                        // TODO: not sure I'm going to do anything with this thread or not.
                     }
                 }
                 else if (iEvent != AutoEvent.Shutdown && iEvent != WaitHandle.WaitTimeout)
@@ -127,6 +133,7 @@ namespace Chizl.SystemSearch
                 }
             }
         }
+        /**/
         internal string[] GetFileList => _fileDictionary.Keys.ToArray();
         internal ConcurrentDictionary<string, string> FileDictionary => _fileDictionary;
         internal ConcurrentDictionary<string, byte> FolderDictionary => _folderDictionary;
@@ -240,8 +247,8 @@ namespace Chizl.SystemSearch
 
             // sending too many sent messages from the following loops, slows down the UI.
             // lets max mount of sends within each loop.
-            Interlocked.Exchange(ref toFileSentMsg, _maxSendInfoMsg);
-            Interlocked.Exchange(ref toFolderSentMsg, _maxSendInfoMsg);
+            Interlocked.Exchange(ref toFileSentMsg, _maxSendInfoMsg + 1);
+            Interlocked.Exchange(ref toFolderSentMsg, _maxSendInfoMsg + 1);
 
             // get all files under folder path.
             var fileKeys = _fileDictionary.Keys.Where(w => w.ToLower().Contains(folder)).ToList();
@@ -265,7 +272,7 @@ namespace Chizl.SystemSearch
                         if (_fileDictionary.TryRemove(key, out _))
                         {
                             Interlocked.Decrement(ref _scannedFiles);
-                            if (sendInfoMsg && Interlocked.Exchange(ref toFileSentMsg, --toFileSentMsg) >= 0)
+                            if (sendInfoMsg && Interlocked.Decrement(ref toFileSentMsg) > 0)
                                 SearchMessage.SendMsg(SearchMessageType.Info, $"{toFileSentMsg}: Removed '{key}' file from cache.");
                         }
                     })
@@ -286,7 +293,7 @@ namespace Chizl.SystemSearch
                         if (_folderDictionary.TryRemove(key, out _))
                         {
                             Interlocked.Decrement(ref _scannedFolders);
-                            if (sendInfoMsg && Interlocked.Exchange(ref toFolderSentMsg, --toFolderSentMsg) >= 0)
+                            if (sendInfoMsg && Interlocked.Decrement(ref toFolderSentMsg) > 0)
                                 SearchMessage.SendMsg(SearchMessageType.Info, $"{toFolderSentMsg}: Removed '{key}' folder from cache.");
                         }
                     })
@@ -399,17 +406,15 @@ namespace Chizl.SystemSearch
             if (_fileDictionary.TryAdd(fileName, md5Hash))
             {
                 Interlocked.Increment(ref _scannedFiles);
-                if (addMD5Hash)
+                /*
+                _fileInfoQueue.Enqueue(fileName);   // not unique
+                if (_fileInfoThread == null || !_fileInfoThread.IsAlive)
                 {
-                    _fileInfoQueue.Enqueue(fileName);   // not unique
-                    if (_fileInfoThread == null || !_fileInfoThread.IsAlive)
-                    {
-                        _fileInfoThread = new Thread(() => { ThreadEventMonitor(); });
-                        _fileInfoThread.Start();
-                    }
-
-                    Internals.AutoEvents[AutoEvent.FileInfoQueue].Set();
+                    _fileInfoThread = new Thread(() => { ThreadEventMonitor(); });
+                    _fileInfoThread.Start();
                 }
+                Internals.AutoEvents[AutoEvent.FileInfoQueue].Set();
+                /**/
                 return true;
             }
             else
