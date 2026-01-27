@@ -13,7 +13,7 @@ namespace Chizl.SystemSearch
     }
 
     /// <summary>
-    /// Set this up to easily switch commands bounderies.
+    /// Set this up to easily switch commands boundaries.
     /// [ext:txt,doc,docx]
     /// </summary>
     internal readonly struct Seps
@@ -31,6 +31,7 @@ namespace Chizl.SystemSearch
         public static char cCmdEnd { get; } = ':';
         public static char cFilterPos { get; } = '■';   // Alt-254 = ■
         public static char cExtPos { get; } = '☻';      // Alt-258 = ☻
+        public static char cNOEXT { get; } = '♦';      // Alt-260 = ♦
         public static char cPathPos { get; } = '♥';     // Alt-259 = ♥
         public static string GetCommandString(CommandType cmdType) => $"{cmdType}{cCmdEnd}";
         public static string GetCommandToken(CommandType cmdType) => 
@@ -47,6 +48,7 @@ namespace Chizl.SystemSearch
 
     internal class BuildSearchCmd
     {
+        const string _NOEXT = "NOEXT";
         private string[] _searchCriteria = new string[0];
         private readonly string[] _spaceRemovals = new string[4] { ":", "|", "[", "]" };
 
@@ -96,7 +98,7 @@ namespace Chizl.SystemSearch
             var hasExtSearch = false;
             var hasFilter = false;
 
-            // confort chars people like to use to seperate things.
+            // comfort chars people like to use to separate things.
             searchCriteria = searchCriteria.Replace($",", "")
                                            .Replace($"+", "")
                                            .Replace($";", "").Trim();
@@ -105,9 +107,9 @@ namespace Chizl.SystemSearch
             foreach (var ch in _spaceRemovals)
             {
                 // this will auto correct the following type of query:
-                //      "landon + ,  [path:code|gavin] ;  [ext: .txt | pdf |. doc | docx | .mp4]"
+                //      "Landon + ,  [path:code|Gavin] ;  [ext: .txt | PDF |. doc | docx | .mp4]"
                 // to look like this:
-                //      "landon[path:code|gavin][ext:.txt|pdf|. doc|docx|.mp4]"
+                //      "Landon[path:code|Gavin][ext:.txt|PDF|. doc|docx|.mp4]"
                 searchCriteria = DupSearchReplace(searchCriteria, new string[] { $"{ch} ", $" {ch}" }, $"{ch}");
             }
 
@@ -147,12 +149,12 @@ namespace Chizl.SystemSearch
                 if (iE == -1)
                     continue;
 
-                // get command param, add a byte to end, for removeal
+                // get command param, add a byte to end, for removal
                 var search = cmd.Substring(nS, iE++ - nS);
                 // remove command and param from search string.
                 var remove = cmd.Substring(iS, iE - iS);
 
-                // if the search extension doesn't have the ext type seperated from the values, we can't tell what is needed, lets skip extension.
+                // if the search extension doesn't have the ext type separated from the values, we can't tell what is needed, lets skip extension.
                 var srchSep = search.IndexOf(Seps.cCmdEnd);
                 if (srchSep == -1)
                     continue;
@@ -163,10 +165,17 @@ namespace Chizl.SystemSearch
                 {
                     case "ext":
                         cmdType = CommandType.ext;
-                        // this will resolve "ext:.txt|pdf|. doc|docx|.mp4", to look like: "ext:.txt|pdf|.doc|docx|.mp4"
+                        // This will resolve "ext:.txt|pdf|. doc|docx|.mp4", to look like: "ext:.txt|pdf|.doc|docx|.mp4"
                         // path and filter could have spaces within folder / file names, so we will not replace them.
-                        searchCriteria = searchCriteria.Replace(search, search.Replace(" ", ""));
-                        search = search.Replace(" ", "");
+                        var clnExt = search.Replace(" ", "").Replace(".", "");
+                        searchCriteria = searchCriteria.Replace(search, clnExt);
+
+                        // This supports (NOEXT, .NOEXT), which means files with no extension can also be part the search [ext: .pdf | NOEXT | doc | .docx].
+                        var sNE = clnExt.IndexOf(_NOEXT, StringComparison.CurrentCultureIgnoreCase);
+                        if (sNE > -1)
+                            clnExt = clnExt.Replace(clnExt.Substring(sNE, _NOEXT.Length), clnExt.Substring(sNE, _NOEXT.Length).ToUpper());
+
+                        search = clnExt.Replace(_NOEXT, $"{Seps.cNOEXT}");
                         break;
                     case "path":
                         cmdType = CommandType.path;
@@ -212,7 +221,7 @@ namespace Chizl.SystemSearch
             var multiPart = search.SplitOn(Seps.cOr);
             foreach (var cmd in multiPart)
             {
-                // Ignore dups.  Using ToLower() - to ensure to reject '.ico | .ICO'.  Both will be found with either format.
+                // Ignore duplicates.  Using ToLower() - to ensure to reject '.ico | .ICO'.  Both will be found with either format.
                 if (!Commands.Where(w => w.CommandType == cmdType && w.Search.ToLower() == cmd.ToLower()).Any())
                     Commands.Add(new SearchCommand(cmdType, cmd));
             }
@@ -235,7 +244,8 @@ namespace Chizl.SystemSearch
         private string SetExt(string search)
         {
             search = search.Replace(" ", "").Trim();
-            if (search.StartsWith("."))     // File could have multiple '.', only checking the first char exists.
+            // File could have multiple '.', only checking the first char exists.
+            if (search.StartsWith(".") || search.Equals(Seps.cNOEXT.ToString()))
                 return search.Trim();
             else
                 return $".{search.Trim()}";

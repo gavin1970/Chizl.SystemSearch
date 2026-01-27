@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("chizl.com")]
 [assembly: AssemblyProduct("Chizl.WinSearch")]
-[assembly: AssemblyCopyright("© 2025 chizl.com")]
+[assembly: AssemblyCopyright("© 2025-2026 chizl.com")]
 [assembly: AssemblyTrademark("chizl.com ™")]
 [assembly: AssemblyCulture("")]
 
@@ -29,7 +29,7 @@ using System.Runtime.InteropServices;
 //      Revision
 // 
 [assembly: AssemblyVersion("6.1.0.0")]
-[assembly: AssemblyFileVersion("6.1.26.1300")]
-[assembly: AssemblyInformationalVersion("6.1.26.0")]
+[assembly: AssemblyFileVersion("6.1.27.1806")]
+[assembly: AssemblyInformationalVersion("6.1.27.0")]
 [assembly: AssemblyKeyFileAttribute("")]
 [assembly: AssemblyDelaySignAttribute(false)]

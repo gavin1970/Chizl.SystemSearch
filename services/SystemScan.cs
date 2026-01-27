@@ -16,7 +16,7 @@ namespace Chizl.SystemSearch
         private static long _scannedFiles;
         private static long _fastPullScannedFiles;
 
-        private static readonly ConcurrentDictionary<string, string> _fileDictionary = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, bool> _fileDictionary = new ConcurrentDictionary<string, bool>();
         private static readonly ConcurrentDictionary<string, byte> _folderDictionary = new ConcurrentDictionary<string, byte>();
         private static readonly ConcurrentDictionary<string, byte> _deniedDictionary = new ConcurrentDictionary<string, byte>();
         // private static readonly ConcurrentQueue<string> _fileInfoQueue = new ConcurrentQueue<string>();
@@ -135,7 +135,7 @@ namespace Chizl.SystemSearch
         }
         /**/
         internal string[] GetFileList => _fileDictionary.Keys.ToArray();
-        internal ConcurrentDictionary<string, string> FileDictionary => _fileDictionary;
+        internal ConcurrentDictionary<string, bool> FileDictionary => _fileDictionary;
         internal ConcurrentDictionary<string, byte> FolderDictionary => _folderDictionary;
         internal bool IsDirectory(string path) => FolderDictionary.Where(w => w.Key.Equals(path)).Any();
         internal bool IsFile(string path) => FileDictionary.Where(w => w.Equals(path)).Any();
@@ -395,15 +395,14 @@ namespace Chizl.SystemSearch
             return retVal;
         }
 
-        internal bool AddFile(string fileName, bool addMD5Hash = false)
+        internal bool AddFile(string fileName)
         {
-            var md5Hash = addMD5Hash ? Tools.CreateMD5(fileName, ReturnCase.Lower) : "";
+            //if (GlobalSettings.CurrentStatus != LookupStatus.Running)
+            //    SetStatus(LookupStatus.Running);
 
-            if (GlobalSettings.CurrentStatus != LookupStatus.Running && addMD5Hash)
-                SetStatus(LookupStatus.Running);
-
+            var hasExt = !string.IsNullOrWhiteSpace(Path.GetExtension(fileName));
             // verifies root folder of file and determines if it should continue.
-            if (_fileDictionary.TryAdd(fileName, md5Hash))
+            if (_fileDictionary.TryAdd(fileName, hasExt))
             {
                 Interlocked.Increment(ref _scannedFiles);
                 /*

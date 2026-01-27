@@ -99,12 +99,12 @@ namespace Chizl.SystemSearch
         private bool DeepDive(string[] drives, BuildSearchCmd searchCriteria)
         {
             var retVal = false;
-            var fullFileList = Scanner.GetFileList;
-            var fullFileListLen = fullFileList.Length;
+            var fullFileList = Scanner.FileDictionary;
+            var fullFileListLen = fullFileList.Count();
             // Moved from List<string> to ConcurrentDictionary to prevent Duplication.
             // TryAdd() is faster than List.Contains() + List.Add().
-            var findingsDic = new ConcurrentDictionary<string, byte>();
-            var filters = new List<string>();
+            var findingsDic = new ConcurrentDictionary<string, bool>();
+            var filters = new List<(string Path, bool HasExt)>();
 
             var pathList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.path).ToList();
             var extList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.ext).ToList();
@@ -126,11 +126,11 @@ namespace Chizl.SystemSearch
                     foreach (var p in pathList)
                     {
                         if (findingsDic.Count > 0)
-                            filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(p.Search.ToLower())).Select(s => s.Key).ToList());
+                            filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(p.Search.ToLower())).Select(s => (s.Key, s.Value)));
                         else
                         {
-                            foreach (var item in fullFileList.Where(w => w.ToLower().Contains(p.Search.ToLower())).ToList())
-                                findingsDic.TryAdd(item, 0);
+                            foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(p.Search.ToLower())))
+                                findingsDic.TryAdd(item.Key, item.Value);
                         }
                     }
 
@@ -138,7 +138,7 @@ namespace Chizl.SystemSearch
                     if (filters.Count() > 0)
                     {
                         foreach (var item in filters.ToList())
-                            findingsDic.TryAdd(item, 0);
+                            findingsDic.TryAdd(item.Path, item.HasExt);
                     }
                 }
                 else if (wc.Length == 1 && wc.Equals(Seps.cExtPos.ToString()) && extList.Count() > 0)
@@ -149,11 +149,20 @@ namespace Chizl.SystemSearch
                     foreach (var e in extList)
                     {
                         if (findingsDic.Count > 0)
-                            filters.AddRange(findingsDic.Where(w => w.Key.ToLower().EndsWith(e.Search.ToLower())).Select(s => s.Key).ToList());
+                        {
+                            if(e.Search==Seps.cNOEXT.ToString())
+                                filters.AddRange(findingsDic.Where(w => !w.Value).Select(s => (s.Key, s.Value)));
+                            else
+                                filters.AddRange(findingsDic.Where(w => w.Key.ToLower().EndsWith(e.Search.ToLower())).Select(s => (s.Key, s.Value)));
+                        }
                         else
                         {
-                            foreach (var item in fullFileList.Where(w => w.ToLower().Contains(e.Search.ToLower())).ToList())
-                                findingsDic.TryAdd(item, 0);
+                            if (e.Search == Seps.cNOEXT.ToString())
+                                foreach (var item in fullFileList.Where(w => !w.Value))
+                                    findingsDic.TryAdd(item.Key, item.Value);
+                            else
+                                foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(e.Search.ToLower())))
+                                    findingsDic.TryAdd(item.Key, item.Value);
                         }
                     }
 
@@ -161,7 +170,7 @@ namespace Chizl.SystemSearch
                     if (filters.Count() > 0)
                     {
                         foreach (var item in filters.ToList())
-                            findingsDic.TryAdd(item, 0);
+                            findingsDic.TryAdd(item.Path, item.HasExt);
                     }
                 }
                 else if (wc.Length == 1 && wc.Equals(Seps.cFilterPos.ToString()) && filterList.Count() > 0)
@@ -173,19 +182,19 @@ namespace Chizl.SystemSearch
                     {
                         if (findingsDic.Count > 0)
                         {
-                            filters.AddRange(findingsDic.Where(w => !w.Key.ToLower().Contains(f.Search.ToLower())).Select(s => s.Key).ToList());
+                            filters.AddRange(findingsDic.Where(w => !w.Key.ToLower().Contains(f.Search.ToLower())).Select(s => (s.Key, s.Value)));
                             if (filters.Count() > 0)
                             {
                                 findingsDic.Clear();
                                 foreach (var item in filters.ToList())
-                                    findingsDic.TryAdd(item, 0);
+                                    findingsDic.TryAdd(item.Path, item.HasExt);
                                 filters.Clear();
                             }
                         }
                         else
                         {
-                            foreach (var item in fullFileList.Where(w => w.ToLower().Contains(f.Search.ToLower())).ToList())
-                                findingsDic.TryAdd(item, 0);
+                            foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(f.Search.ToLower())).ToList())
+                                findingsDic.TryAdd(item.Key, item.Value);
                         }
                     }
                 }
@@ -195,18 +204,18 @@ namespace Chizl.SystemSearch
 
                     // if we have content, we now need to filter down for each criteria.
                     if (findingsDic.Count > 0)
-                        filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(wc.ToLower())).Select(s => s.Key).ToList());
+                        filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(wc.ToLower())).Select(s => (s.Key, s.Value)));
                     else
                     {
-                        foreach (var item in fullFileList.Where(w => w.ToLower().Contains(wc.ToLower())).ToList())
-                            findingsDic.TryAdd(item, 0);
+                        foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(wc.ToLower())).ToList())
+                            findingsDic.TryAdd(item.Key, item.Value);
                     }
 
                     if (filters.Count() > 0)
                     {
                         findingsDic.Clear();
                         foreach (var item in filters.ToList())
-                            findingsDic.TryAdd(item, 0);
+                            findingsDic.TryAdd(item.Path, item.HasExt);
                     }
                 }
 
