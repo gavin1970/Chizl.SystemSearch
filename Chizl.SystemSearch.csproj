@@ -14,8 +14,8 @@
 				<Company>Chizl.com</Company>
 				<Copyright>© 2025 chizl.com</Copyright>
 				<PackageTags>file-search;library;in-console;on-desktop;standard;framework;no-deps;netstandard2.0;netstandard2.1;net8.0;net10.0</PackageTags>
-				<FileVersion>6.1.27.1806</FileVersion>
-				<Version>6.1.27.0</Version>
+				<FileVersion>6.1.30.1243</FileVersion>
+				<Version>6.1.30.0</Version>
 				<AssemblyVersion>6.1.0.0</AssemblyVersion>
 				<PackageReadmeFile>README.md</PackageReadmeFile>
 		</PropertyGroup>

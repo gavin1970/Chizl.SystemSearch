@@ -205,9 +205,14 @@ namespace Chizl.SystemSearch
         {
             List<Task> taskList = new List<Task>();
 
+            // Run asynchronously based on processor count to prevent max CPU costs.
+            var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
+
             // only holds root folders of each drive.
             foreach (var subfolder in folderList)
             {
+                semaphore.WaitAsync();
+
                 try
                 {
                     if (GlobalSettings.ScanSettings.AllowDir(subfolder))
@@ -230,6 +235,10 @@ namespace Chizl.SystemSearch
                     if (_deniedDictionary.TryAdd(subfolder, 0))
                         SearchMessage.SendMsg(ex);
                     continue;
+                }
+                finally
+                {
+                    semaphore.Release();
                 }
             }
 
