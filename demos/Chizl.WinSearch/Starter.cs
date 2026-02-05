@@ -1102,8 +1102,11 @@ namespace Chizl.SearchSystemUI
         {
             ResultsListView.Items.Clear();
             ResultsListView.Items.AddRange(_unfilteredItemsList.ToArray());
-
+            
             _excludeItems.Clear();
+            _unfilteredItemsList.Clear();
+            _subFilterForm?.ExcludeItems.Clear();
+
             _extFilterOn.SetFalse();
             _driveFilterOn.SetFalse();
             _customFilterOn.SetFalse();
