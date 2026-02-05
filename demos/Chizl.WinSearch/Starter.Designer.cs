@@ -41,6 +41,8 @@
             this.ResultsPanel = new System.Windows.Forms.Panel();
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.ChkHideInfo = new System.Windows.Forms.CheckBox();
             this.ResultsListView = new System.Windows.Forms.ListView();
             this.CMenuList = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ListMenuFilters = new System.Windows.Forms.ToolStripMenuItem();
@@ -55,8 +57,6 @@
             this.ListMenuCopyPath = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuCopyList = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuExportList = new System.Windows.Forms.ToolStripMenuItem();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.ChkHideInfo = new System.Windows.Forms.CheckBox();
             this.BtnHide = new System.Windows.Forms.Button();
             this.panel5 = new System.Windows.Forms.Panel();
             this.EventListsSplitContainer = new System.Windows.Forms.SplitContainer();
@@ -113,8 +113,8 @@
             this.MainSplitContainer.Panel2.SuspendLayout();
             this.MainSplitContainer.SuspendLayout();
             this.panel4.SuspendLayout();
-            this.CMenuList.SuspendLayout();
             this.panel3.SuspendLayout();
+            this.CMenuList.SuspendLayout();
             this.panel5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.EventListsSplitContainer)).BeginInit();
             this.EventListsSplitContainer.Panel1.SuspendLayout();
@@ -885,9 +885,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).EndInit();
             this.MainSplitContainer.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
-            this.CMenuList.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
+            this.CMenuList.ResumeLayout(false);
             this.panel5.ResumeLayout(false);
             this.EventListsSplitContainer.Panel1.ResumeLayout(false);
             this.EventListsSplitContainer.Panel2.ResumeLayout(false);

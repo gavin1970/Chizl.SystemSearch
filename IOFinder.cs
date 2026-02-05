@@ -106,10 +106,10 @@ namespace Chizl.SystemSearch
             var findingsDic = new ConcurrentDictionary<string, bool>();
             var filters = new List<(string Path, bool HasExt)>();
 
-            var pathList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.path).ToList();
-            var extList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.ext).ToList();
-            var filterList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.filter).ToList();
-            filterList.AddRange(searchCriteria.Commands.Where(w => w.CommandType == CommandType.exclude).ToList());
+            var pathList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Includes).ToList();
+            var extList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Ext).ToList();
+            var filterList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Filter).ToList();
+            filterList.AddRange(searchCriteria.Commands.Where(w => w.CommandType == CommandType.Excludes).ToList());
 
             for (int i = 0; i < searchCriteria.SearchCriteria.Length; i++)
             {
@@ -118,7 +118,7 @@ namespace Chizl.SystemSearch
 
                 var wc = searchCriteria.SearchCriteria[i];
 
-                if (wc.Length == 1 && wc.Equals(Seps.cPathPos.ToString()) && pathList.Count() > 0)
+                if (wc.Length == 1 && wc.Equals(Seps.cIncludesPos.ToString()) && pathList.Count() > 0)
                 {
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();

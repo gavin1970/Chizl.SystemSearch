@@ -6,10 +6,10 @@ namespace Chizl.SystemSearch
 {
     internal enum CommandType
     {
-        path,
-        ext,
-        filter,
-        exclude
+        Includes,
+        Ext,
+        Filter,
+        Excludes
     }
 
     /// <summary>
@@ -32,13 +32,13 @@ namespace Chizl.SystemSearch
         public static char cFilterPos { get; } = '■';   // Alt-254 = ■
         public static char cExtPos { get; } = '☻';      // Alt-258 = ☻
         public static char cNOEXT { get; } = '♦';      // Alt-260 = ♦
-        public static char cPathPos { get; } = '♥';     // Alt-259 = ♥
+        public static char cIncludesPos { get; } = '♥';     // Alt-259 = ♥
         public static string GetCommandString(CommandType cmdType) => $"{cmdType}{cCmdEnd}";
         public static string GetCommandToken(CommandType cmdType) => 
-            cmdType == CommandType.ext ? $"{cExtPos}" 
-            : (cmdType == CommandType.filter || cmdType == CommandType.exclude) 
+            cmdType == CommandType.Ext ? $"{cExtPos}" 
+            : (cmdType == CommandType.Filter || cmdType == CommandType.Excludes) 
             ? $"{cFilterPos}" 
-            : $"{cPathPos}";
+            : $"{cIncludesPos}";
     }
 
     internal static class SepsExt
@@ -107,9 +107,9 @@ namespace Chizl.SystemSearch
             foreach (var ch in _spaceRemovals)
             {
                 // this will auto correct the following type of query:
-                //      "Landon + ,  [path:code|Gavin] ;  [ext: .txt | PDF |. doc | docx | .mp4]"
+                //      "Landon + ,  [includes:code|Gavin] ;  [ext: .txt | PDF |. doc | docx | .mp4]"
                 // to look like this:
-                //      "Landon[path:code|Gavin][ext:.txt|PDF|. doc|docx|.mp4]"
+                //      "Landon[includes:code|Gavin][ext:.txt|PDF|. doc|docx|.mp4]"
                 searchCriteria = DupSearchReplace(searchCriteria, new string[] { $"{ch} ", $" {ch}" }, $"{ch}");
             }
 
@@ -159,14 +159,14 @@ namespace Chizl.SystemSearch
                 if (srchSep == -1)
                     continue;
 
-                var cmdType = CommandType.ext;
+                var cmdType = CommandType.Ext;
                 // get command type
                 switch (search.Substring(0, srchSep).ToLowerInvariant())
                 {
                     case "ext":
-                        cmdType = CommandType.ext;
+                        cmdType = CommandType.Ext;
                         // This will resolve "ext:.txt|pdf|. doc|docx|.mp4", to look like: "ext:.txt|pdf|.doc|docx|.mp4"
-                        // path and filter could have spaces within folder / file names, so we will not replace them.
+                        // includes and excludes could have spaces within folder / file names, so we will not replace them.
                         var clnExt = search.Replace(" ", "").Replace(".", "");
                         searchCriteria = searchCriteria.Replace(search, clnExt);
 
@@ -177,12 +177,12 @@ namespace Chizl.SystemSearch
 
                         search = clnExt.Replace(_NOEXT, $"{Seps.cNOEXT}");
                         break;
-                    case "path":
-                        cmdType = CommandType.path;
+                    case "includes":
+                        cmdType = CommandType.Includes;
                         break;
                     case "filter":
                     case "exclude":
-                        cmdType = CommandType.exclude;
+                        cmdType = CommandType.Excludes;
                         break;
                     default:
                         // no idea what was passed, but it wasn't anything expected.
@@ -190,11 +190,11 @@ namespace Chizl.SystemSearch
                 }
 
                 // use for token later.
-                hasPathSearch = hasPathSearch || cmdType == CommandType.path;
+                hasPathSearch = hasPathSearch || cmdType == CommandType.Includes;
                 // use for token later.
-                hasExtSearch = hasExtSearch || cmdType == CommandType.ext;
+                hasExtSearch = hasExtSearch || cmdType == CommandType.Ext;
                 // use for token later.
-                hasFilter = hasFilter || cmdType == CommandType.exclude;
+                hasFilter = hasFilter || cmdType == CommandType.Excludes;
 
                 // replace the command with a token for search order
                 retVal = retVal.Replace(remove, "");
@@ -207,9 +207,9 @@ namespace Chizl.SystemSearch
             // Can have one or more tokens. Loading filters/exclude first, this removes
             // the larger count of files before running the other extensions.
             retVal = retVal.Trim();
-            retVal += hasPathSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.path)}{Seps.cWild}" : "";
-            retVal += hasExtSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.ext)}{Seps.cWild}" : "";
-            retVal += hasFilter ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.exclude)}{Seps.cWild}" : "";
+            retVal += hasPathSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Includes)}{Seps.cWild}" : "";
+            retVal += hasExtSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Ext)}{Seps.cWild}" : "";
+            retVal += hasFilter ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Excludes)}{Seps.cWild}" : "";
 
             // SplitOn will auto strip ** by ignoring blank entries if exists.
             return retVal.Replace(",", "").SplitOn(Seps.cWild);
@@ -233,7 +233,7 @@ namespace Chizl.SystemSearch
         public SearchCommand(CommandType searchPart, string search)
         {
             CommandType = searchPart;
-            Search = (searchPart.Equals(CommandType.ext)
+            Search = (searchPart.Equals(CommandType.Ext)
                 ? SetExt(search)                            // strips all spaces and adds '.' at the start, if not there.
                 : search)
                 .Replace(Seps.cWild.ToString(), "");        // wild cards are not supported in search extensions

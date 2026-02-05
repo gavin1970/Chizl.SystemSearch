@@ -67,6 +67,7 @@
     </Compile>
     <Compile Include="utils\About.cs" />
     <Compile Include="utils\ConfigData.cs" />
+    <Compile Include="utils\Constants.cs" />
     <Compile Include="utils\GlobalSetup.cs" />
     <Compile Include="utils\ListViewHelper.cs" />
     <Compile Include="utils\SingleInstance.cs" />
