@@ -15,10 +15,10 @@
 
 ### Library:
 * Is compatible with a wide range of .NET implementations, from older versions to the latest.  The library has been built under net6.0 without issues for those that need to downgrade.
-  * <b>netstandard2.0</b>
-  * <b>netstandard2.1</b>
-  * <b>net8.0</b>
-  * <b>net10.0</b>
+  * **netstandard2.0**
+  * **netstandard2.1**
+  * **net8.0**
+  * **net10.0**
 
 ### UI:
 * Is UI is build in Framework 4.8.1 as a demo, but fully usable for Window scans and searches.
@@ -29,27 +29,29 @@
 <img width="1642" height="953" alt="image" src="https://github.com/user-attachments/assets/da2e70af-b722-4b6e-9ee6-88008e150b15" /><br/>
 <img width="1642" height="953" alt="image" src="https://github.com/user-attachments/assets/196f601e-4fac-4d8a-8b9b-e37d06e53e57" />
 
-### Search Understanding with Extension:
+### Search Understanding with Search Tokens:
 * Literal Search.
 	- All searches are not case sensitive.
 	- Configuration next to the `Find` button will allow `Folder` and/or `File` search criteria and allow include/exclude of special folders.  e.g. [RecycleBin, Temp, Internet Cache, Profile, Windows]
 	- If File and Folder Results are configured to return, a search of `Google Gemini` searches for the full string, including the space on all folders and files.
 	- Search, `Google*Gemini` searches for `Google` first, in folder or file, then `Gemini` must follow somewhere in the full path.  e.g. `c:\mycode\google\ai\gemini.config`
 		- If Folder results is turned off, `c:\mycode\google\ai\gemini.config` would not return.  `google` and `gemini` must be contained in the filename.
-* Search Extensions
-	- All extension calls require square brackets around the whole extension.
-	- An extension group starts after the open bracket and must be labeled and followed by a colon.  e.g. `ext:`, `path:`, `filter:`, or `exclude:`.
-	- Path can be set, requiring path or parts of a path to exist. e.g. `[ path : \users\ | c:\windows ]`
-	- Filter and Exclude are the same, only there for personal preference. e.g. `[ exclude : \users\ | windows ]`
-	- For multiple values in an extension group require a separation with `|` and can have spaces for visual appearance, but spaces will be auto removed if exists. Dot `.` are not required, but can exists. e.g. `[ext:pdf|doc|docx]`, `[ext:.pdf|.doc|.docx]` or `[ ext : pdf | doc | docx ]`
-	- Multiple search extensions can be used and can be separated with ` ` or  ` + `.  It's your personal preference.
+* Search Tokens
+	- All Search Tokens require square brackets around the whole search token. None of these search tokens are not limited to how many token values they can have.
+	- A Search Token group starts after the open bracket and must be labeled and followed by a colon.  e.g. `ext:`, `includes:`, or `excludes:`.
+	- Includes, full path must contain one of the token values. e.g. `[ includes : \users\ | c:\windows ]`
+	- Exclude, full path can not contain any of the token value. e.g. `[ excludes : \users\ | windows | d: ]`
+	- For multiple values in a search token require a separation with `|` and can have spaces for visual appearance, but spaces will be auto removed if exists.
+	- Periods `.` are not required, but can exists for file extension. e.g. `[ext:pdf|doc|docx]`, `[ext:.pdf|.doc|.docx]` or `[ ext : pdf | doc | docx ]`
+	- Multiple search tokens can be used and can be separated with ` ` or  ` + `.  It's your personal preference.
 * Search Example and Expected Results
-  - Ex1: `microsoft + [exclude:\windows\] + [ext:pdf|docx|xls|xlsx|txt] + [path:\downloads\|drive]`
-	- Ex2: `version + [path:git|nuget] + [exclude:\godaddy\|win] + [ext:xml|txt]`
+  - Ex1: `microsoft + [excludes:\windows\] + [ext:pdf|docx|xls|xlsx|txt] + [includes:\downloads\|drive]`
+  - Ex2: `win*system + [excludes: D:] + [ext:pdf|docx|xls|xlsx|txt] + [includes:\downloads\|drive]`
+  - Ex3: `version + [includes:git|nuget] + [excludes:\godaddy\|win|d:] + [ext:xml|txt]`
 		- `version` - If File and Folder Results are checked in the UI, the folder or filename must contain `version`.
-		- `[path:git|nuget]` - The path **must** contain `git` **or** `nuget`.  This is applied even if you have Folder Results set to off.
-		- `[exclude:\godaddy\|win]` - The path can **not** contain `\godaddy\` **or** `win`.  This would include `C:\Windows` as an example.
-		- `[ext:xml|txt]` - The file **must** have a `.xml` **or** `.txt` file extension.
+		- `[includes:git|nuget]` - The full path **must** contain `git` **or** `nuget`.  This is applied even if you have Folder Results set to off.
+		- `[excludes:\godaddy\|win|d:]` - The full path can **not** contain `\godaddy\` **or** `win` **or** `D:` drive.  This would include `C:\Windows` and all files on your D: drive.
+		- `[ext:xml|txt]` - The file **must** have a `.xml` **or** `.txt` as a file extension.
 
 		- Accepted Examples:
 		```
@@ -71,7 +73,7 @@
 
 ## Atomic Operations and Thread Safety
 #### Chizl.SystemSearch library utilizes modern atomic operations for thread safety. 
-This library employs Volatile.Read<T> and Interlocked.Exchange<T> for atomic read and write operations, ensuring thread safety across supported platforms.
+This library employs Volatile.Read&lt;T&gt; and Interlocked.Exchange&lt;T&gt; for atomic read and write operations, ensuring thread safety across supported platforms.
 
 #### Deprecation of Legacy Patterns
 Legacy patterns using int flags for boolean values have been deprecated in favor of production ready custom "Bool" class used like bool types, with atomic operations, aligning with modern .NET practices.
