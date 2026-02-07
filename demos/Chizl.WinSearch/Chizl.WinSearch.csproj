@@ -35,6 +35,9 @@
   <PropertyGroup>
     <ApplicationIcon>Search_AI.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Chizl.SearchSystemUI.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
