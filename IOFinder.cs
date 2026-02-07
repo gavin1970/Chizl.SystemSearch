@@ -182,7 +182,11 @@ namespace Chizl.SystemSearch
                     {
                         if (findingsDic.Count > 0)
                         {
-                            filters.AddRange(findingsDic.Where(w => !w.Key.ToLower().Contains(f.Search.ToLower())).Select(s => (s.Key, s.Value)));
+                            if (f.Search.ToLower() == Seps.sNOEXT.ToLower())
+                                filters.AddRange(findingsDic.Where(w => w.Value).Select(s => (s.Key, s.Value)));
+                            else
+                                filters.AddRange(findingsDic.Where(w => !w.Key.ToLower().Contains(f.Search.ToLower())).Select(s => (s.Key, s.Value)));
+
                             if (filters.Count() > 0)
                             {
                                 findingsDic.Clear();

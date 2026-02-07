@@ -32,6 +32,7 @@ namespace Chizl.SystemSearch
         public static char cFilterPos { get; } = '■';   // Alt-254 = ■
         public static char cExtPos { get; } = '☻';      // Alt-258 = ☻
         public static char cNOEXT { get; } = '♦';      // Alt-260 = ♦
+        public static string sNOEXT { get; } = "NOEXT";
         public static char cIncludesPos { get; } = '♥';     // Alt-259 = ♥
         public static string GetCommandString(CommandType cmdType) => $"{cmdType}{cCmdEnd}";
         public static string GetCommandToken(CommandType cmdType) => 
@@ -171,7 +172,7 @@ namespace Chizl.SystemSearch
                         searchCriteria = searchCriteria.Replace(search, clnExt);
 
                         // This supports (NOEXT, .NOEXT), which means files with no extension can also be part the search [ext: .pdf | NOEXT | doc | .docx].
-                        var sNE = clnExt.IndexOf(_NOEXT, StringComparison.CurrentCultureIgnoreCase);
+                        var sNE = clnExt.IndexOf(Seps.sNOEXT, StringComparison.CurrentCultureIgnoreCase);
                         if (sNE > -1)
                             clnExt = clnExt.Replace(clnExt.Substring(sNE, _NOEXT.Length), clnExt.Substring(sNE, _NOEXT.Length).ToUpper());
 
@@ -181,7 +182,7 @@ namespace Chizl.SystemSearch
                         cmdType = CommandType.Includes;
                         break;
                     case "filter":
-                    case "exclude":
+                    case "excludes":
                         cmdType = CommandType.Excludes;
                         break;
                     default:
