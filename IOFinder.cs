@@ -37,9 +37,15 @@ namespace Chizl.SystemSearch
         }
 
         #region Private
+        // we want a new instance of the scanner each time, to ensure we have a clean
+        // cache, and to prevent any threading issues with multiple searches going on at once.
         internal SystemScan Scanner => new SystemScan();
         public ScanProperties Criteria => GlobalSettings.ScanSettings;
+        // we want to run the scan async, but we want the search to
+        // wait for the scan to complete before it starts searching the cache.
         private Task Scan(string[] drives, bool sendMsg, bool isRescan) => Scanner.ScanDrives(drives, sendMsg, isRescan);
+        // we want to run the search async, but we want it to wait for
+        // the scan to complete before it starts searching the cache.
         private Task Search(string[] drives, string searchCriteria, bool isRescan)
         {
             var searchTask = Task.Run(async () =>
@@ -71,6 +77,14 @@ namespace Chizl.SystemSearch
                 _watchers.Clear();
             }
         }
+        /// <summary>
+        /// Searches the cache for the given search criteria.  If the cache is not fully built, it will wait for the 
+        /// scan to complete before searching.  Event messages will be sent to subscribers with results and status updates.
+        /// </summary>
+        /// <param name="drives"></param>
+        /// <param name="searchCriteria"></param>
+        /// <param name="sendMsg"></param>
+        /// <returns></returns>
         private bool SearchCache(string[] drives, string searchCriteria, bool sendMsg = true)
         {
             var retVal = false;
@@ -81,7 +95,9 @@ namespace Chizl.SystemSearch
                 return retVal;
             }
 
-             var buildSearchCriteria = new BuildSearchCmd(ref searchCriteria);
+            // build the search criteria commands, this will help with the
+            // search, and prevent us from having to parse the criteria multiple times.
+            var buildSearchCriteria = new BuildSearchCmd(ref searchCriteria);
 
             if (sendMsg)
             {
@@ -89,6 +105,9 @@ namespace Chizl.SystemSearch
                 SearchMessage.SendMsg(SearchMessageType.SearchQueryUsed, searchCriteria);
             }
 
+            // search the cache for the criteria, this will return a list of files that match the
+            // criteria, but we still need to verify them against the criteria, as some of the
+            // criteria is not able to be pre-filtered in the cache.
             retVal = DeepDive(drives, buildSearchCriteria);
 
             // send total count message, to ensure accuratness
@@ -103,49 +122,74 @@ namespace Chizl.SystemSearch
             var fullFileListLen = fullFileList.Count();
             // Moved from List<string> to ConcurrentDictionary to prevent Duplication.
             // TryAdd() is faster than List.Contains() + List.Add().
-            var findingsDic = new ConcurrentDictionary<string, bool>();
+            ConcurrentDictionary<string, bool> findingsDic = new ConcurrentDictionary<string, bool>();
             var filters = new List<(string Path, bool HasExt)>();
 
+            // we want to loop through the search criteria, and filter down the list of files based on the criteria.
             var pathList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Includes).ToList();
-            var extList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Ext).ToList();
-            var filterList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Filter).ToList();
-            filterList.AddRange(searchCriteria.Commands.Where(w => w.CommandType == CommandType.Excludes).ToList());
+            // we can pre-filter the list based on the extensions, this will help with the search, and prevent us from having to parse the criteria multiple times.
+            var extList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Extensions).ToList();
+            // we can pre-filter the list based on the excludes, this will help with the search, and prevent us from having to parse the criteria multiple times.
+            var filterList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Excludes).ToList();
 
+            // we want to loop through the search criteria, and filter down the list of files based on the criteria.
             for (int i = 0; i < searchCriteria.SearchCriteria.Length; i++)
             {
                 if (GlobalSettings.HasShutdown)
                     break;
 
                 var wc = searchCriteria.SearchCriteria[i];
+                var prevDicCount = findingsDic.Count();
 
+                // if the criteria is a path include, we want to filter the list based on the path, this
+                // will help with the search, and prevent us from having to parse the criteria multiple times.
                 if (wc.Length == 1 && wc.Equals(Seps.cIncludesPos.ToString()) && pathList.Count() > 0)
                 {
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
 
+                    // if we have content, we now need to filter down for each criteria.
                     foreach (var p in pathList)
                     {
+                        // if we have content, we now need to filter down for each criteria.
                         if (findingsDic.Count > 0)
-                            filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(p.Search.ToLower())).Select(s => (s.Key, s.Value)));
+                        {
+                            if (p.Search.ToLower() == Seps.sNOEXT.ToLower())
+                                filters.AddRange(findingsDic.Where(w => !w.Value).Select(s => (s.Key, s.Value)));
+                            else
+                                filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(p.Search.ToLower())).Select(s => (s.Key, s.Value)));
+                        }
                         else
                         {
-                            foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(p.Search.ToLower())))
-                                findingsDic.TryAdd(item.Key, item.Value);
+                            if (p.Search.ToLower() == Seps.sNOEXT.ToLower())
+                                foreach (var item in fullFileList.Where(w => !w.Value))
+                                    findingsDic.TryAdd(item.Key, item.Value);
+                            else
+                                foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(p.Search.ToLower())))
+                                    findingsDic.TryAdd(item.Key, item.Value);
                         }
                     }
 
-                    findingsDic.Clear();
+                    // if we had content before, we need to clear it out, and add the new filtered content
+                    if (prevDicCount != 0)
+                        findingsDic.Clear();
+
+                    // if we have filters, we need to add them to the findings, this will be the new list of
+                    // findings for the next criteria.
                     if (filters.Count() > 0)
                     {
                         foreach (var item in filters.ToList())
                             findingsDic.TryAdd(item.Path, item.HasExt);
                     }
                 }
+                // if the criteria is an extension, we want to filter the list based on the extension, this
+                // will help with the search, and prevent us from having to parse the criteria multiple times.
                 else if (wc.Length == 1 && wc.Equals(Seps.cExtPos.ToString()) && extList.Count() > 0)
                 {
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
 
+                    // if we have content, we now need to filter down for each extension.
                     foreach (var e in extList)
                     {
                         if (findingsDic.Count > 0)
@@ -166,18 +210,24 @@ namespace Chizl.SystemSearch
                         }
                     }
 
-                    findingsDic.Clear();
+                    // if we had content before, we need to clear it out, and add the new filtered content
+                    if (prevDicCount != 0)
+                        findingsDic.Clear();
+
                     if (filters.Count() > 0)
                     {
                         foreach (var item in filters.ToList())
                             findingsDic.TryAdd(item.Path, item.HasExt);
                     }
                 }
+                // if the criteria is a path exclude, we want to filter the list based on the path, this
+                // will help with the search, and prevent us from having to parse the criteria multiple times.
                 else if (wc.Length == 1 && wc.Equals(Seps.cFilterPos.ToString()) && filterList.Count() > 0)
                 {
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
 
+                    // if we have content, we now need to filter down for each exclusion.
                     foreach (var f in filterList)
                     {
                         if (findingsDic.Count > 0)
@@ -187,9 +237,12 @@ namespace Chizl.SystemSearch
                             else
                                 filters.AddRange(findingsDic.Where(w => !w.Key.ToLower().Contains(f.Search.ToLower())).Select(s => (s.Key, s.Value)));
 
+                            // if we had content before, we need to clear it out, and add the new filtered extension
+                            if (prevDicCount != 0)
+                                findingsDic.Clear();
+
                             if (filters.Count() > 0)
                             {
-                                findingsDic.Clear();
                                 foreach (var item in filters.ToList())
                                     findingsDic.TryAdd(item.Path, item.HasExt);
                                 filters.Clear();
@@ -197,11 +250,22 @@ namespace Chizl.SystemSearch
                         }
                         else
                         {
-                            foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(f.Search.ToLower())).ToList())
-                                findingsDic.TryAdd(item.Key, item.Value);
+                            if (f.Search.ToLower() == Seps.sNOEXT.ToLower())
+                            {
+                                foreach (var item in fullFileList.Where(w => w.Value).Select(s => (s.Key, s.Value)).ToList())
+                                    findingsDic.TryAdd(item.Key, item.Value);
+                            }
+                            else
+                            {
+                                foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(f.Search.ToLower())).ToList())
+                                    findingsDic.TryAdd(item.Key, item.Value);
+                            }
                         }
                     }
                 }
+                // if anything is earched, this is the general search, we want to filter the list
+                // based on the search, this will help with the search, and prevent us from having
+                // to parse the criteria multiple times.
                 else
                 {
                     filters.Clear();
@@ -217,7 +281,6 @@ namespace Chizl.SystemSearch
 
                     if (filters.Count() > 0)
                     {
-                        findingsDic.Clear();
                         foreach (var item in filters.ToList())
                             findingsDic.TryAdd(item.Path, item.HasExt);
                     }

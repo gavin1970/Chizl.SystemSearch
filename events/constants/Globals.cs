@@ -15,8 +15,6 @@
     /// }
     /// </code>
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
     public delegate void SearchEventHandler(object sender, SearchEventArgs e);
 
     /// <summary>
@@ -36,6 +34,7 @@
         FileScanStatus,
         ScanComplete,
         ScanAborted,
-        UpdateInProgress
+        UpdateInProgress,
+        SkippingOptionalFolder
     }
 }

@@ -19,8 +19,6 @@ namespace Chizl.SystemSearch
         private static readonly ConcurrentDictionary<string, bool> _fileDictionary = new ConcurrentDictionary<string, bool>();
         private static readonly ConcurrentDictionary<string, byte> _folderDictionary = new ConcurrentDictionary<string, byte>();
         private static readonly ConcurrentDictionary<string, byte> _deniedDictionary = new ConcurrentDictionary<string, byte>();
-        // private static readonly ConcurrentQueue<string> _fileInfoQueue = new ConcurrentQueue<string>();
-        // private static Thread _fileInfoThread;
 
         private static readonly object _countFldrLock = new object();
         private static readonly object _countFileLock = new object();
@@ -97,43 +95,6 @@ namespace Chizl.SystemSearch
                 }
             }
         }
-        /*
-        /// <summary>
-        /// This is how Thread object with use of AutoResetEvent classes used to be handled before Task.<br/>
-        /// Since Thread is being phased out, though I disagree, this isn't used at the moment.
-        /// </summary>
-        internal static void ThreadEventMonitor()
-        {
-            var waitTimer = TimeSpan.FromSeconds(50);
-            var iEvent = -1;
-            while (!GlobalSettings.HasShutdown)
-            {
-                iEvent = WaitHandle.WaitAny(Internals.AutoEvents, waitTimer);
-                if (iEvent.Equals(AutoEvent.FileInfoQueue))
-                {
-                    while (!_fileInfoQueue.IsEmpty)
-                    {
-                        // insurance
-                        if (GlobalSettings.HasShutdown)
-                            break;
-
-                        _fileInfoQueue.TryDequeue(out string fileName);
-                        // TODO: not sure I'm going to do anything with this thread or not.
-                    }
-                }
-                else if (iEvent != AutoEvent.Shutdown && iEvent != WaitHandle.WaitTimeout)
-                {
-                    if (!File.Exists(".\\que_err.log"))
-                    {
-                        File.WriteAllText(".\\que_err.log", "");
-                        Thread.Sleep(1000);
-                    }
-
-                    File.AppendAllText(".\\que_err.log", $"{DateTime.Now:YYYY/MM/dd HH:mm:ss.ffff}: Looking for iEvent = FileInfoQueue or Shutdown, but instead got: {iEvent}\n");
-                }
-            }
-        }
-        /**/
         internal string[] GetFileList => _fileDictionary.Keys.ToArray();
         internal ConcurrentDictionary<string, bool> FileDictionary => _fileDictionary;
         internal ConcurrentDictionary<string, byte> FolderDictionary => _folderDictionary;
@@ -324,7 +285,7 @@ namespace Chizl.SystemSearch
 
             if (!GlobalSettings.ScanSettings.AllowDir(folder))
             {
-                SearchMessage.SendMsg(SearchMessageType.Info, $"Skipping Optional Folder: '{folder}");
+                // SearchMessage.SendMsg(SearchMessageType.SkippingOptionalFolder, $"Skipping Optional Folder: '{folder}");
                 return retVal;
             }
 
@@ -406,23 +367,11 @@ namespace Chizl.SystemSearch
 
         internal bool AddFile(string fileName)
         {
-            //if (GlobalSettings.CurrentStatus != LookupStatus.Running)
-            //    SetStatus(LookupStatus.Running);
-
             var hasExt = !string.IsNullOrWhiteSpace(Path.GetExtension(fileName));
             // verifies root folder of file and determines if it should continue.
             if (_fileDictionary.TryAdd(fileName, hasExt))
             {
                 Interlocked.Increment(ref _scannedFiles);
-                /*
-                _fileInfoQueue.Enqueue(fileName);   // not unique
-                if (_fileInfoThread == null || !_fileInfoThread.IsAlive)
-                {
-                    _fileInfoThread = new Thread(() => { ThreadEventMonitor(); });
-                    _fileInfoThread.Start();
-                }
-                Internals.AutoEvents[AutoEvent.FileInfoQueue].Set();
-                /**/
                 return true;
             }
             else

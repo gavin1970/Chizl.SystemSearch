@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -229,6 +228,9 @@ namespace Chizl.SearchSystemUI
                                     ErrorList.Items.Add($"[{e.MessageType}] {e.Message}");
                                 ErrorList.SelectedIndex = ErrorList.Items.Count - 1;
                             }
+                            break;
+                        case SearchMessageType.SkippingOptionalFolder:
+                            // TODO: make this an option, not sure we want to fill up the information list with it.
                             break;
                         case SearchMessageType.Warning:
                         case SearchMessageType.Info:

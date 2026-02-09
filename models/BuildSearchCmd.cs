@@ -7,8 +7,7 @@ namespace Chizl.SystemSearch
     internal enum CommandType
     {
         Includes,
-        Ext,
-        Filter,
+        Extensions,
         Excludes
     }
 
@@ -36,8 +35,8 @@ namespace Chizl.SystemSearch
         public static char cIncludesPos { get; } = '♥';     // Alt-259 = ♥
         public static string GetCommandString(CommandType cmdType) => $"{cmdType}{cCmdEnd}";
         public static string GetCommandToken(CommandType cmdType) => 
-            cmdType == CommandType.Ext ? $"{cExtPos}" 
-            : (cmdType == CommandType.Filter || cmdType == CommandType.Excludes) 
+            cmdType == CommandType.Extensions ? $"{cExtPos}" 
+            : (cmdType == CommandType.Excludes) 
             ? $"{cFilterPos}" 
             : $"{cIncludesPos}";
     }
@@ -116,13 +115,16 @@ namespace Chizl.SystemSearch
 
             var retVal = searchCriteria;
 
+            // if the search criteria doesn't contain any command boundaries, we can just split on the wild card and return.
             if (!searchCriteria.Contains($"{Seps.cStart}") || !searchCriteria.Contains($"{Seps.cEnd}"))
                 return retVal.SplitOn(Seps.cWild);
 
+            // replace the command boundaries with a multi-search token, this allows us to split on the
+            // multi-search token to get each command, while still keeping the command boundaries intact for processing.
             searchCriteria = searchCriteria.Replace($"{Seps.cStart}", $"{Seps.cMulti}{Seps.cStart}")
                                            .Replace($"{Seps.cEnd}", $"{Seps.cEnd}{Seps.cMulti}").Trim();
 
-            // trim out any spaces around the multi-search extensions
+            // trim out any spaces around the multi-search tokens
             searchCriteria = DupSearchReplace(searchCriteria, new string[] { $"{Seps.cMulti} ", $" {Seps.cMulti}" }, $"{Seps.cMulti}");
 
             // This is used for the search criteria
@@ -135,16 +137,24 @@ namespace Chizl.SystemSearch
             searchCriteria = searchCriteria.Replace($"{Seps.cStart}", $" + {Seps.cStart}");
             searchCriteria = searchCriteria.Replace($"{Seps.cEnd}", $"{Seps.cEnd} + ").Trim();
 
+            // clean up any leading or trailing '+' and replace any duplicate '+'
+            // that may have been created by the above formatting.
             searchCriteria = TrimOff(searchCriteria, '+');
+            // this will auto correct the following type of query:
             searchCriteria = DupSearchReplace(searchCriteria, "  ", " ");
+            // to look like this:
             searchCriteria = DupSearchReplace(searchCriteria, " + + ", " + ");
 
+            // process each command pattern, if it is valid, then we will
+            // add it to the commands list and remove it from the search string.
             foreach (var cmd in cmdPatterns)
             {
+                // if the command doesn't contain the command boundaries, then it is not a valid command, skip it.
                 var iS = cmd.IndexOf(Seps.cStart);
                 if (iS == -1)
                     continue;
 
+                // the command must have an end boundary after the start boundary, if not, then it is not a valid command, skip it.
                 var nS = iS + 1;
                 var iE = cmd.IndexOf(Seps.cEnd, nS);
                 if (iE == -1)
@@ -160,12 +170,18 @@ namespace Chizl.SystemSearch
                 if (srchSep == -1)
                     continue;
 
-                var cmdType = CommandType.Ext;
+                var cmdTypeString = search.Substring(0, srchSep);
+                var cmdType = CommandType.Extensions;
                 // get command type
-                switch (search.Substring(0, srchSep).ToLowerInvariant())
+                switch (cmdTypeString.ToLowerInvariant())
                 {
+                    // user option for extensions
                     case "ext":
-                        cmdType = CommandType.Ext;
+                    // user option for extensions
+                    case "extension":
+                    //specific
+                    case "extensions":
+                        cmdType = CommandType.Extensions;
                         // This will resolve "ext:.txt|pdf|. doc|docx|.mp4", to look like: "ext:.txt|pdf|.doc|docx|.mp4"
                         // includes and excludes could have spaces within folder / file names, so we will not replace them.
                         var clnExt = search.Replace(" ", "").Replace(".", "");
@@ -178,10 +194,21 @@ namespace Chizl.SystemSearch
 
                         search = clnExt.Replace(_NOEXT, $"{Seps.cNOEXT}");
                         break;
+                    // user option for includes
+                    case "inc":
+                    // user option for includes
+                    case "include":
+                    //specific
                     case "includes":
                         cmdType = CommandType.Includes;
                         break;
+                    // user option for excludes
                     case "filter":
+                    // user option for excludes
+                    case "exc":
+                    // user option for excludes
+                    case "exclude":
+                    //specific
                     case "excludes":
                         cmdType = CommandType.Excludes;
                         break;
@@ -193,12 +220,22 @@ namespace Chizl.SystemSearch
                 // use for token later.
                 hasPathSearch = hasPathSearch || cmdType == CommandType.Includes;
                 // use for token later.
-                hasExtSearch = hasExtSearch || cmdType == CommandType.Ext;
+                hasExtSearch = hasExtSearch || cmdType == CommandType.Extensions;
                 // use for token later.
                 hasFilter = hasFilter || cmdType == CommandType.Excludes;
 
                 // replace the command with a token for search order
                 retVal = retVal.Replace(remove, "");
+
+                // since multi commands can be used as user options, lets return with the exact command required by search string.
+                if (cmdTypeString.ToLower() != cmdType.ToString().ToLower())
+                {
+                    // what is actually searched for is the command type with the correct format, this is what is used
+                    // in the SearchMessageType.SearchQueryUsed event, so users see the correct format in their search
+                    // bar if they choose to update it.
+                    searchCriteria = searchCriteria.Replace($"{cmdTypeString}:", $"{cmdType.ToString().ToLower()}:");
+                    search = search.Replace($"{cmdTypeString}:", $"{cmdType.ToString().ToLower()}:");
+                }
 
                 // one or more search extension
                 MultiBuildCommands(cmdType, search);
@@ -206,10 +243,10 @@ namespace Chizl.SystemSearch
 
             // Add search tokens at the end if tokens exists.
             // Can have one or more tokens. Loading filters/exclude first, this removes
-            // the larger count of files before running the other extensions.
+            // the larger count of files before running the other tokens.
             retVal = retVal.Trim();
             retVal += hasPathSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Includes)}{Seps.cWild}" : "";
-            retVal += hasExtSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Ext)}{Seps.cWild}" : "";
+            retVal += hasExtSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Extensions)}{Seps.cWild}" : "";
             retVal += hasFilter ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Excludes)}{Seps.cWild}" : "";
 
             // SplitOn will auto strip ** by ignoring blank entries if exists.
@@ -234,10 +271,10 @@ namespace Chizl.SystemSearch
         public SearchCommand(CommandType searchPart, string search)
         {
             CommandType = searchPart;
-            Search = (searchPart.Equals(CommandType.Ext)
+            Search = (searchPart.Equals(CommandType.Extensions)
                 ? SetExt(search)                            // strips all spaces and adds '.' at the start, if not there.
                 : search)
-                .Replace(Seps.cWild.ToString(), "");        // wild cards are not supported in search extensions
+                .Replace(Seps.cWild.ToString(), "");        // wild cards are not supported in search tokens
         }
         public CommandType CommandType { get; }
         public string Search { get; }
