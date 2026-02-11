@@ -30,7 +30,7 @@ namespace Chizl.SearchSystemUI
         private static ListBox _selListBox;
         private static bool _loaded = false;
         private static bool _shuttingDown = false;
-        private static Dictionary<string, ToolStripMenuItem> 
+        private static Dictionary<string, ToolStripMenuItem>
             _scanFolders = new Dictionary<string, ToolStripMenuItem>();
 
         private static int resetRefreshCnt = 0;
@@ -115,7 +115,7 @@ namespace Chizl.SearchSystemUI
             {
                 if (!_finder.CurrentStatus.HasFlag(LookupStatus.Completed))
                     return;
-                
+
                 _scanRunning.SetFalse();
 
                 var appIcon = IconImageList.Images["Search_AI.ico"];
@@ -357,7 +357,7 @@ namespace Chizl.SearchSystemUI
             LoadConfig();
             //required before Finder can be used.
             var columns = ListViewColumns();
-            var hiddenCols = new ListViewOptions(allowColumnReorder: true, autoSizeLastCol:true, colSizable: true,
+            var hiddenCols = new ListViewOptions(allowColumnReorder: true, autoSizeLastCol: true, colSizable: true,
                                         hideColumns: columns.Where(w => w.Tag != null && w.Tag.ToString().Contains("vis:0")).ToArray()
                                         );
 
@@ -377,7 +377,7 @@ namespace Chizl.SearchSystemUI
             }
             return driveInfoList.ToArray();
         }
-        
+
         private bool PathIsEnabled(List<String> disabledDrives, string path, ref bool isChecked, bool defIfMissing = false)
         {
             if (!disabledDrives.Contains(path.ToLower().Substring(0, 3)))
@@ -455,7 +455,7 @@ namespace Chizl.SearchSystemUI
 
             GlobalSetup.DriveList = GetScanDriveList();
             _finder = GlobalSetup.Finder;
-            
+
             bool checkIt = false;
             if (PathIsEnabled(disabledDrives, _criterias.InternetCache, ref checkIt))
                 _criterias.AllowInternetCache = checkIt;
@@ -463,7 +463,7 @@ namespace Chizl.SearchSystemUI
             if (PathIsEnabled(disabledDrives, _criterias.RecycleBinDir, ref checkIt))
                 _criterias.AllowRecycleBin = checkIt;
 
-            if (!string.IsNullOrWhiteSpace(_criterias.SystemDir) 
+            if (!string.IsNullOrWhiteSpace(_criterias.SystemDir)
                 && _criterias.SystemDir != _criterias.WindowsDir)
             {
                 if (PathIsEnabled(disabledDrives, _criterias.SystemDir, ref checkIt))
@@ -668,7 +668,7 @@ namespace Chizl.SearchSystemUI
                                                 .Where(w => (remNoExt ? w.Text.Contains(".") : w.Text.Length > 0))
                                                 .Select(s => s.SubItems[pathColumnId].Text.ToLower()).ToList();
 
-                var excExt = _excludeItems.Where(w => w.Value.Type == FilterType.Extension 
+                var excExt = _excludeItems.Where(w => w.Value.Type == FilterType.Extension
                                                    || w.Value.Type == FilterType.NoExtension)
                                           .Select(s => s.Value.Filter.ToLower())
                                           .ToArray();
@@ -678,7 +678,7 @@ namespace Chizl.SearchSystemUI
 
                 // Filter drives
                 keepItems = keepItems.Where(w => _excludeItems
-                                            .Where(k => k.Value.Type.Equals(FilterType.Drive) 
+                                            .Where(k => k.Value.Type.Equals(FilterType.Drive)
                                                      && w.StartsWith(k.Key.ToLower()))
                                             .Count().Equals(0)).ToList();
 
@@ -720,7 +720,7 @@ namespace Chizl.SearchSystemUI
                     return Tuple.Create(added, removed);
                 }
             }
-            
+
             return retVal;
         }
         #endregion
@@ -826,7 +826,7 @@ namespace Chizl.SearchSystemUI
             var search = TxtSearchName.Text.Trim();
             if (string.IsNullOrWhiteSpace(search))
                 return;
-            
+
             _finder.Search(GetScanDriveList(), TxtSearchName.Text)
                 .ContinueWith(t =>
                 {
@@ -1105,7 +1105,7 @@ namespace Chizl.SearchSystemUI
         {
             ResultsListView.Items.Clear();
             ResultsListView.Items.AddRange(_unfilteredItemsList.ToArray());
-            
+
             _excludeItems.Clear();
             _unfilteredItemsList.Clear();
             _subFilterForm?.ExcludeItems.Clear();
@@ -1205,9 +1205,9 @@ namespace Chizl.SearchSystemUI
             if (_scanRunning && !BtnStartStopScan.Text.Equals(_stopScanText)
             || !_scanRunning && !(new List<string> { _reScanText, _startScanText }).Contains(BtnStartStopScan.Text))
             {
-                BtnStartStopScan.Text = !_scanRunning 
-                                            ? _stopScanText : _scanAborted 
-                                            ? _startScanText : _finder.FullScanCompleted 
+                BtnStartStopScan.Text = !_scanRunning
+                                            ? _stopScanText : _scanAborted
+                                            ? _startScanText : _finder.FullScanCompleted
                                             ? _reScanText : _startScanText;
             }
         }
