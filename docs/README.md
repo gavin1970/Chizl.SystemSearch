@@ -111,16 +111,34 @@ Format:
 Supported token labels:
 
 - includes / include / inc
+  - Examples: — includes files or paths containing "report" or "summary"
+    - `[inc:report|summary]`
+    - `[include:report|summary]`
+    - `[includes:report|summary]`
 - excludes / exclude / exc
+  - Examples: — excludes files or paths containing "backup" or "old"
+    - `[exc:backup|old]`
+    - `[exclude:backup|old]`
+    - `[excludes:backup|old]`
 - extensions / extension / ext
+  - Examples: — includes files with extensions of DOCX or PDF.
+    - `[ext:docx|pdf]`
+    - `[extension:docx|pdf]`
+    - `[extensions:docx|pdf]`
+
+### Full Search Example:
+`Google*Gemini [inc:report|summary] [exc:backup|old] [ext:docx|pdf]`
 
 ---
 
 ### NOEXT Behavior
 
 - Includes: matches files without extensions
+  - Example: `[inc:NOEXT]` — includes files without extensions in results.
 - Excludes: removes files without extensions
+  - Example: `[exc:NOEXT]` — removes files without extensions from results.
 - Extensions: treats NOEXT as a valid extension token
+  - Example: `[ext:NOEXT|txt]` — includes only files without extensions or with .txt extension.
 
 ---
 
@@ -134,6 +152,7 @@ A custom Bool type replaces legacy integer flags.
 ## Versioning
 
 Semantic Versioning is used for releases.
+- Major.Minor.Patch.Build (Year-2020.month.day.GMT)
 
 ---
 
