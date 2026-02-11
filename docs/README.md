@@ -140,6 +140,18 @@ Supported token labels:
 - Extensions: treats NOEXT as a valid extension token
   - Example: `[ext:NOEXT|txt]` — includes only files without extensions or with .txt extension.
 
+### Query Order Behavior:
+- Search tokens are not processed in the order they appear in the query.
+- Instead, the library processes them in a specific sequence to ensure consistent results:
+1. **Search Text**: First, the library applies the literal search text to filter the results.
+2. **Includes**: Next, the library applies all include tokens to filter the results down to only those that match the specified criteria.
+3. **Extensions**: Next, it applies extension tokens to further narrow down the results based on file extensions.
+4. **Excludes**: Finally, it applies exclude tokens to remove any results that match the specified exclusion criteria.
+
+### Example of this behavior:<br/>
+`Google + [extensions:py|pdf|cs|noext] + [excludes:c:|noext]`<br/>
+- Exclusions are applied last, so even if NOEXT is included in the extensions token, it will be excluded from results because of the excludes token.
+
 ---
 
 ## Thread Safety
