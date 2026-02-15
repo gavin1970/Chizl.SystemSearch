@@ -22,7 +22,7 @@
 
 		<ItemGroup>
 				<None Include="docs\README.md" Pack="true" PackagePath="\">
-				  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+				  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 				</None>
 		</ItemGroup>
 

@@ -194,6 +194,10 @@ namespace Chizl.SearchSystemUI
         }
         private void ShowMsg(SearchMessageType messageType, string msg)
             => ShowMsg(new SearchEventArgs(messageType, msg));
+
+        private string GetNowTime() => DateTime.Now.ToString("HH:mm:ss.ffff");
+        private string GetUTCNowTime() => DateTime.UtcNow.ToString("HH:mm:ss.ffff");
+
         private void ShowMsg(SearchEventArgs e)
         {
             if (InvokeRequired)
@@ -208,6 +212,7 @@ namespace Chizl.SearchSystemUI
             }
             else if (!Disposing && !IsDisposed)
             {
+                var nowTime = GetNowTime();
                 try
                 {
                     switch (e.MessageType)
@@ -223,9 +228,9 @@ namespace Chizl.SearchSystemUI
                             {
                                 var msg = e.Message;
                                 if (e.Message.Contains("Access to the"))
-                                    ErrorList.Items.Add($"{e.Message}");
+                                    ErrorList.Items.Add($"{nowTime}: {e.Message}");
                                 else
-                                    ErrorList.Items.Add($"[{e.MessageType}] {e.Message}");
+                                    ErrorList.Items.Add($"{nowTime}: [{e.MessageType}] {e.Message}");
                                 ErrorList.SelectedIndex = ErrorList.Items.Count - 1;
                             }
                             break;
@@ -236,7 +241,7 @@ namespace Chizl.SearchSystemUI
                         case SearchMessageType.Info:
                             if (!_hideInformation)
                             {
-                                var preMsg = e.MessageType == SearchMessageType.Warning ? $"[{DateTime.Now:HH:mm:ss}-{e.MessageType}]" : $"[{DateTime.Now:HH:mm:ss}]";
+                                var preMsg = e.MessageType == SearchMessageType.Warning ? $"[{nowTime}-{e.MessageType}]" : $"[{nowTime}]";
                                 EventList.Items.Add($"{preMsg} {e.Message}");
                                 EventList.SelectedIndex = EventList.Items.Count - 1;
                             }
