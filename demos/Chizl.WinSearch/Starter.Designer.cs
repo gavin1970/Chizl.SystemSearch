@@ -38,11 +38,10 @@
             this.EventList = new System.Windows.Forms.ListBox();
             this.CMenuInfoErr = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.CMenuInfoErrClear = new System.Windows.Forms.ToolStripMenuItem();
+            this.CMenuInfoErrCopy = new System.Windows.Forms.ToolStripMenuItem();
             this.ResultsPanel = new System.Windows.Forms.Panel();
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
             this.panel4 = new System.Windows.Forms.Panel();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.ChkHideInfo = new System.Windows.Forms.CheckBox();
             this.ResultsListView = new System.Windows.Forms.ListView();
             this.CMenuList = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ListMenuFilters = new System.Windows.Forms.ToolStripMenuItem();
@@ -57,6 +56,8 @@
             this.ListMenuCopyPath = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuCopyList = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuExportList = new System.Windows.Forms.ToolStripMenuItem();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.ChkHideInfo = new System.Windows.Forms.CheckBox();
             this.BtnHide = new System.Windows.Forms.Button();
             this.panel5 = new System.Windows.Forms.Panel();
             this.EventListsSplitContainer = new System.Windows.Forms.SplitContainer();
@@ -113,8 +114,8 @@
             this.MainSplitContainer.Panel2.SuspendLayout();
             this.MainSplitContainer.SuspendLayout();
             this.panel4.SuspendLayout();
-            this.panel3.SuspendLayout();
             this.CMenuList.SuspendLayout();
+            this.panel3.SuspendLayout();
             this.panel5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.EventListsSplitContainer)).BeginInit();
             this.EventListsSplitContainer.Panel1.SuspendLayout();
@@ -200,23 +201,34 @@
             this.EventList.ItemHeight = 14;
             this.EventList.Location = new System.Drawing.Point(0, 0);
             this.EventList.Name = "EventList";
+            this.EventList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.EventList.Size = new System.Drawing.Size(1144, 125);
             this.EventList.TabIndex = 1;
+            this.EventList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.InfoError_KeyDown);
+            this.EventList.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InfoError_KeyUp);
             this.EventList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.InfoError_MouseDown);
             // 
             // CMenuInfoErr
             // 
             this.CMenuInfoErr.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.CMenuInfoErrClear});
+            this.CMenuInfoErrClear,
+            this.CMenuInfoErrCopy});
             this.CMenuInfoErr.Name = "CMenuInfoErr";
-            this.CMenuInfoErr.Size = new System.Drawing.Size(102, 26);
+            this.CMenuInfoErr.Size = new System.Drawing.Size(103, 48);
             // 
             // CMenuInfoErrClear
             // 
             this.CMenuInfoErrClear.Name = "CMenuInfoErrClear";
-            this.CMenuInfoErrClear.Size = new System.Drawing.Size(101, 22);
+            this.CMenuInfoErrClear.Size = new System.Drawing.Size(102, 22);
             this.CMenuInfoErrClear.Text = "&Clear";
             this.CMenuInfoErrClear.Click += new System.EventHandler(this.CMenuInfoErrClear_Click);
+            // 
+            // CMenuInfoErrCopy
+            // 
+            this.CMenuInfoErrCopy.Name = "CMenuInfoErrCopy";
+            this.CMenuInfoErrCopy.Size = new System.Drawing.Size(102, 22);
+            this.CMenuInfoErrCopy.Text = "&Copy";
+            this.CMenuInfoErrCopy.Click += new System.EventHandler(this.CMenuInfoErrCopy_Click);
             // 
             // ResultsPanel
             // 
@@ -482,8 +494,11 @@
             this.ErrorList.ItemHeight = 14;
             this.ErrorList.Location = new System.Drawing.Point(0, 0);
             this.ErrorList.Name = "ErrorList";
+            this.ErrorList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.ErrorList.Size = new System.Drawing.Size(1144, 116);
             this.ErrorList.TabIndex = 0;
+            this.ErrorList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.InfoError_KeyDown);
+            this.ErrorList.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InfoError_KeyUp);
             this.ErrorList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.InfoError_MouseDown);
             // 
             // ChkSystemFolder
@@ -885,9 +900,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).EndInit();
             this.MainSplitContainer.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
+            this.CMenuList.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
-            this.CMenuList.ResumeLayout(false);
             this.panel5.ResumeLayout(false);
             this.EventListsSplitContainer.Panel1.ResumeLayout(false);
             this.EventListsSplitContainer.Panel2.ResumeLayout(false);
@@ -956,6 +971,7 @@
         private System.Windows.Forms.ToolStripMenuItem ListMenuClearList;
         private System.Windows.Forms.ContextMenuStrip CMenuInfoErr;
         private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrClear;
+        private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrCopy;
         private System.Windows.Forms.ToolStripMenuItem ListMenuExclude;
         private System.Windows.Forms.ToolStripStatusLabel StatusToolStripSubFiltered;
         private System.Windows.Forms.ListView ResultsListView;

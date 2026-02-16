@@ -43,6 +43,7 @@ namespace Chizl.SearchSystemUI
 
         private static Bool _scanAborted = Bool.False;
         private static Bool _scanRunning = Bool.False;
+        private static bool _ieKeyControl = false;
         private static bool _hideErrors = false;
         private static bool _hideInformation = false;
         private static bool _hasDrives = true;
@@ -231,7 +232,12 @@ namespace Chizl.SearchSystemUI
                                     ErrorList.Items.Add($"{nowTime}: {e.Message}");
                                 else
                                     ErrorList.Items.Add($"{nowTime}: [{e.MessageType}] {e.Message}");
-                                ErrorList.SelectedIndex = ErrorList.Items.Count - 1;
+
+                                if (!_ieKeyControl)
+                                {
+                                    ErrorList.ClearSelected();
+                                    ErrorList.SelectedIndex = ErrorList.Items.Count - 1;
+                                }
                             }
                             break;
                         case SearchMessageType.SkippingOptionalFolder:
@@ -243,7 +249,12 @@ namespace Chizl.SearchSystemUI
                             {
                                 var preMsg = e.MessageType == SearchMessageType.Warning ? $"[{nowTime}-{e.MessageType}]" : $"[{nowTime}]";
                                 EventList.Items.Add($"{preMsg} {e.Message}");
-                                EventList.SelectedIndex = EventList.Items.Count - 1;
+
+                                if (!_ieKeyControl)
+                                {
+                                    EventList.ClearSelected();
+                                    EventList.SelectedIndex = EventList.Items.Count - 1;
+                                }
                             }
                             break;
                         case SearchMessageType.SearchStatus:
@@ -578,6 +589,24 @@ namespace Chizl.SearchSystemUI
                     selected.Add(lineMerged);
                 }
             }
+
+            selectedItems = selected.ToArray();
+
+            return true;
+
+        }
+        private bool GetSelectedLibBoxItems(out string[] selectedItems)
+        {
+            selectedItems = new string[0] { };
+            var selected = new List<string>();
+
+            if (_selListBox.SelectedItems.Count.Equals(0))
+                return false;
+
+            selectedItems = _selListBox.SelectedItems.Cast<string>().Select(s => ($"\"{s.Trim()}\"")).ToArray();
+
+            foreach (string lineItem in _selListBox.SelectedItems)
+                selected.Add($"\"{lineItem.Trim()}\"");
 
             selectedItems = selected.ToArray();
 
@@ -1289,12 +1318,35 @@ namespace Chizl.SearchSystemUI
             ListMenuCopyPath.Enabled = defaultEnable;
             ListMenuCopyList.Enabled = defaultEnable;
         }
+        /// <summary>
+        /// This meanu is used under two list boxes, so we need to set the sender to 
+        /// know which one is being used, then we can use that for the clear and 
+        /// copy context menu options.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void InfoError_MouseDown(object sender, MouseEventArgs e)
         {
             _selListBox = sender as ListBox;
-            var id = _selListBox.IndexFromPoint(e.Location);
-            if (id >= 0)
+            var id = _selListBox.Items.Count == 0 ? -1 : _selListBox.IndexFromPoint(e.Location);
+            var enabled = id >= 0;
+
+            if (enabled && _selListBox.SelectedItems.Count == 1)
                 _selListBox.SelectedIndex = id;
+
+            CMenuInfoErrClear.Enabled = enabled;
+            CMenuInfoErrCopy.Enabled = enabled;
+        }
+        private void InfoError_KeyDown(object sender, KeyEventArgs e)
+        {
+            _ieKeyControl = e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey;
+            if (e.Control && e.KeyCode == Keys.C)
+                CopyInfoErrorToClipboard();
+        }
+        private void InfoError_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey)
+                _ieKeyControl = false;
         }
         #endregion
 
@@ -1303,6 +1355,16 @@ namespace Chizl.SearchSystemUI
         private void SysTrayOpen_Click(object sender, EventArgs e) => ShowWindow();
         private void SysTrayClose_Click(object sender, EventArgs e) => CloseApp();
         private void CMenuInfoErrClear_Click(object sender, EventArgs e) => _selListBox.Items.Clear();
+        private void CMenuInfoErrCopy_Click(object sender, EventArgs e) => CopyInfoErrorToClipboard();
+        private void CopyInfoErrorToClipboard()
+        {
+            if (GetSelectedLibBoxItems(out string[] selectedItems))
+            {
+                Clipboard.Clear();
+                Clipboard.SetText(string.Join("\n", selectedItems));
+                ShowMsg(SearchMessageType.StatusMessage, $"'{selectedItems.Count()}' selected items has been copied to clipboard.");
+            }
+        }
         #endregion
 
         #region ListView Setup/Controls
