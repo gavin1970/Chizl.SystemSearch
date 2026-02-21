@@ -205,7 +205,7 @@ namespace Chizl.SystemSearch
                                 foreach (var item in fullFileList.Where(w => !w.Value))
                                     findingsDic.TryAdd(item.Key, item.Value);
                             else
-                                foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(e.Search.ToLower())))
+                                foreach (var item in fullFileList.Where(w => w.Key.ToLower().EndsWith(e.Search.ToLower())))
                                     findingsDic.TryAdd(item.Key, item.Value);
                         }
                     }
