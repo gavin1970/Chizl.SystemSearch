@@ -123,8 +123,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="imgs\Chizl.WinSearch_Working.png" />
-    <Content Include="Search_AI.ico" />
-    <Content Include="Search_AI_Working.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
