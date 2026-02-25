@@ -104,7 +104,6 @@
             this.SysTrayOpen = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.SysTrayClose = new System.Windows.Forms.ToolStripMenuItem();
-            this.IconImageList = new System.Windows.Forms.ImageList(this.components);
             this.PanelSearchText.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
             this.CMenuInfoErr.SuspendLayout();
@@ -648,7 +647,6 @@
             // 
             // ExitTSMenu
             // 
-            this.ExitTSMenu.Image = ((System.Drawing.Image)(resources.GetObject("ExitTSMenu.Image")));
             this.ExitTSMenu.Name = "ExitTSMenu";
             this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
             this.ExitTSMenu.Size = new System.Drawing.Size(134, 22);
@@ -863,13 +861,6 @@
             this.SysTrayClose.Text = "&Exit";
             this.SysTrayClose.Click += new System.EventHandler(this.SysTrayClose_Click);
             // 
-            // IconImageList
-            // 
-            this.IconImageList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("IconImageList.ImageStream")));
-            this.IconImageList.TransparentColor = System.Drawing.Color.Transparent;
-            this.IconImageList.Images.SetKeyName(0, "Search_AI.ico");
-            this.IconImageList.Images.SetKeyName(1, "Search_AI_Working.ico");
-            // 
             // Starter
             // 
             this.AcceptButton = this.BtnFind;
@@ -1001,7 +992,7 @@
         private System.Windows.Forms.ToolStripMenuItem SysTrayOpen;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.Button BtnHide;
-        private System.Windows.Forms.ImageList IconImageList;
+        //private System.Windows.Forms.ImageList IconImageList;
     }
 }
 

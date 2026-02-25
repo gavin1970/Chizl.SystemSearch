@@ -118,8 +118,8 @@ namespace Chizl.SearchSystemUI
                     return;
 
                 _scanRunning.SetFalse();
-
-                var appIcon = IconImageList.Images["Search_AI.ico"];
+                
+                var appIcon = Image.FromFile(".\\imgs\\Chizl.WinSearch.ico");  
                 _systemNotify.SetIcon(ModImg.ImgToIco(appIcon, new Size(32, 32)), null);
 
                 // this allows all messages to be posted, only
@@ -151,6 +151,8 @@ namespace Chizl.SearchSystemUI
                     _extFilterOn.SetFalse();
                     _customFilterOn.SetFalse();
                 }
+                
+                appIcon.Dispose();  // release any lock on the file, so it can be reloaded if changed.
             }
         }
         private void ScanStarted()
@@ -172,7 +174,8 @@ namespace Chizl.SearchSystemUI
                 else
                     _scanAborted.SetFalse();
 
-                var appIcon = IconImageList.Images["Search_AI_Working.ico"];
+                //var appIcon = IconImageList.Images["Search_AI_Working.ico"];
+                var appIcon = Image.FromFile(".\\imgs\\Chizl.WinSearch_Working.ico");
                 _systemNotify.SetIcon(ModImg.ImgToIco(appIcon, new Size(32, 32)), null);
 
                 // set refresh for folder/file count
@@ -191,6 +194,8 @@ namespace Chizl.SearchSystemUI
                 _startDate = DateTime.UtcNow;
                 _endDate = _startDate;
                 StartupTimer.Enabled = true;
+                
+                appIcon.Dispose();  // release any lock on the file, so it can be reloaded if changed.
             }
         }
         private void ShowMsg(SearchMessageType messageType, string msg)
@@ -360,12 +365,14 @@ namespace Chizl.SearchSystemUI
         private void SetupSysTray()
         {
             // haven't scanned yet, so stays working until scan is ran.
-            var appIcon = IconImageList.Images["Search_AI_Working.ico"];
-            Notifier.Icon = ModImg.ImgToIco(appIcon, new Size(16, 16));
+            //var appIcon = IconImageList.Images["Search_AI_Working.ico"];
+            var appIcon = Image.FromFile(".\\imgs\\Chizl.WinSearch.ico");
+            Notifier.Icon = ModImg.ImgToIco(appIcon, new Size(32, 32));
             Notifier.Text = GlobalSetup.WindowTitlebarText;
 
             _systemNotify = new SysNotify(this, Notifier, new SysNotifyTitle(About.Title, _fgTitleColor, _bgTitleColor, new Padding(4)));
             _systemNotify.DoubleClick += Notify_DoubleClick;
+            appIcon.Dispose();  // release any lock on the file, so it can be reloaded if changed.
         }
         private void SetupForm()
         {

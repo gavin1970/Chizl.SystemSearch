@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Search_AI.ico</ApplicationIcon>
+    <ApplicationIcon>Chizl.WinSearch.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Chizl.SearchSystemUI.Program</StartupObject>
@@ -114,6 +114,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Chizl.WinSearch.ico" />
+    <Content Include="imgs\Chizl.WinSearch.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="imgs\Chizl.WinSearch.png" />
+    <Content Include="imgs\Chizl.WinSearch_Working.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="imgs\Chizl.WinSearch_Working.png" />
     <Content Include="Search_AI.ico" />
     <Content Include="Search_AI_Working.ico" />
   </ItemGroup>
