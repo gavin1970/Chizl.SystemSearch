@@ -26,6 +26,8 @@ namespace Chizl.SearchSystemUI
         private const string _startScanText = "&Start Scan";
         private const string _reScanText = "&ReScan";
         private const string _configFile = @".\config.dat";
+        private const string _winSrchIconPath = @".\imgs\Chizl.WinSearch.ico";
+        private const string _winSrchWorkIconPath = @".\imgs\Chizl.WinSearch_Working.ico";
 
         private static ListBox _selListBox;
         private static bool _loaded = false;
@@ -89,6 +91,7 @@ namespace Chizl.SearchSystemUI
         {
             InitializeComponent();
             DoubleBuffered = true;
+            this.Icon = new Icon(_winSrchIconPath);
         }
 
         #region Helper Methods
@@ -118,9 +121,7 @@ namespace Chizl.SearchSystemUI
                     return;
 
                 _scanRunning.SetFalse();
-                
-                var appIcon = Image.FromFile(".\\imgs\\Chizl.WinSearch.ico");  
-                _systemNotify.SetIcon(ModImg.ImgToIco(appIcon, new Size(32, 32)), null);
+                SetSysTrayIcon(_winSrchIconPath);
 
                 // this allows all messages to be posted, only
                 // need this setup during scan, which is too intense.
@@ -151,8 +152,23 @@ namespace Chizl.SearchSystemUI
                     _extFilterOn.SetFalse();
                     _customFilterOn.SetFalse();
                 }
-                
-                appIcon.Dispose();  // release any lock on the file, so it can be reloaded if changed.
+               
+            }
+        }
+        private void SetSysTrayIcon(string iconPath)
+        {
+            try
+            {
+                if (!File.Exists(iconPath))
+                {
+                    var appIcon = Image.FromFile(iconPath);
+                    _systemNotify.SetIcon(ModImg.ImgToIco(appIcon, new Size(32, 32)), null);
+                    appIcon.Dispose();  // release any lock on the file, so it can be reloaded if changed.
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error setting system tray icon: {ex.Message}");
             }
         }
         private void ScanStarted()
@@ -174,9 +190,7 @@ namespace Chizl.SearchSystemUI
                 else
                     _scanAborted.SetFalse();
 
-                //var appIcon = IconImageList.Images["Search_AI_Working.ico"];
-                var appIcon = Image.FromFile(".\\imgs\\Chizl.WinSearch_Working.ico");
-                _systemNotify.SetIcon(ModImg.ImgToIco(appIcon, new Size(32, 32)), null);
+                SetSysTrayIcon(_winSrchWorkIconPath);
 
                 // set refresh for folder/file count
                 // information to max setting for refreshes.
@@ -194,8 +208,6 @@ namespace Chizl.SearchSystemUI
                 _startDate = DateTime.UtcNow;
                 _endDate = _startDate;
                 StartupTimer.Enabled = true;
-                
-                appIcon.Dispose();  // release any lock on the file, so it can be reloaded if changed.
             }
         }
         private void ShowMsg(SearchMessageType messageType, string msg)
@@ -364,15 +376,10 @@ namespace Chizl.SearchSystemUI
         }
         private void SetupSysTray()
         {
-            // haven't scanned yet, so stays working until scan is ran.
-            //var appIcon = IconImageList.Images["Search_AI_Working.ico"];
-            var appIcon = Image.FromFile(".\\imgs\\Chizl.WinSearch.ico");
-            Notifier.Icon = ModImg.ImgToIco(appIcon, new Size(32, 32));
+            Notifier.Icon = this.Icon;
             Notifier.Text = GlobalSetup.WindowTitlebarText;
-
             _systemNotify = new SysNotify(this, Notifier, new SysNotifyTitle(About.Title, _fgTitleColor, _bgTitleColor, new Padding(4)));
             _systemNotify.DoubleClick += Notify_DoubleClick;
-            appIcon.Dispose();  // release any lock on the file, so it can be reloaded if changed.
         }
         private void SetupForm()
         {
