@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Starter));
             this.PanelSearchText = new System.Windows.Forms.Panel();
             this.TxtSearchName = new System.Windows.Forms.TextBox();
             this.PanelFindButton = new System.Windows.Forms.Panel();
@@ -69,9 +68,6 @@
             this.ChkFilename = new System.Windows.Forms.ToolStripMenuItem();
             this.ChkDirectoryName = new System.Windows.Forms.ToolStripMenuItem();
             this.MnuSkipFolders = new System.Windows.Forms.ToolStripMenuItem();
-            this.ChkRecycleBin = new System.Windows.Forms.ToolStripMenuItem();
-            this.ChkTempFolder = new System.Windows.Forms.ToolStripMenuItem();
-            this.ChkInternetCache = new System.Windows.Forms.ToolStripMenuItem();
             this.ChkWinFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.ChkUserFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.PanelScanButton = new System.Windows.Forms.Panel();
@@ -506,7 +502,7 @@
             this.ChkSystemFolder.CheckOnClick = true;
             this.ChkSystemFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkSystemFolder.Name = "ChkSystemFolder";
-            this.ChkSystemFolder.Size = new System.Drawing.Size(177, 22);
+            this.ChkSystemFolder.Size = new System.Drawing.Size(180, 22);
             this.ChkSystemFolder.Text = "System";
             this.ChkSystemFolder.CheckedChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -539,35 +535,10 @@
             // 
             // MnuSkipFolders
             // 
-            this.MnuSkipFolders.Image = ((System.Drawing.Image)(resources.GetObject("MnuSkipFolders.Image")));
             this.MnuSkipFolders.Name = "MnuSkipFolders";
             this.MnuSkipFolders.Size = new System.Drawing.Size(177, 22);
             this.MnuSkipFolders.Text = "Set Allowed Folders";
             this.MnuSkipFolders.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MnuSkipFolders_MouseUp);
-            // 
-            // ChkRecycleBin
-            // 
-            this.ChkRecycleBin.CheckOnClick = true;
-            this.ChkRecycleBin.Name = "ChkRecycleBin";
-            this.ChkRecycleBin.Size = new System.Drawing.Size(177, 22);
-            this.ChkRecycleBin.Text = "Recycle Bin";
-            this.ChkRecycleBin.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
-            // 
-            // ChkTempFolder
-            // 
-            this.ChkTempFolder.CheckOnClick = true;
-            this.ChkTempFolder.Name = "ChkTempFolder";
-            this.ChkTempFolder.Size = new System.Drawing.Size(177, 22);
-            this.ChkTempFolder.Text = "Temp Folder";
-            this.ChkTempFolder.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
-            // 
-            // ChkInternetCache
-            // 
-            this.ChkInternetCache.CheckOnClick = true;
-            this.ChkInternetCache.Name = "ChkInternetCache";
-            this.ChkInternetCache.Size = new System.Drawing.Size(177, 22);
-            this.ChkInternetCache.Text = "Internet Cache";
-            this.ChkInternetCache.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // ChkWinFolder
             // 
@@ -575,7 +546,7 @@
             this.ChkWinFolder.CheckOnClick = true;
             this.ChkWinFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkWinFolder.Name = "ChkWinFolder";
-            this.ChkWinFolder.Size = new System.Drawing.Size(177, 22);
+            this.ChkWinFolder.Size = new System.Drawing.Size(180, 22);
             this.ChkWinFolder.Text = "Windows";
             this.ChkWinFolder.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -585,7 +556,7 @@
             this.ChkUserFolder.CheckOnClick = true;
             this.ChkUserFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkUserFolder.Name = "ChkUserFolder";
-            this.ChkUserFolder.Size = new System.Drawing.Size(177, 22);
+            this.ChkUserFolder.Size = new System.Drawing.Size(180, 22);
             this.ChkUserFolder.Text = "User";
             this.ChkUserFolder.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -649,7 +620,7 @@
             // 
             this.ExitTSMenu.Name = "ExitTSMenu";
             this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
-            this.ExitTSMenu.Size = new System.Drawing.Size(180, 22);
+            this.ExitTSMenu.Size = new System.Drawing.Size(134, 22);
             this.ExitTSMenu.Text = "E&xit";
             this.ExitTSMenu.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
@@ -794,29 +765,29 @@
             // 
             this.MnuAllowedFolders.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.AllowFoldersTitle,
-            this.ChkRecycleBin,
-            this.ChkTempFolder,
-            this.ChkInternetCache,
+            //this.ChkRecycleBin,
+            //this.ChkTempFolder,
+            //this.ChkInternetCache,
             this.ChkWinFolder,
             this.ChkSystemFolder,
             this.ChkUserFolder,
             this.customListToolStripMenuItem});
             this.MnuAllowedFolders.Name = "MnuAllowedFolders";
-            this.MnuAllowedFolders.Size = new System.Drawing.Size(178, 180);
+            this.MnuAllowedFolders.Size = new System.Drawing.Size(181, 202);
             // 
             // AllowFoldersTitle
             // 
             this.AllowFoldersTitle.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.AllowFoldersTitle.Enabled = false;
             this.AllowFoldersTitle.Name = "AllowFoldersTitle";
-            this.AllowFoldersTitle.Size = new System.Drawing.Size(177, 22);
+            this.AllowFoldersTitle.Size = new System.Drawing.Size(180, 22);
             this.AllowFoldersTitle.Text = "Set Allowed Folders";
             this.AllowFoldersTitle.Paint += new System.Windows.Forms.PaintEventHandler(this.AllowFoldersTitle_Paint);
             // 
             // customListToolStripMenuItem
             // 
             this.customListToolStripMenuItem.Name = "customListToolStripMenuItem";
-            this.customListToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.customListToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.customListToolStripMenuItem.Text = "&Custom List";
             this.customListToolStripMenuItem.Click += new System.EventHandler(this.ListMenuExclude_Click);
             // 
@@ -842,7 +813,6 @@
             // 
             // SysTrayOpen
             // 
-            this.SysTrayOpen.Image = ((System.Drawing.Image)(resources.GetObject("SysTrayOpen.Image")));
             this.SysTrayOpen.Name = "SysTrayOpen";
             this.SysTrayOpen.Size = new System.Drawing.Size(103, 22);
             this.SysTrayOpen.Text = "&Open";
@@ -855,7 +825,6 @@
             // 
             // SysTrayClose
             // 
-            this.SysTrayClose.Image = ((System.Drawing.Image)(resources.GetObject("SysTrayClose.Image")));
             this.SysTrayClose.Name = "SysTrayClose";
             this.SysTrayClose.Size = new System.Drawing.Size(103, 22);
             this.SysTrayClose.Text = "&Exit";
@@ -873,7 +842,6 @@
             this.Controls.Add(this.PanelSearchBar);
             this.Controls.Add(this.StartupMenuStrip);
             this.Controls.Add(this.StartupStatusStrip);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Starter";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Chizl.SystemSearch Framework 4.8.1 Demo";
@@ -930,9 +898,6 @@
         private System.Windows.Forms.ToolStripMenuItem ChkFilename;
         private System.Windows.Forms.ToolStripMenuItem ChkDirectoryName;
         private System.Windows.Forms.ToolStripMenuItem MnuSkipFolders;
-        private System.Windows.Forms.ToolStripMenuItem ChkRecycleBin;
-        private System.Windows.Forms.ToolStripMenuItem ChkTempFolder;
-        private System.Windows.Forms.ToolStripMenuItem ChkInternetCache;
         private System.Windows.Forms.ToolStripMenuItem ChkWinFolder;
         private System.Windows.Forms.ToolStripMenuItem ChkUserFolder;
         private System.Windows.Forms.Panel PanelScanButton;
@@ -992,7 +957,6 @@
         private System.Windows.Forms.ToolStripMenuItem SysTrayOpen;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.Button BtnHide;
-        //private System.Windows.Forms.ImageList IconImageList;
     }
 }
 

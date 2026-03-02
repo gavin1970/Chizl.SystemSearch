@@ -13,11 +13,6 @@ namespace Chizl.SystemSearch
         private Bool _allowWinRoot = Bool.True;
         private Bool _allowSysRoot = Bool.True;
         private Bool _allowUser = Bool.True;
-        private Bool _allowTemp = Bool.False;
-        private Bool _allowInternetCache = Bool.False;
-        private Bool _allowRecycleBin = Bool.False;
-
-        // prevent public constructor of class.
         internal ScanProperties() { }
 
         #region Public Methods
@@ -35,15 +30,6 @@ namespace Chizl.SystemSearch
                 return false;
 
             if (!AllowUser && path.StartsWith(ScanPaths.UserDir))
-                return false;
-
-            if (!AllowTemp && path.StartsWith(ScanPaths.TempDir))
-                return false;
-
-            if (!AllowInternetCache && path.StartsWith(ScanPaths.InternetCache))
-                return false;
-
-            if (!AllowRecycleBin && path.Substring(2).StartsWith(ScanPaths.RecycleBinDir))
                 return false;
 
             return GlobalSettings.CustomExclusions.Where(w => path.ToLower().Contains(w.Key.ToLower())).Count() == 0;
@@ -114,48 +100,6 @@ namespace Chizl.SystemSearch
         }
         /// <summary>
         /// ** Thread Safe **<br/>
-        /// Allow Temp path to be scanned.<br/>
-        /// Usually: C:\Users\YourProfile\AppData\Local\Temp\
-        /// </summary>
-        public bool AllowTemp
-        {
-            get => _allowTemp;
-            set
-            {
-                if (_allowTemp.TrySetValue(value))  //set only if there is a difference
-                    GlobalSettings.AddRemove(TempDir, _allowTemp);
-            }
-        }
-        /// <summary>
-        /// ** Thread Safe **<br/>
-        /// Allow Temp Internet Cached path to be scanned.<br/>
-        /// Usually: C:\Users\YourProfile\AppData\Local\Microsoft\Windows\INetCache\
-        /// </summary>
-        public bool AllowInternetCache
-        {
-            get => _allowInternetCache;
-            set
-            {
-                if (_allowInternetCache.TrySetValue(value))  //set only if there is a difference
-                    GlobalSettings.AddRemove(InternetCache, _allowInternetCache);
-            }
-        }
-        /// <summary>
-        /// ** Thread Safe **<br/>
-        /// Allow RecycleBin path to be scanned.<br/>
-        /// Usually: C:\\$Recycle.Bin
-        /// </summary>
-        public bool AllowRecycleBin
-        {
-            get => _allowRecycleBin;
-            set
-            {
-                if (_allowRecycleBin.TrySetValue(value))  //set only if there is a difference
-                    GlobalSettings.AddRemove(RecycleBinDir, _allowRecycleBin);
-            }
-        }
-        /// <summary>
-        /// ** Thread Safe **<br/>
         /// Setting to allow Search of within File name
         /// </summary>
         public bool SearchFilename
@@ -199,26 +143,6 @@ namespace Chizl.SystemSearch
         /// Allow scan of \users\--profile-- directory.
         /// </summary>
         public string UserDir => ScanPaths.UserDir;
-        /// <summary>
-        /// ** Thread Safe **<br/>
-        /// Allow scan of Temp directory.<br/>
-        /// NOTE: Windows has many different locations for Temp files.  
-        /// This only pertains windows API: Path.GetTempPath()<br/>
-        /// Use custom to set other temp paths you are aware of.
-        /// </summary>
-        public string TempDir => ScanPaths.TempDir;
-        /// <summary>
-        /// ** Thread Safe **<br/>
-        /// Allow scan of edge Internet cache directory.<br/>
-        /// NOTE: Since most users have many web browsers, this 
-        /// only pertains to Environment.SpecialFolder.InternetCache.
-        /// </summary>
-        public string InternetCache => ScanPaths.InternetCache;
-        /// <summary>
-        /// ** Thread Safe **<br/>
-        /// Covers scan for all drives :\$Recycle.Bin
-        /// </summary>
-        public string RecycleBinDir => ScanPaths.RecycleBinDir;
         #endregion
 
         private void CheckWinSys()

@@ -423,6 +423,8 @@ namespace Chizl.SearchSystemUI
         }
         private void LoadConfig()
         {
+            var checkIt = false;
+
             //not ready yet
             ListMenuExportList.Visible = false;
 
@@ -434,6 +436,7 @@ namespace Chizl.SearchSystemUI
 
             ConfigData.GetItem<bool>("ChkFilename", true, out bool isChecked);
             _criterias.SearchFilename = isChecked;
+
             ConfigData.GetItem<bool>("ChkDirectoryName", false, out isChecked);
             _criterias.SearchDirectory = isChecked;
 
@@ -474,10 +477,7 @@ namespace Chizl.SearchSystemUI
             _scanFolders = new Dictionary<string, ToolStripMenuItem>
                 {
                     { _criterias.WindowsDir, ChkWinFolder },
-                    { _criterias.UserDir, ChkUserFolder },
-                    { _criterias.InternetCache, ChkInternetCache },
-                    { _criterias.TempDir, ChkTempFolder },
-                    { _criterias.RecycleBinDir, ChkRecycleBin }
+                    { _criterias.UserDir, ChkUserFolder }
                 };
 
             if (!_scanFolders.ContainsKey(_criterias.SystemDir))
@@ -485,13 +485,6 @@ namespace Chizl.SearchSystemUI
 
             GlobalSetup.DriveList = GetScanDriveList();
             _finder = GlobalSetup.Finder;
-
-            bool checkIt = false;
-            if (PathIsEnabled(disabledDrives, _criterias.InternetCache, ref checkIt))
-                _criterias.AllowInternetCache = checkIt;
-
-            if (PathIsEnabled(disabledDrives, _criterias.RecycleBinDir, ref checkIt))
-                _criterias.AllowRecycleBin = checkIt;
 
             if (!string.IsNullOrWhiteSpace(_criterias.SystemDir)
                 && _criterias.SystemDir != _criterias.WindowsDir)
@@ -501,9 +494,6 @@ namespace Chizl.SearchSystemUI
             }
             else
                 ChkSystemFolder.Visible = false;
-
-            if (PathIsEnabled(disabledDrives, _criterias.TempDir, ref checkIt))
-                _criterias.AllowTemp = checkIt;
 
             if (PathIsEnabled(disabledDrives, _criterias.UserDir, ref checkIt, true))
                 _criterias.AllowUser = checkIt;
@@ -673,10 +663,7 @@ namespace Chizl.SearchSystemUI
         }
         private void SetMenuOptions()
         {
-            ChkInternetCache.Checked = _criterias.AllowInternetCache;
-            ChkRecycleBin.Checked = _criterias.AllowRecycleBin;
             ChkSystemFolder.Checked = _criterias.AllowSystem;
-            ChkTempFolder.Checked = _criterias.AllowTemp;
             ChkUserFolder.Checked = _criterias.AllowUser;
             ChkWinFolder.Checked = _criterias.AllowWindows;
             ChkDirectoryName.Checked = _criterias.SearchDirectory;
@@ -1032,17 +1019,8 @@ namespace Chizl.SearchSystemUI
                     loc = Point.Empty;
                     _criterias.SearchFilename = isChecked || !_criterias.SearchDirectory;
                     break;
-                case "ChkInternetCache":
-                    _criterias.AllowInternetCache = isChecked;
-                    break;
-                case "ChkRecycleBin":
-                    _criterias.AllowRecycleBin = isChecked;
-                    break;
                 case "ChkSystemFolder":
                     _criterias.AllowSystem = isChecked;
-                    break;
-                case "ChkTempFolder":
-                    _criterias.AllowTemp = isChecked;
                     break;
                 case "ChkUserFolder":
                     _criterias.AllowUser = isChecked;
