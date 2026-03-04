@@ -32,8 +32,7 @@ namespace Chizl.SearchSystemUI
         private static ListBox _selListBox;
         private static bool _loaded = false;
         private static bool _shuttingDown = false;
-        private static Dictionary<string, ToolStripMenuItem>
-            _scanFolders = new Dictionary<string, ToolStripMenuItem>();
+        private static Dictionary<string, ToolStripMenuItem> _scanFolders = new Dictionary<string, ToolStripMenuItem>();
 
         private static int resetRefreshCnt = 0;
         private static int refreshCnt = 0;
@@ -138,10 +137,14 @@ namespace Chizl.SearchSystemUI
                 BtnStartStopScan.Text = _scanAborted ? _startScanText : fullScanned ? _reScanText : _startScanText;
 
                 if (!_scanAborted && _scanTime.Equals(TimeSpan.Zero))
+                {
                     _scanTime = diff;
+                    ShowMsg(SearchMessageType.SearchTime, $"Scan Time: {_scanTime.TotalSeconds} sec.");
+                    ShowMsg(SearchMessageType.StatusMessage, "Waiting...");
+                }
 
-                var appendMsg = _scanAborted ? "before being aborted by user." : "and completed successfully.";
-                ShowMsg(SearchMessageType.StatusMessage, $"Scanned for '{diff}' {appendMsg}");
+                //var appendMsg = _scanAborted ? "before being aborted by user." : "and completed successfully.";
+                //ShowMsg(SearchMessageType.StatusMessage, $"Scanned for '{diff}' {appendMsg}");
 
                 LastScanTimer.Enabled = true;
                 LastScanTimer.Start();
@@ -218,6 +221,9 @@ namespace Chizl.SearchSystemUI
 
         private void ShowMsg(SearchEventArgs e)
         {
+            if (!_loaded)
+                return;
+
             if (InvokeRequired)
             {
                 var d = new MessageDelegateEvent(ShowMsg);
@@ -341,6 +347,9 @@ namespace Chizl.SearchSystemUI
                             // hide the bytes column, used only for sorting column[2]
                             ResultsListView.Columns[1].Width = 0;
                             break;
+                        case SearchMessageType.SearchTime:
+                            StatusToolStripSearchTime.Text = e.Message;
+                            break;
                         case SearchMessageType.StatusMessage:
                             StatusToolStripStatusLabel.Text = $"[{e.MessageType}] {e.Message}";
                             break;
@@ -392,6 +401,7 @@ namespace Chizl.SearchSystemUI
                                         );
 
             _lViewHelper.SetupListView(ResultsListView, columns, hiddenCols);
+            _finder.EventMessaging += new SearchEventHandler(IOFinder_EventMessaging);
         }
         private DriveInfo[] GetScanDriveList()
         {
@@ -807,7 +817,6 @@ namespace Chizl.SearchSystemUI
         private void TxtSearchName_TextChanged(object sender, EventArgs e) => SetComponentState();
         private void Starter_Load(object sender, EventArgs e)
         {
-            _finder.EventMessaging += new SearchEventHandler(IOFinder_EventMessaging);
             SetupForm();
         }
         private void Starter_FormClosing(object sender, FormClosingEventArgs e)
@@ -862,6 +871,7 @@ namespace Chizl.SearchSystemUI
             if (string.IsNullOrWhiteSpace(search))
                 return;
 
+            var searchTime = DateTime.UtcNow;
             _finder.Search(GetScanDriveList(), TxtSearchName.Text)
                 .ContinueWith(t =>
                 {
@@ -869,6 +879,8 @@ namespace Chizl.SearchSystemUI
                     _extFilterOn.SetFalse();
                     _customFilterOn.SetFalse();
                     SetFilterStatus();
+                    var diff = DateTime.UtcNow - searchTime;
+                    ShowMsg(SearchMessageType.StatusMessage, $"Search Response: {diff.Seconds}s {diff.Milliseconds}ms.");
                 });
         }
         private void BtnStartStopScan_Click(object sender, EventArgs e)
@@ -1224,9 +1236,6 @@ namespace Chizl.SearchSystemUI
         }
         private void LastScanTimer_Tick(object sender, EventArgs e)
         {
-            if (!_scanTime.Equals(TimeSpan.Zero))
-                ShowMsg(SearchMessageType.StatusMessage, $"Last full scan completed in {_scanTime.TotalSeconds} sec.");
-
             // Insurance
             if (_scanRunning && !BtnStartStopScan.Text.Equals(_stopScanText)
             || !_scanRunning && !(new List<string> { _reScanText, _startScanText }).Contains(BtnStartStopScan.Text))

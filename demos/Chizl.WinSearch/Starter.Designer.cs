@@ -85,6 +85,7 @@
             this.StatusToolStripDriveFiltered = new System.Windows.Forms.ToolStripStatusLabel();
             this.StatusToolStripExtFiltered = new System.Windows.Forms.ToolStripStatusLabel();
             this.StatusToolStripSubFiltered = new System.Windows.Forms.ToolStripStatusLabel();
+            this.StatusToolStripSearchTime = new System.Windows.Forms.ToolStripStatusLabel();
             this.SearchStatusToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.FilesAvailableToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.PanelSearchBar = new System.Windows.Forms.Panel();
@@ -502,7 +503,7 @@
             this.ChkSystemFolder.CheckOnClick = true;
             this.ChkSystemFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkSystemFolder.Name = "ChkSystemFolder";
-            this.ChkSystemFolder.Size = new System.Drawing.Size(180, 22);
+            this.ChkSystemFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkSystemFolder.Text = "System";
             this.ChkSystemFolder.CheckedChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -546,7 +547,7 @@
             this.ChkWinFolder.CheckOnClick = true;
             this.ChkWinFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkWinFolder.Name = "ChkWinFolder";
-            this.ChkWinFolder.Size = new System.Drawing.Size(180, 22);
+            this.ChkWinFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkWinFolder.Text = "Windows";
             this.ChkWinFolder.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -556,7 +557,7 @@
             this.ChkUserFolder.CheckOnClick = true;
             this.ChkUserFolder.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkUserFolder.Name = "ChkUserFolder";
-            this.ChkUserFolder.Size = new System.Drawing.Size(180, 22);
+            this.ChkUserFolder.Size = new System.Drawing.Size(177, 22);
             this.ChkUserFolder.Text = "User";
             this.ChkUserFolder.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -655,6 +656,7 @@
             this.StatusToolStripDriveFiltered,
             this.StatusToolStripExtFiltered,
             this.StatusToolStripSubFiltered,
+            this.StatusToolStripSearchTime,
             this.SearchStatusToolStripStatusLabel,
             this.FilesAvailableToolStripStatusLabel});
             this.StartupStatusStrip.Location = new System.Drawing.Point(0, 621);
@@ -666,7 +668,7 @@
             // StatusToolStripStatusLabel
             // 
             this.StatusToolStripStatusLabel.Name = "StatusToolStripStatusLabel";
-            this.StatusToolStripStatusLabel.Size = new System.Drawing.Size(953, 19);
+            this.StatusToolStripStatusLabel.Size = new System.Drawing.Size(851, 19);
             this.StatusToolStripStatusLabel.Spring = true;
             this.StatusToolStripStatusLabel.Text = "Ready...";
             this.StatusToolStripStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -710,6 +712,14 @@
             this.StatusToolStripSubFiltered.Size = new System.Drawing.Size(53, 19);
             this.StatusToolStripSubFiltered.Text = "Custom";
             this.StatusToolStripSubFiltered.Visible = false;
+            // 
+            // StatusToolStripSearchTime
+            // 
+            this.StatusToolStripSearchTime.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left;
+            this.StatusToolStripSearchTime.Name = "StatusToolStripSearchTime";
+            this.StatusToolStripSearchTime.Padding = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.StatusToolStripSearchTime.Size = new System.Drawing.Size(102, 19);
+            this.StatusToolStripSearchTime.Text = "Scan Time: 0 sec";
             // 
             // SearchStatusToolStripStatusLabel
             // 
@@ -765,29 +775,26 @@
             // 
             this.MnuAllowedFolders.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.AllowFoldersTitle,
-            //this.ChkRecycleBin,
-            //this.ChkTempFolder,
-            //this.ChkInternetCache,
             this.ChkWinFolder,
             this.ChkSystemFolder,
             this.ChkUserFolder,
             this.customListToolStripMenuItem});
             this.MnuAllowedFolders.Name = "MnuAllowedFolders";
-            this.MnuAllowedFolders.Size = new System.Drawing.Size(181, 202);
+            this.MnuAllowedFolders.Size = new System.Drawing.Size(178, 114);
             // 
             // AllowFoldersTitle
             // 
             this.AllowFoldersTitle.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.AllowFoldersTitle.Enabled = false;
             this.AllowFoldersTitle.Name = "AllowFoldersTitle";
-            this.AllowFoldersTitle.Size = new System.Drawing.Size(180, 22);
+            this.AllowFoldersTitle.Size = new System.Drawing.Size(177, 22);
             this.AllowFoldersTitle.Text = "Set Allowed Folders";
             this.AllowFoldersTitle.Paint += new System.Windows.Forms.PaintEventHandler(this.AllowFoldersTitle_Paint);
             // 
             // customListToolStripMenuItem
             // 
             this.customListToolStripMenuItem.Name = "customListToolStripMenuItem";
-            this.customListToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.customListToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
             this.customListToolStripMenuItem.Text = "&Custom List";
             this.customListToolStripMenuItem.Click += new System.EventHandler(this.ListMenuExclude_Click);
             // 
@@ -957,6 +964,7 @@
         private System.Windows.Forms.ToolStripMenuItem SysTrayOpen;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.Button BtnHide;
+        private System.Windows.Forms.ToolStripStatusLabel StatusToolStripSearchTime;
     }
 }
 

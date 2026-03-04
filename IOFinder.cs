@@ -147,12 +147,14 @@ namespace Chizl.SystemSearch
                 {
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
-
+                    
+                    var hasData = findingsDic.Count > 0;
                     // if we have content, we now need to filter down for each criteria.
                     foreach (var p in pathList)
                     {
-                        // if we have content, we now need to filter down for each criteria.
-                        if (findingsDic.Count > 0)
+                        // if data doesn't exists at the start, then we want to only add
+                        // extensions, not filter out after the first extension is found.
+                        if (hasData)
                         {
                             if (p.Search.ToLower() == Seps.sNOEXT.ToLower())
                                 filters.AddRange(findingsDic.Where(w => !w.Value).Select(s => (s.Key, s.Value)));
@@ -188,11 +190,13 @@ namespace Chizl.SystemSearch
                 {
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
-
+                    var hasData = findingsDic.Count > 0;
                     // if we have content, we now need to filter down for each extension.
                     foreach (var e in extList)
                     {
-                        if (findingsDic.Count > 0)
+                        // if data doesn't exists at the start, then we want to only add
+                        // extensions, not filter out after the first extension is found.
+                        if (hasData)
                         {
                             if(e.Search==Seps.cNOEXT.ToString())
                                 filters.AddRange(findingsDic.Where(w => !w.Value).Select(s => (s.Key, s.Value)));
@@ -227,9 +231,10 @@ namespace Chizl.SystemSearch
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
 
-                    // if we have content, we now need to filter down for each exclusion.
                     foreach (var f in filterList)
                     {
+                        // if we have content, we now need to filter down for each exclusion.
+                        // If we don't have content, we have nothing to exclude, so we skip.
                         if (findingsDic.Count > 0)
                         {
                             if (f.Search.ToLower() == Seps.sNOEXT.ToLower())
@@ -237,12 +242,9 @@ namespace Chizl.SystemSearch
                             else
                                 filters.AddRange(findingsDic.Where(w => !w.Key.ToLower().Contains(f.Search.ToLower())).Select(s => (s.Key, s.Value)));
 
-                            // if we had content before, we need to clear it out, and add the new filtered extension
-                            if (prevDicCount != 0)
-                                findingsDic.Clear();
-
                             if (filters.Count() > 0)
                             {
+                                findingsDic.Clear();
                                 foreach (var item in filters.ToList())
                                     findingsDic.TryAdd(item.Path, item.HasExt);
                                 filters.Clear();
@@ -257,7 +259,7 @@ namespace Chizl.SystemSearch
                             }
                             else
                             {
-                                foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(f.Search.ToLower())).ToList())
+                                foreach (var item in fullFileList.Where(w => !w.Key.ToLower().Contains(f.Search.ToLower())).ToList())
                                     findingsDic.TryAdd(item.Key, item.Value);
                             }
                         }

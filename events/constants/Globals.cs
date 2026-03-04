@@ -29,6 +29,7 @@
         SearchResults,
         StatusMessage,
         SearchStatus,
+        SearchTime,
         SearchQueryUsed,
         DriveScanStatus,
         FileScanStatus,
