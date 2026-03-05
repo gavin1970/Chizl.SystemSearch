@@ -98,7 +98,28 @@ namespace Chizl.WinSearch
         private void toolStripMenuAlwaysExclude_Click(object sender, EventArgs e)
         {
             if (GetSelectedItem(out string selectedItem, out int ndx))
-                AlwaysExclude(selectedItem, ndx);
+            {
+                if (toolStripMenuAlwaysExclude.Text.Contains("Temporary"))
+                {
+                    // Leave it in _excludeItems, but remove it from _alwaysExcludeItems
+                    if (GlobalSetup.RemoveScanExclusion(selectedItem).Result)
+                    {
+                        var ei = _excludeItems.Where(w => !w.FilterRaw.Contains(selectedItem)).ToList();
+
+                        var item = _alwaysExcludeItems.Where(w => w.FilterRaw.Equals(selectedItem)).FirstOrDefault();
+                        if (item != null)
+                        {
+                            _alwaysExcludeItems.Remove(item);
+                            _excludeItems.Add(item);
+                        }
+
+                        if (ndx > -1)
+                            ListViewSubFilters.Items[ndx].BackColor = SystemColors.Control;
+                    }
+                }
+                else
+                    AlwaysExclude(selectedItem, ndx);
+            }
         }
 
         #region ListView Setup/Controls
@@ -242,6 +263,20 @@ namespace Chizl.WinSearch
             index = item.Index;
 
             return true;
+        }
+
+        private void contextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (GetSelectedItem(out string selectedItem, out _))
+            {
+                toolStripMenuAlwaysExclude.Text = _alwaysExcludeItems.Where(w => w.FilterRaw.Equals(selectedItem)).Count() == 0 ? "&Always Exclude" : "&Temporary Exclude";
+                toolStripMenuRemoveItem.Enabled = true;
+            }
+            else
+            {
+                toolStripMenuAlwaysExclude.Text = "&Always Exclude";
+                toolStripMenuRemoveItem.Enabled = false;
+            }
         }
     }
 }

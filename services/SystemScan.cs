@@ -367,6 +367,9 @@ namespace Chizl.SystemSearch
 
         internal bool AddFile(string fileName)
         {
+            if (!IsAllowed(Path.GetFileName(fileName)))
+                return false;
+
             var hasExt = !string.IsNullOrWhiteSpace(Path.GetExtension(fileName));
             // verifies root folder of file and determines if it should continue.
             if (_fileDictionary.TryAdd(fileName, hasExt))
@@ -398,5 +401,7 @@ namespace Chizl.SystemSearch
                 GlobalSettings.FullScanCompleted = !GlobalSettings.HasShutdown;
         }
         internal void SetStatus(bool success) => SetStatus((success ? LookupStatus.Completed : LookupStatus.Aborted));
+
+        private bool IsAllowed(string path) => GlobalSettings.CustomExclusions.Where(w => path.ToLower().Contains(w.Key.ToLower())).Count() == 0;
     }
 }

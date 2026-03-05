@@ -12,11 +12,11 @@
 				<Authors>Chizl</Authors>
 				<PackageId>Chizl.SystemSearch</PackageId>
 				<Company>Chizl.com</Company>
-				<Copyright>© 2025 chizl.com</Copyright>
+				<Copyright>© 2025-2026 chizl.com</Copyright>
 				<PackageTags>file-search;library;in-console;on-desktop;standard;framework;no-deps;netstandard2.0;netstandard2.1;net8.0;net10.0</PackageTags>
 				<AssemblyVersion>6.0.0.0</AssemblyVersion>
-				<FileVersion>6.3.4.1450</FileVersion>
-				<Version>6.3.4.0</Version>
+				<FileVersion>6.3.5.1702</FileVersion>
+				<Version>6.3.5.0</Version>
 				<PackageReadmeFile>README.md</PackageReadmeFile>
 		</PropertyGroup>
 

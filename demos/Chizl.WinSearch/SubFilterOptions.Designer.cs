@@ -123,19 +123,20 @@
             this.toolStripMenuRemoveItem,
             this.toolStripMenuAlwaysExclude});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(155, 48);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 70);
+            this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // toolStripMenuRemoveItem
             // 
             this.toolStripMenuRemoveItem.Name = "toolStripMenuRemoveItem";
-            this.toolStripMenuRemoveItem.Size = new System.Drawing.Size(154, 22);
+            this.toolStripMenuRemoveItem.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuRemoveItem.Text = "&Remove";
             this.toolStripMenuRemoveItem.Click += new System.EventHandler(this.toolStripMenuRemoveItem_Click);
             // 
             // toolStripMenuAlwaysExclude
             // 
             this.toolStripMenuAlwaysExclude.Name = "toolStripMenuAlwaysExclude";
-            this.toolStripMenuAlwaysExclude.Size = new System.Drawing.Size(154, 22);
+            this.toolStripMenuAlwaysExclude.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuAlwaysExclude.Text = "&Always Exclude";
             this.toolStripMenuAlwaysExclude.Click += new System.EventHandler(this.toolStripMenuAlwaysExclude_Click);
             // 

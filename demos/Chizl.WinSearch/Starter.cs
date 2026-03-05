@@ -136,7 +136,7 @@ namespace Chizl.SearchSystemUI
                 var fullScanned = _finder.FullScanCompleted;
                 BtnStartStopScan.Text = _scanAborted ? _startScanText : fullScanned ? _reScanText : _startScanText;
 
-                if (!_scanAborted && _scanTime.Equals(TimeSpan.Zero))
+                if (!_scanAborted && _scanTime.Equals(TimeSpan.Zero) && _startDate != DateTime.MinValue)
                 {
                     _scanTime = diff;
                     ShowMsg(SearchMessageType.SearchTime, $"Scan Time: {_scanTime.TotalSeconds} sec.");
@@ -1232,6 +1232,11 @@ namespace Chizl.SearchSystemUI
                 }
                 else
                     ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
+
+                _subFilterForm.ExcludeItems.Clear();
+                //List<string> removeItems = _unfilteredItemsList.Cast<ListViewItem>()
+                //                .Where(w => !drives.Contains(w.SubItems[pathColumnId].Text.Substring(0, 2)))
+                //                .Select(s => s.SubItems[pathColumnId].Text.Substring(0, 2)).Distinct().ToList();
             }
         }
         private void LastScanTimer_Tick(object sender, EventArgs e)
