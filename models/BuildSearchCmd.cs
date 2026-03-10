@@ -21,7 +21,7 @@ namespace Chizl.SystemSearch
         //public static string sEnd { get; } = "]";
         //public static string sOr { get; } = "|";
         //public static string sWild { get; } = "*";
-        //public static string sMulti { get; } = ",";
+        public static string sMulti { get; } = "·";
         public static char cStart { get; } = '[';
         public static char cEnd { get; } = ']';
         public static char cOr { get; } = '|';
@@ -92,6 +92,50 @@ namespace Chizl.SystemSearch
             return search;
         }
 
+        private bool DeDupTokens(ref string searchCriteria)
+        {
+            var retVal = false;
+            var tokenCmds = new string[] {"[ext", "[inc", "[exc" };
+            var cmdPatterns = searchCriteria.SplitOn(Seps.cMulti);
+
+            foreach (var availableToken in tokenCmds)
+            {
+                var dups = cmdPatterns.Where(w => w.StartsWith(availableToken, StringComparison.InvariantCultureIgnoreCase)).ToList();
+                if (dups.Count() > 1)
+                {
+                    retVal = true;
+                    var starterToken = dups[0];
+                    foreach (var dup in dups)
+                    {
+                        // add it back later with the correct format, this is what is used in the
+                        // SearchMessageType.SearchQueryUsed event, so users see the correct format
+                        // in their search
+                        searchCriteria = searchCriteria.Replace(dup, ""); 
+
+                        if (dup.Equals(starterToken, StringComparison.InvariantCultureIgnoreCase))
+                            continue;
+                        if (dup.IndexOf(':') == -1 || dup.IndexOf(']') == -1)
+                        {
+                            // invalid token command, requires separation between command and values, remove it and move on.
+                            // searchCriteria = searchCriteria.Replace(dup, "");
+                            continue;
+                        }
+                        var fullTokenCmd = dup.Substring(1, dup.IndexOf(':') - 1);
+                        var tokenValues = dup.Substring(dup.IndexOf(':')+1);
+                        starterToken = starterToken.Replace("]", $"|{tokenValues}");
+                    }
+
+                    searchCriteria += " " + starterToken;
+                }
+            }
+
+            while (searchCriteria.Contains($"{Seps.cMulti}{Seps.cMulti}") || searchCriteria.Contains($"{Seps.cMulti} ") || searchCriteria.Contains($" {Seps.cMulti}"))
+                searchCriteria = searchCriteria.Replace($"{Seps.cMulti}{Seps.cMulti}", $"{Seps.cMulti}")
+                                               .Replace($"{Seps.cMulti} ", $"{Seps.cMulti}")
+                                               .Replace($" {Seps.cMulti}", $"{Seps.cMulti}").Trim();
+
+            return retVal;
+        }
         private string[] FindCommands(ref string searchCriteria)
         {
             var hasPathSearch = false;
@@ -127,6 +171,11 @@ namespace Chizl.SystemSearch
             // trim out any spaces around the multi-search tokens
             searchCriteria = DupSearchReplace(searchCriteria, new string[] { $"{Seps.cMulti} ", $" {Seps.cMulti}" }, $"{Seps.cMulti}");
 
+            // remove any duplicate multi-search tokens that may have been
+            // created by the user.  If changes, update retVal for search.
+            if (DeDupTokens(ref searchCriteria))
+                retVal = searchCriteria.Replace(Seps.sMulti, "");
+
             // This is used for the search criteria
             var cmdPatterns = searchCriteria.SplitOn(Seps.cMulti);
 
@@ -140,8 +189,10 @@ namespace Chizl.SystemSearch
             // clean up any leading or trailing '+' and replace any duplicate '+'
             // that may have been created by the above formatting.
             searchCriteria = TrimOff(searchCriteria, '+');
+            
             // this will auto correct the following type of query:
             searchCriteria = DupSearchReplace(searchCriteria, "  ", " ");
+
             // to look like this:
             searchCriteria = DupSearchReplace(searchCriteria, " + + ", " + ");
 
