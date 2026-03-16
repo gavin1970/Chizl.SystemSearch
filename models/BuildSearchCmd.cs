@@ -91,7 +91,6 @@ namespace Chizl.SystemSearch
                 search = search.TrimEnd(chr).Trim();
             return search;
         }
-
         private bool DeDupTokens(ref string searchCriteria)
         {
             var retVal = false;
@@ -136,6 +135,25 @@ namespace Chizl.SystemSearch
 
             return retVal;
         }
+
+        /// <summary>
+        /// Supports:
+        /// Full Example: google + [includes:code|gemini] + [extensions:pdf|log|java|cs|noext] + [excludes:\3rdparty\|\appdata\|program]
+        ///   Searches are not case sensitive, but the token command type must be included in the search for it to be processed as a 
+        ///   search criteria. The above example would be processed as:
+        ///     1. Result requires "google" in path and/or file name based on selection in UI next to the "Find" button.
+        ///     2. Result requires ("code" or "gemini"), in file or path before or after "google".  
+        ///        a. This ignores UI selection for path or file name, because user is explicitly stating it in the command, so we will honor that.
+        ///     3. Requires file extensions of (".pdf", ".log", ".java", or ".cs") or files with no extension
+        ///     4. Excludes anything with ("\3rdparty\" or "\appdata\") in the path, because "\" was used.  
+        ///        a. Excludes anything with "program" in the path or file name, because "\" was not used.
+        /// 
+        /// google + [includes:code|gemini] + [extensions:pdf|log|java] + [extensions:cs|noext]
+        ///     1. Auto merges multiple commands of the same type, this allows users to input commands 
+        ///        in any order and not worry about merging them with the same type.  Results in the same 
+        ///        search as the full example above, but with more user input flexibility: 
+        ///        google + [includes:code|gemini] + [extensions:pdf|log|java|cs|noext]
+        /// </summary>
         private string[] FindCommands(ref string searchCriteria)
         {
             var hasPathSearch = false;
