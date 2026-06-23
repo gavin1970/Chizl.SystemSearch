@@ -118,11 +118,15 @@
     <Content Include="imgs\Chizl.WinSearch.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="imgs\Chizl.WinSearch.png" />
+    <Content Include="imgs\Chizl.WinSearch.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="imgs\Chizl.WinSearch_Working.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="imgs\Chizl.WinSearch_Working.png" />
+    <Content Include="imgs\Chizl.WinSearch_Working.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

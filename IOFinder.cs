@@ -195,8 +195,12 @@ namespace Chizl.SystemSearch
                             // limit the number of files being read at the same time to prevent
                             // out of memory issues, if we have more than 100 files being read,
                             // we will wait for some of them to finish before starting to read more.
-                            while (Volatile.Read(ref _fileContentCount) > 100)
+                            while (Volatile.Read(ref _fileContentCount) > 100 && !GlobalSettings.HasShutdown)
                                 Task.Delay(100).Wait();
+
+
+                            if (GlobalSettings.HasShutdown)
+                                return false;
 
                             Interlocked.Increment(ref _fileContentCount);
 
@@ -245,7 +249,7 @@ namespace Chizl.SystemSearch
 
                 var wc = searchCriteria.SearchCriteria[i];
                 var prevDicCount = findingsDic.Count();
-                var hasData = findingsDic.Count > 0;
+                var hasData = findingsDic != null && findingsDic.Count > 0;
 
                 if (wc.Length == 1 && wc.Equals(Seps.cContentsPos.ToString()) && contentList.Count() > 0)
                 {
@@ -256,43 +260,49 @@ namespace Chizl.SystemSearch
                     List<string> removePaths = new List<string>();
                     ConcurrentDictionary<string, bool> contentFindings = new ConcurrentDictionary<string, bool>();
 
-                    if (findingsDic != null && findingsDic.Count > 0)
+                    retVal = true;
+                    var keys = findingsDic.Keys.ToList();
+                    findingsDic.Clear();
+                    List<Task> searchTask = new List<Task>();
+
+                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Found: [{keys.Count().FormatByComma()}] files to scan for content.");
+
+                    // c:\code + [extensions:cs] + [contents:action]
+                    foreach (var file in keys)
                     {
-                        retVal = true;
-                        var keys = findingsDic.Keys.ToList();
-                        findingsDic.Clear();
-                        List<Task> searchTask = new List<Task>();
+                        if (GlobalSettings.HasShutdown)
+                            break;
 
-                        foreach (var file in keys)
+                        // we need to verify the criteria again, as some of the criteria is not able to be pre-filtered
+                        // in the cache, and we don't want to waste the time trying to read the file if it doesn't
+                        // meet the criteria.
+                        if (VerifyCriteria(drives, file, searchCriteria))
                         {
-                            if (GlobalSettings.HasShutdown)
-                                break;
-
-                            // we need to verify the criteria again, as some of the criteria is not able to be pre-filtered
-                            // in the cache, and we don't want to waste the time trying to read the file if it doesn't
-                            // meet the criteria.
-                            if (VerifyCriteria(drives, file, searchCriteria))
+                            //search for each content criteria, if any of them are met, then we
+                            //add it to the findings, if not, we don't add it.
+                            foreach (var c in contentList)
                             {
-                                //search for each content criteria, if any of them are met, then we
-                                //add it to the findings, if not, we don't add it.
-                                foreach (var c in contentList)
+                                if (GlobalSettings.HasShutdown)
+                                    break;
+                                // create task for each content search, this will help with performance, as we
+                                // can search for multiple content criteria at the same time, and it will also
+                                // help with large files, as we can read them in parallel.
+                                // FindContent verifies the file is not binary and less than 1 GB before
+                                // reading, so we don't have to worry about that here.
+                                searchTask.Add(FindContent(file, c.Search).ContinueWith(t =>
                                 {
-                                    // create task for each content search, this will help with performance, as we
-                                    // can search for multiple content criteria at the same time, and it will also
-                                    // help with large files, as we can read them in parallel.
-                                    // FindContent verifies the file is not binary and less than 1 GB before
-                                    // reading, so we don't have to worry about that here.
-                                    searchTask.Add(FindContent(file, c.Search).ContinueWith(t =>
+                                    if (t.Result)
                                     {
-                                        if (t.Result)
-                                            findingsDic.TryAdd(file, string.IsNullOrWhiteSpace(Path.GetExtension(file)));
-                                    }));
-                                }
+                                        findingsDic.TryAdd(file, string.IsNullOrWhiteSpace(Path.GetExtension(file)));
+                                        SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Found: [{findingsDic.Count().FormatByComma()}] files matching content.");
+                                    }
+                                }));
                             }
                         }
-
-                        Task.WaitAll(searchTask.ToArray());
                     }
+
+                    Task.WaitAll(searchTask.ToArray());
+                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Found: [{findingsDic.Count().FormatByComma()}] files matching content.");
                 }
                 // if the criteria is a path include, we want to filter the list based on the path, this
                 // will help with the search, and prevent us from having to parse the criteria multiple times.

@@ -160,9 +160,15 @@ namespace Chizl.SearchSystemUI
         }
         private void SetSysTrayIcon(string iconPath)
         {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => { SetSysTrayIcon(iconPath); }));
+                return;
+            }
+
             try
             {
-                if (!File.Exists(iconPath))
+                if (File.Exists(iconPath))
                 {
                     var appIcon = Image.FromFile(iconPath);
                     _systemNotify.SetIcon(ModImg.ImgToIco(appIcon, new Size(32, 32)), null);
@@ -176,42 +182,35 @@ namespace Chizl.SearchSystemUI
         }
         private void ScanStarted()
         {
-            if (InvokeRequired)
+            if (this.InvokeRequired)
             {
-                var d = new NoParmDelegateEvent(ScanStarted);
-                if (!Disposing && !IsDisposed)
-                {
-                    try { Invoke(d); }
-                    catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
-                    catch { /* Ignore, shutting down. */ }
-                }
+                this.Invoke(new Action(() => { ScanStarted(); }));
+                return;
             }
-            else if (!Disposing && !IsDisposed)
-            {
-                if (_scanRunning.SetVal(true))
-                    return;
-                else
-                    _scanAborted.SetFalse();
 
-                SetSysTrayIcon(_winSrchWorkIconPath);
+            if (!_scanRunning.TrySetTrue())
+                return;
+            else
+                _scanAborted.SetFalse();
 
-                // set refresh for folder/file count
-                // information to max setting for refreshes.
-                Interlocked.Exchange(ref resetRefreshCnt, _maxRefreshCnt);
-                Interlocked.Exchange(ref refreshCnt, 0);
+            SetSysTrayIcon(_winSrchWorkIconPath);
 
-                BtnFind.Enabled = false;
-                //BtnOptions.Enabled = false;
-                TxtSearchName.ReadOnly = true;
+            // set refresh for folder/file count
+            // information to max setting for refreshes.
+            Interlocked.Exchange(ref resetRefreshCnt, _maxRefreshCnt);
+            Interlocked.Exchange(ref refreshCnt, 0);
 
-                BtnStartStopScan.Text = _stopScanText;
-                TxtSearchName.Text = TxtSearchName.Text.Trim();
-                ResultsListView.Items.Clear();
+            BtnFind.Enabled = false;
+            //BtnOptions.Enabled = false;
+            TxtSearchName.ReadOnly = true;
 
-                _startDate = DateTime.UtcNow;
-                _endDate = _startDate;
-                StartupTimer.Enabled = true;
-            }
+            BtnStartStopScan.Text = _stopScanText;
+            TxtSearchName.Text = TxtSearchName.Text.Trim();
+            ResultsListView.Items.Clear();
+
+            _startDate = DateTime.UtcNow;
+            _endDate = _startDate;
+            StartupTimer.Enabled = true;
         }
         private void ShowMsg(SearchMessageType messageType, string msg)
             => ShowMsg(new SearchEventArgs(messageType, msg));
