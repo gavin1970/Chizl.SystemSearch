@@ -8,7 +8,8 @@ namespace Chizl.SystemSearch
     {
         Includes,
         Extensions,
-        Excludes
+        Excludes,
+        Contents
     }
 
     /// <summary>
@@ -33,11 +34,14 @@ namespace Chizl.SystemSearch
         public static char cNOEXT { get; } = '♦';      // Alt-260 = ♦
         public static string sNOEXT { get; } = "NOEXT";
         public static char cIncludesPos { get; } = '♥';     // Alt-259 = ♥
+        public static char cContentsPos { get; } = '♣';     // Alt-261 = ♣
         public static string GetCommandString(CommandType cmdType) => $"{cmdType}{cCmdEnd}";
         public static string GetCommandToken(CommandType cmdType) => 
             cmdType == CommandType.Extensions ? $"{cExtPos}" 
             : (cmdType == CommandType.Excludes) 
             ? $"{cFilterPos}" 
+            : (cmdType == CommandType.Contents)
+            ? $"{cContentsPos}"
             : $"{cIncludesPos}";
     }
 
@@ -159,6 +163,7 @@ namespace Chizl.SystemSearch
             var hasPathSearch = false;
             var hasExtSearch = false;
             var hasFilter = false;
+            var hasContentSearch = false;
 
             // comfort chars people like to use to separate things.
             searchCriteria = searchCriteria.Replace($",", "")
@@ -244,6 +249,14 @@ namespace Chizl.SystemSearch
                 // get command type
                 switch (cmdTypeString.ToLowerInvariant())
                 {
+                    // user option for contents
+                    case "con":
+                    // user option for contents
+                    case "content":
+                    //specific
+                    case "contents":
+                        cmdType = CommandType.Contents;
+                        break;
                     // user option for extensions
                     case "ext":
                     // user option for extensions
@@ -261,7 +274,7 @@ namespace Chizl.SystemSearch
                         if (sNE > -1)
                             clnExt = clnExt.Replace(clnExt.Substring(sNE, _NOEXT.Length), clnExt.Substring(sNE, _NOEXT.Length).ToUpper());
 
-                        search = clnExt.Replace(_NOEXT, $"{Seps.cNOEXT}");
+                        search = clnExt.Replace(_NOEXT, $"{Seps.cNOEXT}").Replace(" ", "");
                         break;
                     // user option for includes
                     case "inc":
@@ -286,6 +299,8 @@ namespace Chizl.SystemSearch
                         continue;
                 }
 
+                // use for token later.
+                hasContentSearch = hasContentSearch || cmdType == CommandType.Contents;
                 // use for token later.
                 hasPathSearch = hasPathSearch || cmdType == CommandType.Includes;
                 // use for token later.
@@ -317,6 +332,7 @@ namespace Chizl.SystemSearch
             retVal += hasPathSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Includes)}{Seps.cWild}" : "";
             retVal += hasExtSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Extensions)}{Seps.cWild}" : "";
             retVal += hasFilter ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Excludes)}{Seps.cWild}" : "";
+            retVal += hasContentSearch ? $"{Seps.cWild}{Seps.GetCommandToken(CommandType.Contents)}{Seps.cWild}" : "";
 
             // SplitOn will auto strip ** by ignoring blank entries if exists.
             return retVal.Replace(",", "").SplitOn(Seps.cWild);

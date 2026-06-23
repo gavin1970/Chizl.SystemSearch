@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Chizl.SystemSearch
@@ -115,6 +116,108 @@ namespace Chizl.SystemSearch
 
             return retVal;
         }
+        /// <summary>
+        /// IsBinary(): Has BOM detection for UTF encoding UTF-8 BOM, UTF-16 LE/BE and future UTF-32 LE/BE ASCII<br/>
+        /// </summary>
+        /// <param name="fullPath">Path of file</param>
+        /// <param name="errorMsg">if method returns false, errorMsg will have reason.</param>
+        /// <param name="bytesToCheck">How many bytes to check within the header.  If the file is smaller than bytesToCheck, it will only pull what.</param>
+        /// <returns>true - if binary found.  false if </returns>
+        const int BYTE_SIZE_READS = 4096;
+        const int MAX_BYTE_SIZE_CHECK = 1024 * 1024 * 5;  // 5 MB = 5,242,880 bytes.
+
+        public static bool IsBinary(string fullPath, out string errorMsg, int bytesToCheck = 1024)
+        {
+            errorMsg = string.Empty;
+
+            try
+            {
+                using (FileStream fs = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, BYTE_SIZE_READS, FileOptions.Asynchronous))
+                {
+                    byte[] buffer = new byte[bytesToCheck];
+                    int bytesRead = fs.Read(buffer, 0, bytesToCheck);
+
+                    //UTF-16 Check
+                    if (bytesRead >= 2)
+                    {
+                        if (buffer[0] == 0xFF && buffer[1] == 0xFE) return false; // UTF-16 LE
+                        if (buffer[0] == 0xFE && buffer[1] == 0xFF) return false; // UTF-16 BE
+                    }
+
+                    //UTF-8 Check
+                    if (bytesRead >= 3)
+                    {
+                        //BOM detection for UTF encoding
+                        if (buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF) return false; // UTF-8 BOM
+                    }
+
+                    //UTF-32 Check
+                    if (bytesRead >= 4)
+                    {
+                        if (buffer[0] == 0xFF && buffer[1] == 0xFE && buffer[2] == 0x00 && buffer[3] == 0x00) return false; // UTF-32 LE
+                        if (buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0xFE && buffer[3] == 0xFF) return false; // UTF-32 BE
+                    }
+
+                    for (int i = 0; i < bytesRead; i++)
+                    {
+                        // if no BOM found above, but null terminators
+                        // are still found, we will flag as binary.
+                        if (buffer[i] == 0x00)
+                            return true;        // definitely binary
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMsg = $"IsBinary('{fullPath}') Exception:{Environment.NewLine}{ex.Message}";
+            }
+
+            // BOM already checked.
+            // No other string terminators '0x00' found.
+            // Not binary.
+            return false;
+        }
+        
+        private static long _fileContentCount = 0;
+
+        private Task<bool> FindContent(string filePath, string searchTerm)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    var fi = new FileInfo(filePath);
+                    // if the file is larger than 1 GB, we will skip it, as it is likely a binary file, and we don't want to waste the time trying to read it.
+                    if (fi.Exists && !IsBinary(filePath, out _) && fi.Length < (1024 * 1024 * 1024))
+                    {
+                        try
+                        {
+                            // limit the number of files being read at the same time to prevent
+                            // out of memory issues, if we have more than 100 files being read,
+                            // we will wait for some of them to finish before starting to read more.
+                            while (Volatile.Read(ref _fileContentCount) > 100)
+                                Task.Delay(100).Wait();
+
+                            Interlocked.Increment(ref _fileContentCount);
+
+                            var content = File.ReadAllText(fi.FullName);
+                            if (content.IndexOf(searchTerm, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                                return true;
+                        }
+                        finally 
+                        {
+                            Interlocked.Decrement(ref _fileContentCount);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // if we can't read the file, we just skip it, but log the error.
+                    SearchMessage.SendMsg(ex, $"Error reading file: {filePath}");
+                }
+                return false;
+            });
+        }
         private bool DeepDive(string[] drives, BuildSearchCmd searchCriteria)
         {
             var retVal = false;
@@ -131,6 +234,8 @@ namespace Chizl.SystemSearch
             var extList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Extensions).ToList();
             // we can pre-filter the list based on the excludes, this will help with the search, and prevent us from having to parse the criteria multiple times.
             var filterList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Excludes).ToList();
+            // we can pre-filter the list based on the excludes, this will help with the search, and prevent us from having to parse the criteria multiple times.
+            var contentList = searchCriteria.Commands.Where(w => w.CommandType == CommandType.Contents).ToList();
 
             // we want to loop through the search criteria, and filter down the list of files based on the criteria.
             for (int i = 0; i < searchCriteria.SearchCriteria.Length; i++)
@@ -140,15 +245,66 @@ namespace Chizl.SystemSearch
 
                 var wc = searchCriteria.SearchCriteria[i];
                 var prevDicCount = findingsDic.Count();
+                var hasData = findingsDic.Count > 0;
 
+                if (wc.Length == 1 && wc.Equals(Seps.cContentsPos.ToString()) && contentList.Count() > 0)
+                {
+                    // not looking for more if the first parts don't exist.
+                    if (!hasData)
+                        continue;
+
+                    List<string> removePaths = new List<string>();
+                    ConcurrentDictionary<string, bool> contentFindings = new ConcurrentDictionary<string, bool>();
+
+                    if (findingsDic != null && findingsDic.Count > 0)
+                    {
+                        retVal = true;
+                        var keys = findingsDic.Keys.ToList();
+                        findingsDic.Clear();
+                        List<Task> searchTask = new List<Task>();
+
+                        foreach (var file in keys)
+                        {
+                            if (GlobalSettings.HasShutdown)
+                                break;
+
+                            // we need to verify the criteria again, as some of the criteria is not able to be pre-filtered
+                            // in the cache, and we don't want to waste the time trying to read the file if it doesn't
+                            // meet the criteria.
+                            if (VerifyCriteria(drives, file, searchCriteria))
+                            {
+                                //search for each content criteria, if any of them are met, then we
+                                //add it to the findings, if not, we don't add it.
+                                foreach (var c in contentList)
+                                {
+                                    // create task for each content search, this will help with performance, as we
+                                    // can search for multiple content criteria at the same time, and it will also
+                                    // help with large files, as we can read them in parallel.
+                                    // FindContent verifies the file is not binary and less than 1 GB before
+                                    // reading, so we don't have to worry about that here.
+                                    searchTask.Add(FindContent(file, c.Search).ContinueWith(t =>
+                                    {
+                                        if (t.Result)
+                                            findingsDic.TryAdd(file, string.IsNullOrWhiteSpace(Path.GetExtension(file)));
+                                    }));
+                                }
+                            }
+                        }
+
+                        Task.WaitAll(searchTask.ToArray());
+                    }
+                }
                 // if the criteria is a path include, we want to filter the list based on the path, this
                 // will help with the search, and prevent us from having to parse the criteria multiple times.
-                if (wc.Length == 1 && wc.Equals(Seps.cIncludesPos.ToString()) && pathList.Count() > 0)
+                else if (wc.Length == 1 && wc.Equals(Seps.cIncludesPos.ToString()) && pathList.Count() > 0)
                 {
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
                     
-                    var hasData = findingsDic.Count > 0;
+                    // not looking for more if the first parts don't exist.
+                    if (!hasData && i > 0)
+                        continue;
+
                     // if we have content, we now need to filter down for each criteria.
                     foreach (var p in pathList)
                     {
@@ -190,7 +346,11 @@ namespace Chizl.SystemSearch
                 {
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
-                    var hasData = findingsDic.Count > 0;
+
+                    // not looking for more if the first parts don't exist.
+                    if (!hasData && i > 0)
+                        continue;
+
                     // if we have content, we now need to filter down for each extension.
                     foreach (var e in extList)
                     {
@@ -231,11 +391,15 @@ namespace Chizl.SystemSearch
                     searchCriteria.SearchCriteria[i] = "";
                     filters.Clear();
 
+                    // not looking for more if the first parts don't exist.
+                    if (!hasData && i > 0)
+                        continue;
+
                     foreach (var f in filterList)
                     {
                         // if we have content, we now need to filter down for each exclusion.
                         // If we don't have content, we have nothing to exclude, so we skip.
-                        if (findingsDic.Count > 0)
+                        if (prevDicCount > 0)
                         {
                             if (f.Search.ToLower() == Seps.sNOEXT.ToLower())
                                 filters.AddRange(findingsDic.Where(w => w.Value).Select(s => (s.Key, s.Value)));
@@ -273,7 +437,7 @@ namespace Chizl.SystemSearch
                     filters.Clear();
 
                     // if we have content, we now need to filter down for each criteria.
-                    if (findingsDic.Count > 0)
+                    if (prevDicCount > 0)
                         filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(wc.ToLower())).Select(s => (s.Key, s.Value)));
                     else
                     {
@@ -340,6 +504,8 @@ namespace Chizl.SystemSearch
                 {
                     if (string.IsNullOrWhiteSpace(sArr))
                         continue;
+                    if (sArr.Equals(Seps.cContentsPos.ToString()))
+                        continue;
 
                     // met criteria, get out.
                     if (findCount >= searchCriteria.SearchCriteria.Length)
@@ -369,6 +535,8 @@ namespace Chizl.SystemSearch
                 foreach (var sArr in searchCriteria.SearchCriteria.Skip(findCount))
                 {
                     if (string.IsNullOrWhiteSpace(sArr))
+                        continue;
+                    if (sArr.Equals(Seps.cContentsPos.ToString()))
                         continue;
 
                     // met criteria, get out.

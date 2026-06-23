@@ -10,9 +10,9 @@ High-performance, cross-platform .NET library for scanning drives and searching 
   - Multi-platform class library
 
 - **Written In**
-  - Visual Studio 2022
+  - Visual Studio 2022/2026
 
-- **Target Frameworks**
+- **Tested with Target Frameworks**
   - .NET Standard 2.0
   - .NET Standard 2.1
   - .NET 8
@@ -23,12 +23,12 @@ High-performance, cross-platform .NET library for scanning drives and searching 
 ## Overview
 
 Chizl.SystemSearch provides fast, in-memory searching of files and folders across attached drives.
-Instead of relying on disk-based indexing, the library caches full file paths in memory while the application is running,
-allowing searches to complete in seconds after the initial scan.  Live drive monitoring is supported via FileSystemWatcher, 
-ensuring the in-memory cache stays up-to-date with changes. 
 
-A Windows demo UI is included to showcase real-world performance and usage.  The UI has been setup to run in the system tray 
-and automatically detects attached drives, allowing users to quickly scan and search their files without needing to write any code.
+Instead of relying on disk-based indexing, the library caches full file paths in memory while the application is running, allowing searches to complete in seconds after the initial scan.  Live drive monitoring is supported via FileSystemWatcher, ensuring the in-memory cache stays up-to-date with changes, the library reads files on-demand to avoid unnecessary disk I/O.  
+
+When content searching is used, the search for include, extension, and exclusions are also applied to ensure results are accurate and fast.  **NOTE**: Content searching validates files are not binary files before searching., so it is slower than file and or path searching, but still 100x faster than traditional disk-based content searches.
+
+A Windows demo UI is included to showcase real-world performance and usage.  The UI has been setup to run in the system tray and automatically detects attached drives, allowing users to quickly scan and search their files without needing to write any code.
 
 ---
 
@@ -62,7 +62,8 @@ and automatically detects attached drives, allowing users to quickly scan and se
 This library is designed for speed: it caches **full file paths in memory** (ConcurrentDictionary) while the UI is running,
 so searches remain fast after the initial scan.
 
-**Laptop+External 2TB drive example**
+### Laptop+External 2TB drive example
+
 - CPU affinity max (8 cores).
 - ~1TB of combined file data
 - ~1.2M files across 2 drives
@@ -72,7 +73,8 @@ so searches remain fast after the initial scan.
 - Memory usage: **~500 MB**
 - Searches after scan: typically **< 2 seconds**
 
-**VDI example (restricted CPU)**
+### VDI example (restricted CPU)
+
 - Running in VDI with CPU affinity limited (1 core)
 - Full scan: ~**1.7 minutes**
 - Warm scans: **< 1 minute**
@@ -90,15 +92,13 @@ Searches are case-insensitive by default and may include literal text, wildcards
 
 Matches words and spaces as-is.
 
-Example:
-`Google Gemini`
+Example: `Google Gemini`
 
 ### Wildcards
 
 Use `*` to match intervening text.
 
-Example:
-`Google*Gemini`
+Example: `Google*Gemini`
 
 ---
 
@@ -122,13 +122,19 @@ Supported token labels:
     - `[exclude:backup|old]`
     - `[excludes:backup|old]`
 - extensions / extension / ext
-  - Examples: — includes files with extensions of DOCX or PDF.
-    - `[ext:docx|pdf]`
-    - `[extension:docx|pdf]`
-    - `[extensions:docx|pdf]`
+  - Examples: — includes files with extensions of .LOG, .TXT, or .MD
+    - `[ext:log|txt|md]`
+    - `[extension:log|txt|md]`
+    - `[extensions:log|txt|md]`
+- contents / content / con
+  - Examples: — includes files with contents containing specific text like "my house" or "my home".
+    - `[con:my house|my home]`
+    - `[content:house|my home]`
+    - `[contents:house|my home]`
 
-### Full Search Example:
-`Google*Gemini [inc:report|summary] [exc:backup|old] [ext:docx|pdf]`
+### Full Search Example
+
+`Google*Gemini [inc:report|summary] [exc:backup|old] [ext:log|txt|md] [con:google|gemini]`
 
 ---
 
@@ -141,16 +147,20 @@ Supported token labels:
 - Extensions: treats NOEXT as a valid extension token
   - Example: `[ext:NOEXT|txt]` — includes only files without extensions or with .txt extension.
 
-### Query Order Behavior:
+### Query Order Behavior
+
 - Search tokens are not processed in the order they appear in the query.
 - Instead, the library processes them in a specific sequence to ensure consistent results:
+
 1. **Search Text**: First, the library applies the literal search text to filter the results.
 2. **Includes**: Next, the library applies all include tokens to filter the results down to only those that match the specified criteria.
 3. **Extensions**: Next, it applies extension tokens to further narrow down the results based on file extensions.
 4. **Excludes**: Finally, it applies exclude tokens to remove any results that match the specified exclusion criteria.
 
-### Example of this behavior:<br/>
-`Google + [extensions:py|pdf|cs|noext] + [excludes:c:|noext]`<br/>
+### Example of this behavior
+
+`Google + [extensions:py|pdf|cs|noext] + [excludes:c:|noext]`
+
 - Exclusions are applied last, so even if NOEXT is included in the extensions token, it will be excluded from results because of the excludes token.
 
 ---
@@ -165,6 +175,7 @@ A custom Bool type replaces legacy integer flags.
 ## Versioning
 
 Semantic Versioning is used for releases.
+
 - Major.Minor.Patch.Build (Year-2020.month.day.GMT)
 
 ---

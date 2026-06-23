@@ -16,8 +16,8 @@ public enum LISTVIEW_ACTION
 public class ListViewHelper
 {
     //unable to get virtual to work, so I use this flag to disable for now.
-    readonly Bool _virtual = Bool.False;
-    readonly Bool _loaded = Bool.False;
+    readonly ABool _virtual = ABool.False;
+    readonly ABool _loaded = ABool.False;
 
     #region Virtual: If true True
     public ListViewItem[] _myCache;

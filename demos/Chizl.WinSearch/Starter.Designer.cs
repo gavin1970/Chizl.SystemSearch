@@ -298,7 +298,7 @@
             this.ListMenuCopyList,
             this.ListMenuExportList});
             this.CMenuList.Name = "CMenuList";
-            this.CMenuList.Size = new System.Drawing.Size(227, 192);
+            this.CMenuList.Size = new System.Drawing.Size(227, 170);
             // 
             // ListMenuFilters
             // 
@@ -343,12 +343,12 @@
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(266, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(223, 6);
             // 
             // ListMenuOpenLocation
             // 
             this.ListMenuOpenLocation.Name = "ListMenuOpenLocation";
-            this.ListMenuOpenLocation.Size = new System.Drawing.Size(269, 22);
+            this.ListMenuOpenLocation.Size = new System.Drawing.Size(226, 22);
             this.ListMenuOpenLocation.Text = "&Open Location";
             this.ListMenuOpenLocation.Click += new System.EventHandler(this.ListMenuOpenLocation_Click);
             // 
@@ -363,13 +363,13 @@
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(266, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(223, 6);
             // 
             // ListMenuCopyPath
             // 
             this.ListMenuCopyPath.Name = "ListMenuCopyPath";
             this.ListMenuCopyPath.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.P)));
-            this.ListMenuCopyPath.Size = new System.Drawing.Size(269, 22);
+            this.ListMenuCopyPath.Size = new System.Drawing.Size(226, 22);
             this.ListMenuCopyPath.Text = "&Copy Selected Path(s)";
             this.ListMenuCopyPath.Click += new System.EventHandler(this.ListMenuCopyPath_Click);
             // 
@@ -377,7 +377,7 @@
             // 
             this.ListMenuCopyList.Name = "ListMenuCopyList";
             this.ListMenuCopyList.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.R)));
-            this.ListMenuCopyList.Size = new System.Drawing.Size(269, 22);
+            this.ListMenuCopyList.Size = new System.Drawing.Size(226, 22);
             this.ListMenuCopyList.Text = "Copy &Selected Row(s)";
             this.ListMenuCopyList.Click += new System.EventHandler(this.ListMenuCopyList_Click);
             // 
@@ -385,7 +385,7 @@
             // 
             this.ListMenuExportList.Name = "ListMenuExportList";
             this.ListMenuExportList.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.E)));
-            this.ListMenuExportList.Size = new System.Drawing.Size(269, 22);
+            this.ListMenuExportList.Size = new System.Drawing.Size(226, 22);
             this.ListMenuExportList.Text = "&Export List (CSV)";
             this.ListMenuExportList.Click += new System.EventHandler(this.ListMenuExportList_Click);
             // 
@@ -627,7 +627,7 @@
             // 
             this.ExitTSMenu.Name = "ExitTSMenu";
             this.ExitTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
-            this.ExitTSMenu.Size = new System.Drawing.Size(180, 22);
+            this.ExitTSMenu.Size = new System.Drawing.Size(134, 22);
             this.ExitTSMenu.Text = "E&xit";
             this.ExitTSMenu.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 

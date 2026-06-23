@@ -38,12 +38,12 @@ namespace Chizl.SearchSystemUI
         private static int refreshCnt = 0;
 
         // thread-safe boolean
-        private static Bool _driveFilterOn = Bool.False;
-        private static Bool _extFilterOn = Bool.False;
-        private static Bool _customFilterOn = Bool.False;
+        private static ABool _driveFilterOn = ABool.False;
+        private static ABool _extFilterOn = ABool.False;
+        private static ABool _customFilterOn = ABool.False;
 
-        private static Bool _scanAborted = Bool.False;
-        private static Bool _scanRunning = Bool.False;
+        private static ABool _scanAborted = ABool.False;
+        private static ABool _scanRunning = ABool.False;
         private static bool _ieKeyControl = false;
         private static bool _hideErrors = false;
         private static bool _hideInformation = false;

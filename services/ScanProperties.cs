@@ -6,13 +6,13 @@ namespace Chizl.SystemSearch
     public sealed class ScanProperties
     {
         // Thread safe boolean
-        private Bool _file = Bool.True;
-        private Bool _dir = Bool.False;
+        private ABool _file = ABool.True;
+        private ABool _dir = ABool.False;
 
-        private Bool _ignoreChange = Bool.True;
-        private Bool _allowWinRoot = Bool.True;
-        private Bool _allowSysRoot = Bool.True;
-        private Bool _allowUser = Bool.True;
+        private ABool _ignoreChange = ABool.True;
+        private ABool _allowWinRoot = ABool.True;
+        private ABool _allowSysRoot = ABool.True;
+        private ABool _allowUser = ABool.True;
         internal ScanProperties() { }
 
         #region Public Methods
