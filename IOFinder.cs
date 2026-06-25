@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -51,6 +52,9 @@ namespace Chizl.SystemSearch
         {
             var searchTask = Task.Run(async () =>
             {
+                GlobalSettings.Startup(LookupStatus.Running);
+                _cancelTokenSource = new CancellationTokenSource();
+
                 if (!GlobalSettings.FullScanCompleted)
                 {
                     SearchMessage.SendMsg(SearchMessageType.UpdateInProgress, $"Full scan hasn't been completed. Please wait...");
@@ -195,18 +199,49 @@ namespace Chizl.SystemSearch
                             // limit the number of files being read at the same time to prevent
                             // out of memory issues, if we have more than 100 files being read,
                             // we will wait for some of them to finish before starting to read more.
-                            while (Volatile.Read(ref _fileContentCount) > 100 && !GlobalSettings.HasShutdown)
+                            while (Volatile.Read(ref _fileContentCount) > 100 && !_cancelTokenSource.IsCancellationRequested && !GlobalSettings.HasShutdown)
                                 Task.Delay(100).Wait();
 
 
-                            if (GlobalSettings.HasShutdown)
+                            if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                                 return false;
 
                             Interlocked.Increment(ref _fileContentCount);
+                            List<string> snips = new List<string>();
 
                             var content = File.ReadAllText(fi.FullName);
-                            if (content.IndexOf(searchTerm, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                            var cLen = content.Length;
+                            var sLen = searchTerm.Length;
+                            //var sHLen = sLen / 2;
+                            var start = 0;
+                            var snipE = 50;
+
+                            var find = content.IndexOf(searchTerm, StringComparison.CurrentCultureIgnoreCase);
+                            while (find > -1 && !_cancelTokenSource.IsCancellationRequested && !GlobalSettings.HasShutdown)
+                            {
+                                var snipS = find - sLen;
+
+                                if (snipS < 0)
+                                    snipS = 0;
+
+                                if (snipS + snipE > cLen)
+                                    snipE = snipS - (cLen - snipS);
+
+                                var snippet = content.Substring(snipS, snipE);
+                                snips.Add($"{snippet.Replace("\r", ".").Replace("\n", "_").Trim()}");
+
+                                start = find + sLen;
+                                if (start > cLen)
+                                    break;
+
+                                find = content.IndexOf(searchTerm, start, StringComparison.CurrentCultureIgnoreCase);
+                            }
+
+                            if (snips.Count > 0)
+                            {
+                                FileContentFinds.TryAdd(filePath, ($"{{{snips.Count} found}}", snips.ToArray()));
                                 return true;
+                            }
                         }
                         finally 
                         {
@@ -222,8 +257,16 @@ namespace Chizl.SystemSearch
                 return false;
             });
         }
+
+        // static, cancel all threads
+        private static CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
+
+        public static ConcurrentDictionary<string, (string, string[])> FileContentFinds { get; } = new ConcurrentDictionary<string, (string, string[])>();
+        //[extensions:noext] + [excludes:\Atlassian\|\3rdparty\|\themes\|\dp_web] + [contents:gavin]
+
         private bool DeepDive(string[] drives, BuildSearchCmd searchCriteria)
         {
+            FileContentFinds.Clear();
             var retVal = false;
             var fullFileList = Scanner.FileDictionary;
             var fullFileListLen = fullFileList.Count();
@@ -244,7 +287,7 @@ namespace Chizl.SystemSearch
             // we want to loop through the search criteria, and filter down the list of files based on the criteria.
             for (int i = 0; i < searchCriteria.SearchCriteria.Length; i++)
             {
-                if (GlobalSettings.HasShutdown)
+                if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                     break;
 
                 var wc = searchCriteria.SearchCriteria[i];
@@ -270,7 +313,7 @@ namespace Chizl.SystemSearch
                     // c:\code + [extensions:cs] + [contents:action]
                     foreach (var file in keys)
                     {
-                        if (GlobalSettings.HasShutdown)
+                        if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                             break;
 
                         // we need to verify the criteria again, as some of the criteria is not able to be pre-filtered
@@ -282,7 +325,7 @@ namespace Chizl.SystemSearch
                             //add it to the findings, if not, we don't add it.
                             foreach (var c in contentList)
                             {
-                                if (GlobalSettings.HasShutdown)
+                                if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                                     break;
                                 // create task for each content search, this will help with performance, as we
                                 // can search for multiple content criteria at the same time, and it will also
@@ -301,8 +344,15 @@ namespace Chizl.SystemSearch
                         }
                     }
 
-                    Task.WaitAll(searchTask.ToArray());
-                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Found: [{findingsDic.Count().FormatByComma()}] files matching content.");
+                    try
+                    {
+                        Task.WaitAll(searchTask.ToArray(), _cancelTokenSource.Token);
+                        SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Found: [{findingsDic.Count().FormatByComma()}] files matching content.");
+                    }
+                    catch (OperationCanceledException) 
+                    {
+                        SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"User canceled: [{findingsDic.Count().FormatByComma()}] files were matched before cancel occured.");
+                    }
                 }
                 // if the criteria is a path include, we want to filter the list based on the path, this
                 // will help with the search, and prevent us from having to parse the criteria multiple times.
@@ -475,7 +525,7 @@ namespace Chizl.SystemSearch
                 retVal = true;
                 foreach (var file in findingsDic.Keys)
                 {
-                    if (GlobalSettings.HasShutdown)
+                    if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                         break;
 
                     if (VerifyCriteria(drives, file, searchCriteria))
@@ -744,6 +794,7 @@ namespace Chizl.SystemSearch
         {
             StopWatchers();
             GlobalSettings.Shutdown();
+            _cancelTokenSource.Cancel();
         }
         #endregion
     }

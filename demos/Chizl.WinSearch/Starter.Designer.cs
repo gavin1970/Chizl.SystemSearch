@@ -101,6 +101,9 @@
             this.SysTrayOpen = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.SysTrayClose = new System.Windows.Forms.ToolStripMenuItem();
+            this.PanelTooltip = new System.Windows.Forms.Panel();
+            this.LabelTooltip = new System.Windows.Forms.Label();
+            this.LabelTooltipHeader = new System.Windows.Forms.Label();
             this.PanelSearchText.SuspendLayout();
             this.PanelFindButton.SuspendLayout();
             this.CMenuInfoErr.SuspendLayout();
@@ -126,6 +129,7 @@
             this.panel2.SuspendLayout();
             this.MnuAllowedFolders.SuspendLayout();
             this.NotifierContextMenu.SuspendLayout();
+            this.PanelTooltip.SuspendLayout();
             this.SuspendLayout();
             // 
             // PanelSearchText
@@ -198,7 +202,7 @@
             this.EventList.Location = new System.Drawing.Point(0, 0);
             this.EventList.Name = "EventList";
             this.EventList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.EventList.Size = new System.Drawing.Size(1144, 125);
+            this.EventList.Size = new System.Drawing.Size(972, 89);
             this.EventList.TabIndex = 1;
             this.EventList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.InfoError_KeyDown);
             this.EventList.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InfoError_KeyUp);
@@ -230,11 +234,10 @@
             // 
             this.ResultsPanel.BackColor = System.Drawing.Color.DimGray;
             this.ResultsPanel.Controls.Add(this.MainSplitContainer);
-            this.ResultsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ResultsPanel.Location = new System.Drawing.Point(0, 59);
             this.ResultsPanel.Name = "ResultsPanel";
             this.ResultsPanel.Padding = new System.Windows.Forms.Padding(5);
-            this.ResultsPanel.Size = new System.Drawing.Size(1154, 562);
+            this.ResultsPanel.Size = new System.Drawing.Size(982, 431);
             this.ResultsPanel.TabIndex = 14;
             // 
             // MainSplitContainer
@@ -254,8 +257,8 @@
             // 
             this.MainSplitContainer.Panel2.BackColor = System.Drawing.Color.DarkGray;
             this.MainSplitContainer.Panel2.Controls.Add(this.panel5);
-            this.MainSplitContainer.Size = new System.Drawing.Size(1144, 552);
-            this.MainSplitContainer.SplitterDistance = 273;
+            this.MainSplitContainer.Size = new System.Drawing.Size(972, 421);
+            this.MainSplitContainer.SplitterDistance = 208;
             this.MainSplitContainer.SplitterWidth = 10;
             this.MainSplitContainer.TabIndex = 16;
             this.MainSplitContainer.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.MainSplitContainer_SplitterMoved);
@@ -268,7 +271,7 @@
             this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel4.Location = new System.Drawing.Point(0, 0);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(1144, 273);
+            this.panel4.Size = new System.Drawing.Size(972, 208);
             this.panel4.TabIndex = 4;
             // 
             // ResultsListView
@@ -280,9 +283,10 @@
             this.ResultsListView.HideSelection = false;
             this.ResultsListView.Location = new System.Drawing.Point(0, 0);
             this.ResultsListView.Name = "ResultsListView";
-            this.ResultsListView.Size = new System.Drawing.Size(1144, 255);
+            this.ResultsListView.Size = new System.Drawing.Size(972, 190);
             this.ResultsListView.TabIndex = 2;
             this.ResultsListView.UseCompatibleStateImageBehavior = false;
+            this.ResultsListView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ResultsListView_MouseMove);
             this.ResultsListView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ResultsListView_MouseUp);
             // 
             // CMenuList
@@ -395,9 +399,9 @@
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel3.Controls.Add(this.ChkHideInfo);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel3.Location = new System.Drawing.Point(0, 255);
+            this.panel3.Location = new System.Drawing.Point(0, 190);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(1144, 18);
+            this.panel3.Size = new System.Drawing.Size(972, 18);
             this.panel3.TabIndex = 3;
             // 
             // ChkHideInfo
@@ -406,7 +410,7 @@
             this.ChkHideInfo.Checked = true;
             this.ChkHideInfo.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkHideInfo.Dock = System.Windows.Forms.DockStyle.Right;
-            this.ChkHideInfo.Location = new System.Drawing.Point(1029, 0);
+            this.ChkHideInfo.Location = new System.Drawing.Point(857, 0);
             this.ChkHideInfo.Name = "ChkHideInfo";
             this.ChkHideInfo.Size = new System.Drawing.Size(113, 16);
             this.ChkHideInfo.TabIndex = 0;
@@ -433,7 +437,7 @@
             this.panel5.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel5.Location = new System.Drawing.Point(0, 0);
             this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(1144, 269);
+            this.panel5.Size = new System.Drawing.Size(972, 203);
             this.panel5.TabIndex = 16;
             // 
             // EventListsSplitContainer
@@ -455,8 +459,8 @@
             // 
             this.EventListsSplitContainer.Panel2.BackColor = System.Drawing.Color.DarkGray;
             this.EventListsSplitContainer.Panel2.Controls.Add(this.ErrorList);
-            this.EventListsSplitContainer.Size = new System.Drawing.Size(1144, 269);
-            this.EventListsSplitContainer.SplitterDistance = 143;
+            this.EventListsSplitContainer.Size = new System.Drawing.Size(972, 203);
+            this.EventListsSplitContainer.SplitterDistance = 107;
             this.EventListsSplitContainer.SplitterWidth = 10;
             this.EventListsSplitContainer.TabIndex = 15;
             // 
@@ -466,9 +470,9 @@
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.ChkHideErrors);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 125);
+            this.panel1.Location = new System.Drawing.Point(0, 89);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1144, 18);
+            this.panel1.Size = new System.Drawing.Size(972, 18);
             this.panel1.TabIndex = 2;
             // 
             // ChkHideErrors
@@ -477,7 +481,7 @@
             this.ChkHideErrors.Checked = true;
             this.ChkHideErrors.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkHideErrors.Dock = System.Windows.Forms.DockStyle.Right;
-            this.ChkHideErrors.Location = new System.Drawing.Point(1026, 0);
+            this.ChkHideErrors.Location = new System.Drawing.Point(854, 0);
             this.ChkHideErrors.Name = "ChkHideErrors";
             this.ChkHideErrors.Size = new System.Drawing.Size(116, 16);
             this.ChkHideErrors.TabIndex = 0;
@@ -497,7 +501,7 @@
             this.ErrorList.Location = new System.Drawing.Point(0, 0);
             this.ErrorList.Name = "ErrorList";
             this.ErrorList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.ErrorList.Size = new System.Drawing.Size(1144, 116);
+            this.ErrorList.Size = new System.Drawing.Size(972, 86);
             this.ErrorList.TabIndex = 0;
             this.ErrorList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.InfoError_KeyDown);
             this.ErrorList.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InfoError_KeyUp);
@@ -774,7 +778,8 @@
             // 
             // LastScanTimer
             // 
-            this.LastScanTimer.Interval = 10000;
+            this.LastScanTimer.Enabled = true;
+            this.LastScanTimer.Interval = 1000;
             this.LastScanTimer.Tick += new System.EventHandler(this.LastScanTimer_Tick);
             // 
             // MnuAllowedFolders
@@ -843,6 +848,46 @@
             this.SysTrayClose.Text = "&Exit";
             this.SysTrayClose.Click += new System.EventHandler(this.SysTrayClose_Click);
             // 
+            // PanelTooltip
+            // 
+            this.PanelTooltip.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.PanelTooltip.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
+            this.PanelTooltip.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.PanelTooltip.Controls.Add(this.LabelTooltip);
+            this.PanelTooltip.Controls.Add(this.LabelTooltipHeader);
+            this.PanelTooltip.Location = new System.Drawing.Point(885, 507);
+            this.PanelTooltip.Name = "PanelTooltip";
+            this.PanelTooltip.Padding = new System.Windows.Forms.Padding(5);
+            this.PanelTooltip.Size = new System.Drawing.Size(216, 81);
+            this.PanelTooltip.TabIndex = 15;
+            this.PanelTooltip.Visible = false;
+            // 
+            // LabelTooltip
+            // 
+            this.LabelTooltip.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.LabelTooltip.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.LabelTooltip.Location = new System.Drawing.Point(5, 25);
+            this.LabelTooltip.Margin = new System.Windows.Forms.Padding(0);
+            this.LabelTooltip.Name = "LabelTooltip";
+            this.LabelTooltip.Padding = new System.Windows.Forms.Padding(2);
+            this.LabelTooltip.Size = new System.Drawing.Size(204, 49);
+            this.LabelTooltip.TabIndex = 0;
+            this.LabelTooltip.Text = "What now...";
+            // 
+            // LabelTooltipHeader
+            // 
+            this.LabelTooltipHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
+            this.LabelTooltipHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            this.LabelTooltipHeader.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LabelTooltipHeader.Location = new System.Drawing.Point(5, 5);
+            this.LabelTooltipHeader.Margin = new System.Windows.Forms.Padding(0);
+            this.LabelTooltipHeader.Name = "LabelTooltipHeader";
+            this.LabelTooltipHeader.Padding = new System.Windows.Forms.Padding(0, 0, 0, 7);
+            this.LabelTooltipHeader.Size = new System.Drawing.Size(204, 20);
+            this.LabelTooltipHeader.TabIndex = 1;
+            this.LabelTooltipHeader.Text = "--==[ Findings ]==--";
+            this.LabelTooltipHeader.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // Starter
             // 
             this.AcceptButton = this.BtnFind;
@@ -852,6 +897,7 @@
             this.CancelButton = this.BtnHide;
             this.ClientSize = new System.Drawing.Size(1154, 645);
             this.Controls.Add(this.ResultsPanel);
+            this.Controls.Add(this.PanelTooltip);
             this.Controls.Add(this.PanelSearchBar);
             this.Controls.Add(this.StartupMenuStrip);
             this.Controls.Add(this.StartupStatusStrip);
@@ -892,6 +938,7 @@
             this.panel2.ResumeLayout(false);
             this.MnuAllowedFolders.ResumeLayout(false);
             this.NotifierContextMenu.ResumeLayout(false);
+            this.PanelTooltip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -971,6 +1018,9 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.Button BtnHide;
         private System.Windows.Forms.ToolStripStatusLabel StatusToolStripSearchTime;
+        private System.Windows.Forms.Panel PanelTooltip;
+        private System.Windows.Forms.Label LabelTooltipHeader;
+        private System.Windows.Forms.Label LabelTooltip;
     }
 }
 

@@ -1,4 +1,5 @@
 ﻿using Chizl.SystemSearch;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -67,9 +68,10 @@ namespace Chizl.SearchSystemUI
                 return _finder;
             }
         }
-        public static ListViewItem[] GetFileInfo(string[] unfiltList)
+        public static ListViewItem[] GetFileInfo(string[] unfiltList, ConcurrentDictionary<string, (string, string[])> contentList)
         {
             var listViewItems = new List<ListViewItem>();
+            var useContent = contentList?.Keys.Count() > 0;
             foreach (var filePath in unfiltList)
             {
                 try
@@ -81,6 +83,19 @@ namespace Chizl.SearchSystemUI
                     liv.SubItems.Add(fi.CreationTime.ToString("MM/dd/yyyy HH:mm:ss"));
                     liv.SubItems.Add(fi.LastWriteTime.ToString("MM/dd/yyyy HH:mm:ss"));
                     liv.SubItems.Add(fi.Extension);
+                    if (useContent)
+                    {
+                        if (contentList.TryGetValue(filePath, out var content))
+                        {
+                            (string count, string[] list) = content;
+                            var tag = liv.SubItems.Add(count);
+                            tag.Tag = string.Join("\n", list);
+                        }
+                        else
+                            liv.SubItems.Add("...");
+                    }
+                    else
+                        liv.SubItems.Add("---");
                     liv.SubItems.Add(fi.FullName);
 
                     listViewItems.Add(liv);

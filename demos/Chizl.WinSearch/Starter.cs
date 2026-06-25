@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Chizl.SearchSystemUI
 {
@@ -91,6 +92,7 @@ namespace Chizl.SearchSystemUI
             InitializeComponent();
             DoubleBuffered = true;
             this.Icon = new Icon(_winSrchIconPath);
+            this.ResultsPanel.Dock = DockStyle.Fill;
         }
 
         #region Helper Methods
@@ -143,11 +145,7 @@ namespace Chizl.SearchSystemUI
                     ShowMsg(SearchMessageType.StatusMessage, "Waiting...");
                 }
 
-                //var appendMsg = _scanAborted ? "before being aborted by user." : "and completed successfully.";
-                //ShowMsg(SearchMessageType.StatusMessage, $"Scanned for '{diff}' {appendMsg}");
-
-                LastScanTimer.Enabled = true;
-                LastScanTimer.Start();
+                LastScanTimer.Enabled = true;   //keep
 
                 if (ResultsListView.Items.Count > 0)
                 {
@@ -202,7 +200,7 @@ namespace Chizl.SearchSystemUI
 
             BtnFind.Enabled = false;
             //BtnOptions.Enabled = false;
-            TxtSearchName.ReadOnly = true;
+            //TxtSearchName.ReadOnly = true;
 
             BtnStartStopScan.Text = _stopScanText;
             TxtSearchName.Text = TxtSearchName.Text.Trim();
@@ -321,7 +319,7 @@ namespace Chizl.SearchSystemUI
                             // this will cover single line or multi response.
                             var unfiltList = e.Message.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
                             // build ListViewItem[] list
-                            var unfileInfoList = GlobalSetup.GetFileInfo(unfiltList);
+                            var unfileInfoList = GlobalSetup.GetFileInfo(unfiltList, IOFinder.FileContentFinds);    // D:\ [ext: log] [con: gemini]
                             // add to list, for sub filter refresh.
                             _unfilteredItemsList.AddRange(unfileInfoList);
                             // add to ListView
@@ -341,10 +339,8 @@ namespace Chizl.SearchSystemUI
 
                             // Use tread safe boolean to flag that Scan is no longer running.
                             _scanRunning.SetFalse();
-                            // resize all columns to fit data.
-                            ResultsListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
-                            // hide the bytes column, used only for sorting column[2]
-                            ResultsListView.Columns[1].Width = 0;
+                            CheckListColumns();
+
                             break;
                         case SearchMessageType.SearchTime:
                             StatusToolStripSearchTime.Text = e.Message;
@@ -369,6 +365,35 @@ namespace Chizl.SearchSystemUI
                     ErrorList.Items.Add($"[UI.ShowMsg()] {ex.Message}");
                 }
             }
+        }
+        private void CheckListColumns()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => {
+                    CheckListColumns();
+                    return;
+                }));
+            }
+            
+            var contentLength = 0;
+            var contentLoc = ResultsListView.Columns.Count - 2;
+            if (ResultsListView.Items.Count > 0 && IOFinder.FileContentFinds.Count > 0)
+            {
+                var cont = ResultsListView.Items[0].SubItems[contentLoc].Text;
+                contentLength = cont.Replace("---", "").Replace("...", "").Trim().Length;
+                ResultsListView.Columns[contentLoc].Tag = "vis:1";
+            }
+            else
+                ResultsListView.Columns[contentLoc].Tag = "vis:0";
+
+            ResultsListView.Columns[contentLoc].Width = contentLength;
+
+            // resize all columns to fit data.
+            ResultsListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+
+            // hide the bytes column, used only for sorting column[2]
+            ResultsListView.Columns[1].Width = 0;
         }
         private void ShowWindow()
         {
@@ -549,12 +574,8 @@ namespace Chizl.SearchSystemUI
         }
         private void SetComponentState()
         {
-            if (string.IsNullOrWhiteSpace(TxtSearchName.Text)
-                || _criterias.IgnoreChange
-                || _finder.CurrentStatus.Equals(LookupStatus.Running))
-            {
+            if (string.IsNullOrWhiteSpace(TxtSearchName.Text) || _scanRunning)
                 BtnFind.Enabled = false;
-            }
             else
                 BtnFind.Enabled = true;
 
@@ -870,6 +891,7 @@ namespace Chizl.SearchSystemUI
             if (string.IsNullOrWhiteSpace(search))
                 return;
 
+            LastScanTimer.Stop();
             var searchTime = DateTime.UtcNow;
             _finder.Search(GetScanDriveList(), TxtSearchName.Text)
                 .ContinueWith(t =>
@@ -880,6 +902,7 @@ namespace Chizl.SearchSystemUI
                     SetFilterStatus();
                     var diff = DateTime.UtcNow - searchTime;
                     ShowMsg(SearchMessageType.StatusMessage, $"Search Response: {diff.Seconds}s {diff.Milliseconds}ms.");
+                    LastScanTimer.Start();
                 });
         }
         private void BtnStartStopScan_Click(object sender, EventArgs e)
@@ -899,7 +922,6 @@ namespace Chizl.SearchSystemUI
                     reScan = true;
                 }
 
-                // start over
                 LastScanTimer.Stop();
                 _scanTime = TimeSpan.Zero;
 
@@ -911,19 +933,22 @@ namespace Chizl.SearchSystemUI
                            _customFilterOn.SetFalse();
 
                            SetFilterStatus();
+                           LastScanTimer.Start();
                        });
             }
             else
             {
                 _scanAborted.SetTrue();
                 _finder.StopScan();
-
+                _scanRunning.SetFalse();
                 if (driveList.Count() == 0)
                 {
                     BtnStartStopScan.Text = _startScanText;
                     if (reScan)
                         _finder.ResetCache();
                 }
+
+                LastScanTimer.Start();
             }
         }
         private void BtnStartStopScan_TextChanged(object sender, EventArgs e)
@@ -1240,14 +1265,19 @@ namespace Chizl.SearchSystemUI
         }
         private void LastScanTimer_Tick(object sender, EventArgs e)
         {
+            var curText = BtnStartStopScan.Text;
+            var statusText = _startScanText;
+            
+            if (_scanRunning)
+                statusText = _stopScanText;
+            else if (!_scanRunning && (_finder.FullScanCompleted || _scanAborted))
+                statusText = _reScanText;
+
             // Insurance
-            if (_scanRunning && !BtnStartStopScan.Text.Equals(_stopScanText)
-            || !_scanRunning && !(new List<string> { _reScanText, _startScanText }).Contains(BtnStartStopScan.Text))
+            if (!curText.Equals(statusText))
             {
-                BtnStartStopScan.Text = !_scanRunning
-                                            ? _stopScanText : _scanAborted
-                                            ? _startScanText : _finder.FullScanCompleted
-                                            ? _reScanText : _startScanText;
+                BtnStartStopScan.Text = statusText;
+                SetComponentState();
             }
         }
         private void ListMenuCopyPath_Click(object sender, EventArgs e)
@@ -1286,6 +1316,130 @@ namespace Chizl.SearchSystemUI
         #endregion
 
         #region All ListBox, Mouse Down Events
+        const int colContentIndex = 6;
+        private void ResultsListView_MouseMove(object sender, MouseEventArgs e)
+        {
+            ListViewHitTestInfo hitTest = ResultsListView.HitTest(e.Location);
+
+            if (hitTest.Item != null && hitTest.SubItem != null)
+            {
+                int colIndex = hitTest.Item.SubItems.IndexOf(hitTest.SubItem);
+                var lvColumn = hitTest.Item.SubItems[colContentIndex];
+
+                // if mouse is over the Content column / cell and any snippet exists in the tag property.
+                if (colIndex == colContentIndex && lvColumn.Tag != null)
+                {
+                    string rawTagText = lvColumn.Tag.ToString();
+
+                    if (string.IsNullOrWhiteSpace(rawTagText))
+                    {
+                        PanelTooltip.Visible = false;
+                        return;
+                    }
+
+                    string[] tag = rawTagText.Split('\n');
+                    string customText = $"Found: {tag.Length}\n\n{rawTagText}"; 
+
+                    // if text is not what it needs to be.
+                    if (LabelTooltip.Text != customText)
+                    {
+                        // Update label text
+                        LabelTooltip.Text = customText;
+
+                        var leftRightPadding = PanelTooltip.Padding.Left + PanelTooltip.Padding.Right + LabelTooltip.Padding.Left;  // + LabelTooltip.Right;
+                        var upDownPadding = PanelTooltip.Padding.Top + PanelTooltip.Padding.Bottom + LabelTooltip.Padding.Top;      // + LabelTooltip.Bottom;
+
+                        // Automatically resize the panel to fit your text perfectly
+                        PanelTooltip.Size = new Size(LabelTooltip.PreferredWidth + leftRightPadding, LabelTooltip.PreferredHeight + (LabelTooltipHeader.Height + upDownPadding));
+                    }
+
+                    // find mouse coords
+                    Point formCoords = this.PointToClient(ResultsListView.PointToScreen(e.Location));
+                    int posX = formCoords.X + 15;
+                    int posY = formCoords.Y + 15;
+
+                    // if the tooltip falls passed the right side of the form.
+                    if (posX + PanelTooltip.Width > this.ClientSize.Width)
+                    {
+                        posX = formCoords.X - PanelTooltip.Width - 15;
+                        if (posX < 0) posX = 15;
+                    }
+
+                    // if the tooltip falls below the form.
+                    if (posY + PanelTooltip.Height > this.ClientSize.Height)
+                    {
+                        posY = formCoords.Y - PanelTooltip.Height - 15;
+                        if (posY < 0) posY = 15;
+                    }
+
+                    // set location of tool tip
+                    PanelTooltip.Location = new Point(posX, posY);
+
+                    // make it visible if not already.
+                    if (!PanelTooltip.Visible)
+                    {
+                        PanelTooltip.BringToFront();
+                        PanelTooltip.Visible = true;
+                    }
+                    return;
+                }
+            }
+
+            PanelTooltip.Visible = false;
+        }
+
+        private void ResultsListView_MouseMove3(object sender, MouseEventArgs e)
+        {
+            ListViewHitTestInfo hitTest = ResultsListView.HitTest(e.Location);
+
+            // 1. Verify we are hovering over an item and a subitem
+            if (hitTest.Item != null && hitTest.SubItem != null)
+            {
+                // 2. Identify the column index (0-based, so index 5 is the 6th column)
+                int colIndex = hitTest.Item.SubItems.IndexOf(hitTest.SubItem);
+                var lvColumn = hitTest.Item.SubItems[colContentIndex];
+
+                if (colIndex == colContentIndex && lvColumn.Tag != null)
+                {
+                    string[] tag = lvColumn.Tag.ToString().Split('\n');
+
+                    if (tag.Length == 0)
+                        return;
+
+                    string customText = $"Found: {tag.Count()}\n\n{lvColumn.Tag}";
+
+                    if (LabelTooltip.Text != customText)
+                    {
+                        // Update label text
+                        LabelTooltip.Text = customText;
+
+                        var leftRightPadding = PanelTooltip.Padding.Left + PanelTooltip.Padding.Right + LabelTooltip.Padding.Left;  // + LabelTooltip.Right;
+                        var upDownPadding = PanelTooltip.Padding.Top + PanelTooltip.Padding.Bottom + LabelTooltip.Padding.Top;      // + LabelTooltip.Bottom;
+
+                        // Automatically resize the panel to fit your text perfectly
+                        PanelTooltip.Size = new Size(LabelTooltip.PreferredWidth + leftRightPadding, LabelTooltip.PreferredHeight + (LabelTooltipHeader.Height + upDownPadding));
+                    }
+
+                    // Position the panel near the cursor (offset slightly so it doesn't flicker under the pointer)
+                    // PointToScreen converts ListView coordinates to Form coordinates
+                    Point formCoords = this.PointToClient(ResultsListView.PointToScreen(e.Location));
+                    PanelTooltip.Location = new Point(formCoords.X + 15, formCoords.Y + 15);
+
+                    if (!PanelTooltip.Visible)
+                    {
+                        // Ensure it sits on top of the ListView and show it
+                        PanelTooltip.BringToFront();
+                        PanelTooltip.Visible = true;
+                    }
+
+                    return; // Exit early so we don't hit the hide logic below
+                }
+            }
+
+            // 3. Hide the panel if the mouse leaves the 6th column or the ListView completely
+            PanelTooltip.Visible = false;
+        }
+
         private void ResultsListView_MouseUp(object sender, MouseEventArgs e)
         {
             _listViewHitTest = ResultsListView.HitTest(e.Location);
@@ -1421,6 +1575,13 @@ namespace Chizl.SearchSystemUI
                     Text = "Ext",
                     Width = 10,
                     TextAlign = HorizontalAlignment.Left,
+                },
+                new ColumnHeader
+                {
+                    Name = "FileContent",
+                    Text = "Content Snippet(s)",
+                    Width = 0,
+                    Tag = "vis:0",
                 },
                 new ColumnHeader
                 {

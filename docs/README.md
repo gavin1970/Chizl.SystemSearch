@@ -26,7 +26,7 @@ Chizl.SystemSearch provides fast, in-memory searching of files and folders acros
 
 Instead of relying on disk-based indexing, the library caches full file paths in memory while the application is running, allowing searches to complete in seconds after the initial scan.  Live drive monitoring is supported via FileSystemWatcher, ensuring the in-memory cache stays up-to-date with changes, the library reads files on-demand to avoid unnecessary disk I/O.  
 
-When content searching is used, the search for include, extension, and exclusions are also applied to ensure results are accurate and fast.  **NOTE**: Content searching validates files are not binary files before searching., so it is slower than file and or path searching, but still 100x faster than traditional disk-based content searches.
+When content searching is used, the search for include, extension, and exclusions are also applied to ensure results are accurate and fast.  **NOTE**: Content searching validates files are not binary files before searching.  If will be slower than a file and or path searching, but still 10x faster than traditional disk-based content searches.  Results will show up in the grid of count of content matches per file.  On mouseover the count, the user can see the actual content matches in a tooltip.  The tooltip will show the count and the text around the match request.
 
 A Windows demo UI is included to showcase real-world performance and usage.  The UI has been setup to run in the system tray and automatically detects attached drives, allowing users to quickly scan and search their files without needing to write any code.
 

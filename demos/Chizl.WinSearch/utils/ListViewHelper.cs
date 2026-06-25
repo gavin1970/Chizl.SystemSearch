@@ -57,6 +57,7 @@ public class ListViewHelper
                 lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
         }
     }
+
     private ListViewOptions _listViewOptions { get; set; }
     /// <summary>
     /// sets default settings for any listView passed to it.
@@ -160,7 +161,11 @@ public class ListViewHelper
                 if (_listViewOptions.HideColumns != null)
                 {
                     foreach (var col in _listViewOptions.HideColumns)
-                        lv.Columns[col.DisplayIndex].Width = 0;
+                    {
+                        var tag = lv.Columns[col.DisplayIndex].Tag as string;
+                        if (string.IsNullOrWhiteSpace(tag) || tag.Equals("vis:0"))
+                            lv.Columns[col.DisplayIndex].Width = 0;
+                    }
                 }
 
                 lv.AutoResizeColumn(lv.Columns.Count - 1, ColumnHeaderAutoResizeStyle.HeaderSize);
