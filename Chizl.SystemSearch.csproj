@@ -6,6 +6,7 @@
 				<Nullable>disable</Nullable>
 				<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 				<GenerateDocumentationFile>False</GenerateDocumentationFile>
+				<LangVersion>latest</LangVersion>
 		</PropertyGroup>
 
 		<PropertyGroup>
@@ -15,8 +16,8 @@
 				<Copyright>© 2025-2026 chizl.com</Copyright>
 				<PackageTags>file-search;library;in-console;on-desktop;standard;framework;no-deps;netstandard2.0;netstandard2.1;net8.0;net10.0</PackageTags>
 				<AssemblyVersion>6.0.0.0</AssemblyVersion>
-				<FileVersion>6.6.25.2154</FileVersion>
-				<Version>6.6.25.0</Version>
+				<FileVersion>6.7.08.2000</FileVersion>
+				<Version>6.7.08.0</Version>
 				<PackageReadmeFile>README.md</PackageReadmeFile>
 		</PropertyGroup>
 

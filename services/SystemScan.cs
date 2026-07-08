@@ -106,6 +106,63 @@ namespace Chizl.SystemSearch
             _folderDictionary.Clear();
             _deniedDictionary.Clear();
         }
+        internal Task CheckCache(string[] fullFilePath, bool dirSearch)
+        {
+            return Task.Run(() =>
+            {
+                if (dirSearch)
+                {
+                    foreach (string dirPath in fullFilePath)
+                    {
+                        var searchPath = dirPath.Trim();
+                        if (File.Exists(searchPath))
+                            searchPath = Path.GetDirectoryName(searchPath);
+
+                        if (!Directory.Exists(searchPath))
+                        {
+                            // async, but remove is quick.
+                            Task.WaitAll(RemoveRootFolder(searchPath).ToArray());
+                            SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Scanning: ({_scannedFolders}) Folders, ({_scannedFiles}) Files");
+                        }
+                        else
+                        {
+                            // async call, update message will update after each.
+                            ScanFolder(searchPath, false).ContinueWith(t =>
+                            {
+                                SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Scanning: ({_scannedFolders}) Folders, ({_scannedFiles}) Files");
+                            });
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (string filePath in fullFilePath)
+                    {
+                        var folderName = Path.GetDirectoryName(filePath);
+                        var fileExists = File.Exists(filePath);
+                        var folderExists = Directory.Exists(folderName);
+
+                        if (!fileExists)
+                            RemoveFile(filePath);
+                        else if (fileExists)
+                            AddFile(filePath);
+
+                        if (!folderExists)
+                        {
+                            if (_folderDictionary.TryRemove(folderName, out _))
+                                Interlocked.Decrement(ref _scannedFolders);
+                        }
+                        else if (folderExists)
+                        {
+                            if (_folderDictionary.TryAdd(folderName, 0))
+                                Interlocked.Increment(ref _scannedFolders);
+                        }
+                    }
+
+                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Scanning: ({_scannedFolders}) Folders, ({_scannedFiles}) Files");
+                }
+            });
+        }
         internal Task ScanDrives(string[] driveLetter, bool sendMsg, bool isRescan = true) => ScanDrives(driveLetter, sendMsg, CancellationToken.None, isRescan);
         internal Task ScanDrives(string[] driveLetter, bool sendMsg, CancellationToken cancelToken, bool isRescan = true)
         {
@@ -167,12 +224,12 @@ namespace Chizl.SystemSearch
             List<Task> taskList = new List<Task>();
 
             // Run asynchronously based on processor count to prevent max CPU costs.
-            var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
+            //var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
 
             // only holds root folders of each drive.
             foreach (var subfolder in folderList)
             {
-                semaphore.WaitAsync();
+                //semaphore.WaitAsync();
 
                 try
                 {
@@ -199,7 +256,7 @@ namespace Chizl.SystemSearch
                 }
                 finally
                 {
-                    semaphore.Release();
+                    //semaphore.Release();
                 }
             }
 
@@ -364,7 +421,6 @@ namespace Chizl.SystemSearch
 
             return retVal;
         }
-
         internal bool AddFile(string fileName)
         {
             if (!IsAllowed(Path.GetFileName(fileName)))

@@ -70,37 +70,48 @@ namespace Chizl.SearchSystemUI
         public static ListViewItem[] GetFileInfo(string[] unfiltList, ConcurrentDictionary<string, (string, string[])> contentList)
         {
             var listViewItems = new List<ListViewItem>();
+            var rescanFiles = new List<string>();
+
             var useContent = contentList?.Keys.Count() > 0;
             foreach (var filePath in unfiltList)
             {
                 try
                 {
                     var fi = new FileInfo(filePath);
-                    var liv = new ListViewItem(fi.Name);
-                    liv.SubItems.Add(fi.Length.ToString());
-                    liv.SubItems.Add($"{fi.Length.FormatByteSize()}");
-                    liv.SubItems.Add(fi.CreationTime.ToString("MM/dd/yyyy HH:mm:ss"));
-                    liv.SubItems.Add(fi.LastWriteTime.ToString("MM/dd/yyyy HH:mm:ss"));
-                    liv.SubItems.Add(fi.Extension);
-                    if (useContent)
+                    if (fi.Exists)
                     {
-                        if (contentList.TryGetValue(filePath, out var content))
+                        var liv = new ListViewItem(fi.Name);
+                        liv.SubItems.Add(fi.Length.ToString());
+                        liv.SubItems.Add($"{fi.Length.FormatByteSize()}");
+                        liv.SubItems.Add(fi.CreationTime.ToString("MM/dd/yyyy HH:mm:ss"));
+                        liv.SubItems.Add(fi.LastWriteTime.ToString("MM/dd/yyyy HH:mm:ss"));
+                        liv.SubItems.Add(fi.Extension);
+                        if (useContent)
                         {
-                            (string count, string[] list) = content;
-                            var tag = liv.SubItems.Add(count);
-                            tag.Tag = string.Join("\n", list);
+                            if (contentList.TryGetValue(filePath, out var content))
+                            {
+                                (string count, string[] list) = content;
+                                var tag = liv.SubItems.Add(count);
+                                tag.Tag = string.Join("\n", list);
+                            }
+                            else
+                                liv.SubItems.Add("...");
                         }
                         else
-                            liv.SubItems.Add("...");
+                            liv.SubItems.Add("---");
+                        liv.SubItems.Add(fi.FullName);
+
+                        listViewItems.Add(liv);
                     }
                     else
-                        liv.SubItems.Add("---");
-                    liv.SubItems.Add(fi.FullName);
-
-                    listViewItems.Add(liv);
+                        rescanFiles.Add(fi.FullName);
                 }
                 catch { continue; }
             }
+
+            if (rescanFiles.Any())
+                _ = Finder.CheckCache(rescanFiles.ToArray());
+
             return listViewItems.ToArray();
         }
         public static ListViewItem[] GetFilterInfo(SubFilterExclusion[] unfiltList) => GetFilterInfo(unfiltList, Color.Empty);

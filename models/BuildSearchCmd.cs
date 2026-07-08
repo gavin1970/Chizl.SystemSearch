@@ -98,7 +98,8 @@ namespace Chizl.SystemSearch
         private bool DeDupTokens(ref string searchCriteria)
         {
             var retVal = false;
-            var tokenCmds = new string[] {"[ext", "[inc", "[exc" };
+            // All Token Commands/Labels
+            var tokenCmds = new string[] {"[ext", "[inc", "[exc", "[con" };
             var cmdPatterns = searchCriteria.SplitOn(Seps.cMulti);
 
             foreach (var availableToken in tokenCmds)
@@ -164,11 +165,7 @@ namespace Chizl.SystemSearch
             var hasExtSearch = false;
             var hasFilter = false;
             var hasContentSearch = false;
-
-            // comfort chars people like to use to separate things.
-            searchCriteria = searchCriteria.Replace($",", "")
-                                           .Replace($"+", "")
-                                           .Replace($";", "").Trim();
+            var contents = string.Empty;
 
             // replace all spaces in front of or after these chars.
             foreach (var ch in _spaceRemovals)
@@ -179,6 +176,31 @@ namespace Chizl.SystemSearch
                 //      "Landon[includes:code|Gavin][ext:.txt|PDF|. doc|docx|.mp4]"
                 searchCriteria = DupSearchReplace(searchCriteria, new string[] { $"{ch} ", $" {ch}" }, $"{ch}");
             }
+
+            // does the token label/command for contents exist?
+            var contentsIndex = searchCriteria.IndexOf($"{Seps.cStart}con", 0, StringComparison.CurrentCultureIgnoreCase);
+            if (contentsIndex > -1)
+            {
+                // helps with stripping brackets
+                contentsIndex++;
+
+                // find end of contents token label
+                var contentsEnd = searchCriteria.IndexOf($"{Seps.cEnd}", contentsIndex);
+                if (contentsEnd > -1)
+                    // get the full token label and tokens. -- stripping [ and ] off for future updates,
+                    // just inc case part of the content search has each '[' or ']' in it.
+                    contents = searchCriteria.Substring(contentsIndex, contentsEnd - contentsIndex);
+            }
+
+            // remove comfort chars people like to use to separate things.
+            searchCriteria = searchCriteria.Replace($",", "")
+                                           .Replace($"+", "")
+                                           .Replace($";", "").Trim();
+
+            if (!string.IsNullOrWhiteSpace(contents))
+                // add back to end without removing comfort chars that could be part of the content search
+                searchCriteria += $"[{contents}]";
+
 
             var retVal = searchCriteria;
 

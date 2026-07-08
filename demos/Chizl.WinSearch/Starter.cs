@@ -48,6 +48,7 @@ namespace Chizl.SearchSystemUI
         private static bool _hideErrors = false;
         private static bool _hideInformation = false;
         private static bool _hasDrives = true;
+        private static bool _allowBinaryContentSearch = false;
         private static int _mainSplitterDistance = -1;
 
         private static TimeSpan _scanTime = TimeSpan.Zero;
@@ -106,21 +107,16 @@ namespace Chizl.SearchSystemUI
         private void ScanEnded()
         {
             if (InvokeRequired)
-            {
-                var d = new NoParmDelegateEvent(ScanEnded);
-                if (!Disposing && !IsDisposed)
-                {
-                    try { Invoke(d); }
-                    catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
-                    catch { /* Ignore, shutting down. */ }
-                }
-            }
+                this.Invoke(new Action(() => { ScanEnded(); }));
             else if (!Disposing && !IsDisposed)
             {
-                if (!_finder.CurrentStatus.HasFlag(LookupStatus.Completed))
+                if (!_finder.CurrentStatus.HasFlag(LookupStatus.Completed) && !_finder.CurrentStatus.HasFlag(LookupStatus.Aborted))
                     return;
 
-                _scanRunning.SetFalse();
+                // already set to false, don't need to run again.
+                if (!_scanRunning.TrySetFalse())
+                    return;
+
                 SetSysTrayIcon(_winSrchIconPath);
 
                 // this allows all messages to be posted, only
@@ -135,16 +131,21 @@ namespace Chizl.SearchSystemUI
                 TxtSearchName.ReadOnly = false;
 
                 var fullScanned = _finder.FullScanCompleted;
-                BtnStartStopScan.Text = _scanAborted ? _startScanText : fullScanned ? _reScanText : _startScanText;
+                // BtnStartStopScan.Text = fullScanned ? _reScanText : _scanAborted ? _startScanText : _stopScanText;
+                SetScanTimer(true);
+
+                if (!LastScanTimer.Enabled)
+                    LastScanTimer.Enabled = true;
+
+                if (!LastScanTimer.Enabled)
+                    LastScanTimer.Start();
 
                 if (!_scanAborted && _scanTime.Equals(TimeSpan.Zero) && _startDate != DateTime.MinValue)
                 {
                     _scanTime = diff;
-                    ShowMsg(SearchMessageType.SearchTime, $"Scan Time: {_scanTime.TotalSeconds} sec.");
+                    ShowMsg(SearchMessageType.SearchTime, $"Caching Took: {_scanTime.TotalSeconds} sec.");
                     ShowMsg(SearchMessageType.StatusMessage, "Waiting...");
                 }
-
-                LastScanTimer.Enabled = true;   //keep
 
                 if (ResultsListView.Items.Count > 0)
                 {
@@ -159,6 +160,7 @@ namespace Chizl.SearchSystemUI
         {
             if (this.InvokeRequired)
             {
+                // Project was created in VS2022 so "Action" delegate is required.
                 this.Invoke(new Action(() => { SetSysTrayIcon(iconPath); }));
                 return;
             }
@@ -181,6 +183,7 @@ namespace Chizl.SearchSystemUI
         {
             if (this.InvokeRequired)
             {
+                // Project was created in VS2022 so "Action" delegate is required.
                 this.Invoke(new Action(() => { ScanStarted(); }));
                 return;
             }
@@ -337,8 +340,10 @@ namespace Chizl.SearchSystemUI
                                 ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
 
                             // Use tread safe boolean to flag that Scan is no longer running.
-                            _scanRunning.SetFalse();
+                            //_scanRunning.SetFalse();
+
                             CheckListColumns();
+                            ScanEnded(); 
 
                             break;
                         case SearchMessageType.SearchTime:
@@ -369,10 +374,9 @@ namespace Chizl.SearchSystemUI
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(() => {
-                    CheckListColumns();
-                    return;
-                }));
+                // Project was created in VS2022 so "Action" delegate is required.
+                this.Invoke(new Action(() => { CheckListColumns(); }));
+                return;
             }
             
             var contentLength = 0;
@@ -538,6 +542,8 @@ namespace Chizl.SearchSystemUI
             else
                 _criterias.AllowWindows = false;
 
+            ConfigData.GetItem<bool>("MnuBinaryContentSearch", false, out isChecked);
+            _allowBinaryContentSearch = isChecked;
             ConfigData.GetItem<bool>("ChkHideInfo", false, out isChecked);
             _hideInformation = isChecked;
             ConfigData.GetItem<bool>("ChkHideErrors", true, out isChecked);
@@ -659,16 +665,19 @@ namespace Chizl.SearchSystemUI
         {
             if (InvokeRequired)
             {
-                var d = new NoParmDelegateEvent(SetFilterStatus);
-                if (!Disposing && !IsDisposed)
-                {
-                    try { Invoke(d); }
-                    catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
-                    catch { /* Ignore, shutting down. */ }
-                }
+                this.Invoke(new Action(() => { SetFilterStatus(); }));
+                //var d = new NoParmDelegateEvent(SetFilterStatus);
+                //if (!Disposing && !IsDisposed)
+                //{
+                //    try { Invoke(d); }
+                //    catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
+                //    catch { /* Ignore, shutting down. */ }
+                //}
             }
             else if (!Disposing && !IsDisposed)
             {
+                SetSysTrayIcon(_scanRunning ? _winSrchWorkIconPath : _winSrchIconPath);
+
                 if (_extFilterOn || _driveFilterOn || _customFilterOn)
                     ToolStripStatusFilterLabel.Visible = true;
                 else
@@ -699,6 +708,8 @@ namespace Chizl.SearchSystemUI
             ChkFilename.Checked = _criterias.SearchFilename;
             ChkHideInfo.Checked = _hideInformation;
             ChkHideErrors.Checked = _hideErrors;
+            MnuBinaryContentSearch.Checked = _allowBinaryContentSearch;
+            _finder.AllowBinaryContentSearch = _allowBinaryContentSearch;
 
             MainSplitContainer.Panel2Collapsed = _hideInformation;
             EventListsSplitContainer.Panel2Collapsed = _hideErrors;
@@ -809,6 +820,9 @@ namespace Chizl.SearchSystemUI
         {
             if (e.MessageType.Equals(SearchMessageType.FileScanStatus))
             {
+                if (!this.Visible)
+                    return;
+
                 if (Interlocked.Decrement(ref refreshCnt) <= 0)
                 {
                     ShowMsg(e);
@@ -883,6 +897,35 @@ namespace Chizl.SearchSystemUI
         #endregion
 
         #region Buttons Events
+        // Atomic boolean
+        static ABool _settingScanTimer = ABool.False;
+        private void SetScanTimer(bool start)
+        {
+            if (this.InvokeRequired)
+            {
+                // Project was created in VS2022 so "Action" delegate is required.
+                this.Invoke(new Action(() => { SetScanTimer(start); }));
+                return;
+            }
+
+            // only want 1 item changing this at one time.
+            if (!_settingScanTimer.TrySetTrue())
+                return;
+
+            try
+            {
+                // if already in same state, exit
+                if (start == LastScanTimer.Enabled)
+                    return;
+
+                LastScanTimer.Enabled = start;
+            }
+            finally
+            {
+                // done with change
+                _settingScanTimer.SetFalse();
+            }
+        }
         private void BtnHide_Click(object sender, EventArgs e) => this.Close();
         private void BtnFind_Click(object sender, EventArgs e)
         {
@@ -890,7 +933,7 @@ namespace Chizl.SearchSystemUI
             if (string.IsNullOrWhiteSpace(search))
                 return;
 
-            LastScanTimer.Stop();
+            SetScanTimer(false);
             var searchTime = DateTime.UtcNow;
             _finder.Search(GetScanDriveList(), TxtSearchName.Text)
                 .ContinueWith(t =>
@@ -898,10 +941,12 @@ namespace Chizl.SearchSystemUI
                     _driveFilterOn.SetFalse();
                     _extFilterOn.SetFalse();
                     _customFilterOn.SetFalse();
+                    //_scanRunning.SetFalse();
+                    ScanEnded();
                     SetFilterStatus();
                     var diff = DateTime.UtcNow - searchTime;
                     ShowMsg(SearchMessageType.StatusMessage, $"Search Response: {diff.Seconds}s {diff.Milliseconds}ms.");
-                    LastScanTimer.Start();
+                    SetScanTimer(true);
                 });
         }
         private void BtnStartStopScan_Click(object sender, EventArgs e)
@@ -921,7 +966,7 @@ namespace Chizl.SearchSystemUI
                     reScan = true;
                 }
 
-                LastScanTimer.Stop();
+                SetScanTimer(false);
                 _scanTime = TimeSpan.Zero;
 
                 _finder.ScanToCache(GetScanDriveList(), reScan)
@@ -930,16 +975,17 @@ namespace Chizl.SearchSystemUI
                            _driveFilterOn.SetFalse();
                            _extFilterOn.SetFalse();
                            _customFilterOn.SetFalse();
-
+                           
+                           ScanEnded();
                            SetFilterStatus();
-                           LastScanTimer.Start();
+                           SetScanTimer(true);
                        });
             }
             else
             {
-                _scanAborted.SetTrue();
                 _finder.StopScan();
-                _scanRunning.SetFalse();
+                _scanAborted.SetTrue();
+                ///_scanRunning.SetFalse();
                 if (driveList.Count() == 0)
                 {
                     BtnStartStopScan.Text = _startScanText;
@@ -947,7 +993,8 @@ namespace Chizl.SearchSystemUI
                         _finder.ResetCache();
                 }
 
-                LastScanTimer.Start();
+                ScanEnded();
+                SetScanTimer(true);
             }
         }
         private void BtnStartStopScan_TextChanged(object sender, EventArgs e)
@@ -963,9 +1010,12 @@ namespace Chizl.SearchSystemUI
         private void BtnDriveOptions_Click(object sender, EventArgs e) => CMenuDriveOptions.Show(BtnDriveOptions, new Point(1, 1));
         private void UIOptions_CheckedChanged(object sender, EventArgs e)
         {
-            var chkBox = sender as CheckBox;
-            var chkBoxName = chkBox.Name;
-            var isChecked = chkBox.Checked;
+            var chkBoxName = (sender.GetType().Equals(typeof(CheckBox)) ?
+                                    ((CheckBox)sender).Name:
+                                    ((ToolStripMenuItem)sender).Name);
+            var isChecked = (sender.GetType().Equals(typeof(CheckBox)) ?
+                                    ((CheckBox)sender).Checked :
+                                    ((ToolStripMenuItem)sender).Checked);
 
             if (!_loaded)
                 return;
@@ -983,6 +1033,11 @@ namespace Chizl.SearchSystemUI
 
                     _hideInformation = isChecked;
                     MainSplitContainer.Panel2Collapsed = _hideInformation;
+                    break;
+                case "MnuBinaryContentSearch":
+                    _allowBinaryContentSearch = isChecked;
+                    MnuBinaryContentSearch.Checked = _allowBinaryContentSearch;
+                    _finder.AllowBinaryContentSearch = _allowBinaryContentSearch;
                     break;
                 default:
                     MessageBox.Show($"'{chkBoxName}' is setup for UI Options, but not coded for it.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1269,7 +1324,9 @@ namespace Chizl.SearchSystemUI
             
             if (_scanRunning)
                 statusText = _stopScanText;
-            else if (!_scanRunning && (_finder.FullScanCompleted || _scanAborted))
+            else if (_scanAborted)
+                statusText = _startScanText;
+            else if (_finder.FullScanCompleted)
                 statusText = _reScanText;
 
             // Insurance
@@ -1306,11 +1363,42 @@ namespace Chizl.SearchSystemUI
             _loc = new Point(CMenuOptions.Left, CMenuOptions.Top);
             MnuAllowedFolders.Show(_loc);
         }
+        private void ListMenuRescanRoot_Click(object sender, EventArgs e)
+        {
+            if (GetSelectedItems(out string[] selectedItems, true, false))
+            {
+                List<string> dirsOnly = new List<string>();
+                foreach (var dir in selectedItems)
+                {
+                    var dirSplit = dir.Split('\\');
+                    if (dirSplit.Length > 1)
+                    {
+                        var newDir = $"{dirSplit[0]}\\{dirSplit[1]}";
+                        if (!dirsOnly.Contains(newDir))
+                            dirsOnly.Add(newDir);
+                    }
+                }                
+                _finder.CheckCache(dirsOnly.ToArray(), true);
+            }
+        }
         private void AllowFoldersTitle_Paint(object sender, PaintEventArgs e)
         {
             var g = e.Graphics;
             g.Clear(_menuTitleBBColor);
             g.DrawString("Allowed Folders", _menuTitleFont, _menuTitleFGColor, AllowFoldersTitle.ContentRectangle, _stringFormat);
+        }
+        const int colFilePathIndex = 1;
+        private void ListMenuCopyContentTip_Click(object sender, EventArgs e)
+        {
+            if (_listViewHitTest.Item != null && _listViewHitTest.SubItem != null)
+            {
+                var pathColumnId = ListViewColumns().Length - 1;
+                var filePath = _listViewHitTest.Item.SubItems[pathColumnId].Text;
+
+                Clipboard.Clear();
+                Clipboard.SetText($"File: {filePath}\n{LabelTooltip.Text}");
+                ShowMsg(SearchMessageType.StatusMessage, $"Content info for '{filePath}' has been copied to your clipboard.");
+            }
         }
         #endregion
 
@@ -1318,13 +1406,12 @@ namespace Chizl.SearchSystemUI
         const int colContentIndex = 6;
         private void ResultsListView_MouseMove(object sender, MouseEventArgs e)
         {
-            ListViewHitTestInfo hitTest = ResultsListView.HitTest(e.Location);
+            _listViewHitTest = ResultsListView.HitTest(e.Location);
 
-            if (hitTest.Item != null && hitTest.SubItem != null)
+            if (_listViewHitTest.Item != null && _listViewHitTest.SubItem != null)
             {
-                int colIndex = hitTest.Item.SubItems.IndexOf(hitTest.SubItem);
-                var lvColumn = hitTest.Item.SubItems[colContentIndex];
-
+                int colIndex = _listViewHitTest.Item.SubItems.IndexOf(_listViewHitTest.SubItem);
+                var lvColumn = _listViewHitTest.Item.SubItems[colContentIndex];
                 // if mouse is over the Content column / cell and any snippet exists in the tag property.
                 if (colIndex == colContentIndex && lvColumn.Tag != null)
                 {
@@ -1386,59 +1473,6 @@ namespace Chizl.SearchSystemUI
 
             PanelTooltip.Visible = false;
         }
-
-        private void ResultsListView_MouseMove3(object sender, MouseEventArgs e)
-        {
-            ListViewHitTestInfo hitTest = ResultsListView.HitTest(e.Location);
-
-            // 1. Verify we are hovering over an item and a subitem
-            if (hitTest.Item != null && hitTest.SubItem != null)
-            {
-                // 2. Identify the column index (0-based, so index 5 is the 6th column)
-                int colIndex = hitTest.Item.SubItems.IndexOf(hitTest.SubItem);
-                var lvColumn = hitTest.Item.SubItems[colContentIndex];
-
-                if (colIndex == colContentIndex && lvColumn.Tag != null)
-                {
-                    string[] tag = lvColumn.Tag.ToString().Split('\n');
-
-                    if (tag.Length == 0)
-                        return;
-
-                    string customText = $"Found: {tag.Count()}\n\n{lvColumn.Tag}";
-
-                    if (LabelTooltip.Text != customText)
-                    {
-                        // Update label text
-                        LabelTooltip.Text = customText;
-
-                        var leftRightPadding = PanelTooltip.Padding.Left + PanelTooltip.Padding.Right + LabelTooltip.Padding.Left;  // + LabelTooltip.Right;
-                        var upDownPadding = PanelTooltip.Padding.Top + PanelTooltip.Padding.Bottom + LabelTooltip.Padding.Top;      // + LabelTooltip.Bottom;
-
-                        // Automatically resize the panel to fit your text perfectly
-                        PanelTooltip.Size = new Size(LabelTooltip.PreferredWidth + leftRightPadding, LabelTooltip.PreferredHeight + (LabelTooltipHeader.Height + upDownPadding));
-                    }
-
-                    // Position the panel near the cursor (offset slightly so it doesn't flicker under the pointer)
-                    // PointToScreen converts ListView coordinates to Form coordinates
-                    Point formCoords = this.PointToClient(ResultsListView.PointToScreen(e.Location));
-                    PanelTooltip.Location = new Point(formCoords.X + 15, formCoords.Y + 15);
-
-                    if (!PanelTooltip.Visible)
-                    {
-                        // Ensure it sits on top of the ListView and show it
-                        PanelTooltip.BringToFront();
-                        PanelTooltip.Visible = true;
-                    }
-
-                    return; // Exit early so we don't hit the hide logic below
-                }
-            }
-
-            // 3. Hide the panel if the mouse leaves the 6th column or the ListView completely
-            PanelTooltip.Visible = false;
-        }
-
         private void ResultsListView_MouseUp(object sender, MouseEventArgs e)
         {
             _listViewHitTest = ResultsListView.HitTest(e.Location);
@@ -1509,6 +1543,11 @@ namespace Chizl.SearchSystemUI
         #endregion
 
         #region Information, Warning, & Error Context Menu Events
+        private void CMenuList_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            toolStripCopyContentTip.Visible = LabelTooltipHeader.Visible;
+            ListMenuCopyContentTip.Visible = LabelTooltipHeader.Visible;
+        }
         private void Notify_DoubleClick(object sender, EventArgs e) => ShowWindow();
         private void SysTrayOpen_Click(object sender, EventArgs e) => ShowWindow();
         private void SysTrayClose_Click(object sender, EventArgs e) => CloseApp();

@@ -8,7 +8,7 @@
         private System.ComponentModel.IContainer components = null;
 
         /// <summary>
-        /// Clean up any resources being used.
+        /// Clean up any resources being used;
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
@@ -52,6 +52,10 @@
             this.ListMenuOpenLocation = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuClearList = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.ListMenuRescanRoot = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripCopyContentTip = new System.Windows.Forms.ToolStripSeparator();
+            this.ListMenuCopyContentTip = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.ListMenuCopyPath = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuCopyList = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuExportList = new System.Windows.Forms.ToolStripMenuItem();
@@ -68,6 +72,8 @@
             this.ChkFilename = new System.Windows.Forms.ToolStripMenuItem();
             this.ChkDirectoryName = new System.Windows.Forms.ToolStripMenuItem();
             this.MnuSkipFolders = new System.Windows.Forms.ToolStripMenuItem();
+            this.MnuBinaryContentSeparator = new System.Windows.Forms.ToolStripSeparator();
+            this.MnuBinaryContentSearch = new System.Windows.Forms.ToolStripMenuItem();
             this.ChkWinFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.ChkUserFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.PanelScanButton = new System.Windows.Forms.Panel();
@@ -298,11 +304,16 @@
             this.ListMenuOpenLocation,
             this.ListMenuClearList,
             this.toolStripSeparator2,
+            this.ListMenuRescanRoot,
+            this.toolStripCopyContentTip,
+            this.ListMenuCopyContentTip,
+            this.toolStripSeparator6,
             this.ListMenuCopyPath,
             this.ListMenuCopyList,
             this.ListMenuExportList});
             this.CMenuList.Name = "CMenuList";
-            this.CMenuList.Size = new System.Drawing.Size(227, 170);
+            this.CMenuList.Size = new System.Drawing.Size(227, 226);
+            this.CMenuList.Opening += new System.ComponentModel.CancelEventHandler(this.CMenuList_Opening);
             // 
             // ListMenuFilters
             // 
@@ -368,6 +379,34 @@
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
             this.toolStripSeparator2.Size = new System.Drawing.Size(223, 6);
+            // 
+            // ListMenuRescanRoot
+            // 
+            this.ListMenuRescanRoot.Name = "ListMenuRescanRoot";
+            this.ListMenuRescanRoot.Size = new System.Drawing.Size(226, 22);
+            this.ListMenuRescanRoot.Text = "&Rescan Root Directory";
+            this.ListMenuRescanRoot.Click += new System.EventHandler(this.ListMenuRescanRoot_Click);
+            // 
+            // toolStripCopyContentTip
+            // 
+            this.toolStripCopyContentTip.Name = "toolStripCopyContentTip";
+            this.toolStripCopyContentTip.Size = new System.Drawing.Size(223, 6);
+            this.toolStripCopyContentTip.Visible = false;
+            // 
+            // ListMenuCopyContentTip
+            // 
+            this.ListMenuCopyContentTip.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.ListMenuCopyContentTip.Name = "ListMenuCopyContentTip";
+            this.ListMenuCopyContentTip.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.T)));
+            this.ListMenuCopyContentTip.Size = new System.Drawing.Size(226, 22);
+            this.ListMenuCopyContentTip.Text = "Copy Content &Tip";
+            this.ListMenuCopyContentTip.Visible = false;
+            this.ListMenuCopyContentTip.Click += new System.EventHandler(this.ListMenuCopyContentTip_Click);
+            // 
+            // toolStripSeparator6
+            // 
+            this.toolStripSeparator6.Name = "toolStripSeparator6";
+            this.toolStripSeparator6.Size = new System.Drawing.Size(223, 6);
             // 
             // ListMenuCopyPath
             // 
@@ -522,9 +561,11 @@
             this.CMenuOptions.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ChkFilename,
             this.ChkDirectoryName,
-            this.MnuSkipFolders});
+            this.MnuSkipFolders,
+            this.MnuBinaryContentSeparator,
+            this.MnuBinaryContentSearch});
             this.CMenuOptions.Name = "CMenuOptions";
-            this.CMenuOptions.Size = new System.Drawing.Size(178, 70);
+            this.CMenuOptions.Size = new System.Drawing.Size(225, 120);
             // 
             // ChkFilename
             // 
@@ -532,7 +573,7 @@
             this.ChkFilename.CheckOnClick = true;
             this.ChkFilename.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ChkFilename.Name = "ChkFilename";
-            this.ChkFilename.Size = new System.Drawing.Size(177, 22);
+            this.ChkFilename.Size = new System.Drawing.Size(224, 22);
             this.ChkFilename.Text = "Search File Name";
             this.ChkFilename.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
@@ -540,16 +581,29 @@
             // 
             this.ChkDirectoryName.CheckOnClick = true;
             this.ChkDirectoryName.Name = "ChkDirectoryName";
-            this.ChkDirectoryName.Size = new System.Drawing.Size(177, 22);
+            this.ChkDirectoryName.Size = new System.Drawing.Size(224, 22);
             this.ChkDirectoryName.Text = "Search Path Name";
             this.ChkDirectoryName.CheckStateChanged += new System.EventHandler(this.Options_CheckedChanged);
             // 
             // MnuSkipFolders
             // 
             this.MnuSkipFolders.Name = "MnuSkipFolders";
-            this.MnuSkipFolders.Size = new System.Drawing.Size(177, 22);
+            this.MnuSkipFolders.Size = new System.Drawing.Size(224, 22);
             this.MnuSkipFolders.Text = "Set Allowed Folders";
             this.MnuSkipFolders.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MnuSkipFolders_MouseUp);
+            // 
+            // MnuBinaryContentSeparator
+            // 
+            this.MnuBinaryContentSeparator.Name = "MnuBinaryContentSeparator";
+            this.MnuBinaryContentSeparator.Size = new System.Drawing.Size(221, 6);
+            // 
+            // MnuBinaryContentSearch
+            // 
+            this.MnuBinaryContentSearch.CheckOnClick = true;
+            this.MnuBinaryContentSearch.Name = "MnuBinaryContentSearch";
+            this.MnuBinaryContentSearch.Size = new System.Drawing.Size(224, 22);
+            this.MnuBinaryContentSearch.Text = "&Allow Binary Content Search";
+            this.MnuBinaryContentSearch.CheckedChanged += new System.EventHandler(this.UIOptions_CheckedChanged);
             // 
             // ChkWinFolder
             // 
@@ -678,7 +732,7 @@
             // StatusToolStripStatusLabel
             // 
             this.StatusToolStripStatusLabel.Name = "StatusToolStripStatusLabel";
-            this.StatusToolStripStatusLabel.Size = new System.Drawing.Size(851, 19);
+            this.StatusToolStripStatusLabel.Size = new System.Drawing.Size(830, 19);
             this.StatusToolStripStatusLabel.Spring = true;
             this.StatusToolStripStatusLabel.Text = "Ready...";
             this.StatusToolStripStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -728,8 +782,8 @@
             this.StatusToolStripSearchTime.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left;
             this.StatusToolStripSearchTime.Name = "StatusToolStripSearchTime";
             this.StatusToolStripSearchTime.Padding = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.StatusToolStripSearchTime.Size = new System.Drawing.Size(102, 19);
-            this.StatusToolStripSearchTime.Text = "Scan Time: 0 sec";
+            this.StatusToolStripSearchTime.Size = new System.Drawing.Size(123, 19);
+            this.StatusToolStripSearchTime.Text = "Caching Took: 0 sec.";
             // 
             // SearchStatusToolStripStatusLabel
             // 
@@ -1021,6 +1075,12 @@
         private System.Windows.Forms.Panel PanelTooltip;
         private System.Windows.Forms.Label LabelTooltipHeader;
         private System.Windows.Forms.Label LabelTooltip;
+        private System.Windows.Forms.ToolStripMenuItem ListMenuRescanRoot;
+        private System.Windows.Forms.ToolStripSeparator toolStripCopyContentTip;
+        private System.Windows.Forms.ToolStripMenuItem ListMenuCopyContentTip;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
+        private System.Windows.Forms.ToolStripSeparator MnuBinaryContentSeparator;
+        private System.Windows.Forms.ToolStripMenuItem MnuBinaryContentSearch;
     }
 }
 

@@ -13,7 +13,6 @@ namespace Chizl.SystemSearch
     {
         internal static readonly object _lockPath = new object();
 
-        private static long _scanStarted = 0;
         private static long _shutDown = 0;
         private static long _fullScanCompleted = 0;
         private static SystemScan _scanner = new SystemScan();
@@ -76,18 +75,11 @@ namespace Chizl.SystemSearch
         {
             HasShutdown = false;
             CurrentStatus = status;
-            Interlocked.Increment(ref _scanStarted);
         }
-        private static bool EndScanCount()
-        {
-            if (Interlocked.Read(ref _scanStarted) > 0)
-                Interlocked.Decrement(ref _scanStarted);
-            return Interlocked.Read(ref _scanStarted).Equals(0);
-        }
+
         public static void Ended(LookupStatus status = LookupStatus.Completed)
         {
-            if (EndScanCount())
-                CurrentStatus = status;
+            CurrentStatus = status;
         }
 
         public static void Shutdown()
