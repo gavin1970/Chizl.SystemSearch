@@ -187,9 +187,12 @@ namespace Chizl.SystemSearch
                 // find end of contents token label
                 var contentsEnd = searchCriteria.IndexOf($"{Seps.cEnd}", contentsIndex);
                 if (contentsEnd > -1)
+                {
                     // get the full token label and tokens. -- stripping [ and ] off for future updates,
                     // just inc case part of the content search has each '[' or ']' in it.
                     contents = searchCriteria.Substring(contentsIndex, contentsEnd - contentsIndex);
+                    searchCriteria = searchCriteria.Replace($"[{contents}]", "").Trim();
+                }
             }
 
             // remove comfort chars people like to use to separate things.
@@ -322,13 +325,13 @@ namespace Chizl.SystemSearch
                 }
 
                 // use for token later.
-                hasContentSearch = hasContentSearch || cmdType == CommandType.Contents;
-                // use for token later.
                 hasPathSearch = hasPathSearch || cmdType == CommandType.Includes;
                 // use for token later.
                 hasExtSearch = hasExtSearch || cmdType == CommandType.Extensions;
                 // use for token later.
                 hasFilter = hasFilter || cmdType == CommandType.Excludes;
+                // use for token later.
+                hasContentSearch = hasContentSearch || cmdType == CommandType.Contents;
 
                 // replace the command with a token for search order
                 retVal = retVal.Replace(remove, "");

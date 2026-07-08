@@ -637,17 +637,19 @@ namespace Chizl.SystemSearch
 
                     // if we have content, we now need to filter down for each criteria.
                     if (prevDicCount > 0)
+                    {
                         filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(wc.ToLower())).Select(s => (s.Key, s.Value)));
+                        findingsDic.Clear();
+                        if (filters.Count() > 0)
+                        {
+                            foreach (var item in filters.ToList())
+                                findingsDic.TryAdd(item.Path, item.HasExt);
+                        }
+                    }
                     else
                     {
                         foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(wc.ToLower())).ToList())
                             findingsDic.TryAdd(item.Key, item.Value);
-                    }
-
-                    if (filters.Count() > 0)
-                    {
-                        foreach (var item in filters.ToList())
-                            findingsDic.TryAdd(item.Path, item.HasExt);
                     }
                 }
 
