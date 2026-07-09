@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,10 +12,12 @@ namespace Chizl.SystemSearch
 {
     public class IOFinder : IDisposable
     {
+        private const long SEND_MSG_NEXT_STEP = 100;
         private const int BYTE_SIZE_READS = 4096;
-        private const int MAX_FIND_RESPONSE  = 10000;                           // max response content to UI
-        private const long MAX_FILE_SIZE_CONTENT_SEARCH = 1024 * 1024 * 250;    // 250MB: (262,144,000) bytes
-        private static List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
+        private const int MAX_FIND_RESPONSE  = 10000;                            // max response content to UI
+        private const long MAX_FILE_SIZE_CONTENT_SEARCH = 1024 * 1024 * 250;     // 250MB: (262,144,000) bytes
+        private static readonly string _separator = new string('⸏', 25);        // ⟷  ⟚   ⸏
+        private static readonly List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
         private static CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
         private static long _fileScanned = 0;
         private static long _nextFileAlert = 0;
@@ -263,23 +264,19 @@ namespace Chizl.SystemSearch
 
                         int index = line.IndexOf(searchText, startIndex, comparison);
 
-                        if (index <0 && lowerPath.Equals("c:\\code\\classlibraries\\chizl.textconverter\\chizl.textconverter\\chizl.textconverter.csproj"))
-                        {
-                            index = line.IndexOf(searchText, startIndex, StringComparison.CurrentCultureIgnoreCase);
-                            Debug.Write("");
-                        }
-
                         if (index < 0)
                             break;
 
+                        var len = searchText.Length > 50 ? 50 : 50 - searchText.Length;
                         var snippet = string.Empty;
                         var snipStart = 0;
                         var snipLength = 0;
                         try
                         {
                             snipStart = index - searchText.Length < 0 ? 0 : index - searchText.Length;
-                            snipLength = snipStart + (searchText.Length * 3) > line.Length ? line.Length - snipStart : (searchText.Length * 3);
-                            snippet = line.Substring(snipStart, snipLength).Replace("\n", ".").Replace("\r", ".").Trim();  // covers files from windows \r\n, linux \n, and old mac \r
+                            snipLength = snipStart + len > line.Length ? line.Length - snipStart : len;
+                            // covers files from windows \r\n, linux \n, and old mac \r
+                            snippet = line.Substring(snipStart, snipLength).Replace("\n", ".").Replace("\r", ".").Trim();  
                         }
                         catch (Exception ex)
                         {
@@ -320,12 +317,23 @@ namespace Chizl.SystemSearch
                     int totalSnipCount = 0;
 
                     List<string> snips = new List<string>();
+                    var lastSearched = string.Empty;
+
                     foreach (var finding in findings)
                     {
                         if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                             throw new TaskCanceledException();
 
-                        snips.Add($"{finding.Searched} @ ln:{finding.LineNumber}:pos:{finding.CharPosition} \t| {finding.Snippet}");
+                        var snipit = finding.Snippet.Length > 50 ? finding.Snippet.Substring(0, 50) : finding.Snippet;
+                        var searched = finding.Searched.Length > 50 ? $"{finding.Searched.Substring(0, 50)}..." : finding.Searched;
+
+                        var newItem = false;
+                        if (!searched.Equals(lastSearched)) {
+                            lastSearched = searched;
+                            newItem = true;
+                        }
+
+                        snips.Add($"{(newItem ? $"{_separator}\r{searched}\r" : "")}@ ln:{finding.LineNumber}:pos:{finding.CharPosition}\r - {snipit}");
                     }
 
                     if (snips.Count > 0)
@@ -367,7 +375,12 @@ namespace Chizl.SystemSearch
             _nextFileAlert = 0;
 
             var startTime = DateTime.UtcNow;
+            var totalTime = string.Empty;
+            var contentSearchCnt = 0;
+
+            // start over
             FileContentFinds.Clear();
+
             var retVal = false;
             var fullFileList = Scanner.FileDictionary;
             var fullFileListLen = fullFileList.Count();
@@ -407,91 +420,75 @@ namespace Chizl.SystemSearch
                     retVal = true;
                     // [includes:D:\] + [extensions:log|md] + [contents:gavin]
                     List<(string file, bool noext)> dicList = findingsDic.Select(s => (s.Key, s.Value)).Cast<(string, bool)>().ToList();
-                    //var keys = findingsDic.Keys.ToList();
+                    // for later
+                    contentSearchCnt = dicList.Count;
+                    // reset
                     findingsDic.Clear();
-                    List<Task> searchTask = new List<Task>();
+                    // thread monitor
+                    var searchTask = new List<Task>();
+                    // set in file status files found that will be searched.
+                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Found: [{contentSearchCnt.FormatByComma()}] files to scan for content.");
 
-                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Found: [{dicList.Count.FormatByComma()}] files to scan for content.");
-                    long findStep = 100;// dicList.Count < 1000 ? (long)Math.Round(dicList.Count * .1) : 100;
-
-                    var semaphore = new SemaphoreSlim(128);
+                    var semaphore = new SemaphoreSlim(1024);
                     // [includes:d:\code\|c:\code\] + [extensions:cs|md|log] + [excludes:\3rdparty\|\Unity\|SVG] + [contents:gavin|landon]
                     // [includes:d:\code\] + [extensions:cs|md|log] + [excludes:\3rdparty\|\Unity\|SVG] + [contents:gavin|landon]
-                    //var skSrt = 0;
-                    //var loadCount = 1000;
 
-                    //while (skSrt < dicList.Count)
-                    //{
-                    //    if (dicList.Count < skSrt + loadCount)
-                    //        loadCount = dicList.Count - skSrt;
-
-                    //    var loadList = dicList.Skip(skSrt).Take(loadCount).Select(s => s).ToList();
-                    //    skSrt += loadCount;
-
-                        // c:\code + [extensions:cs] + [contents:action]
-                        foreach ((string file, bool noext) in dicList)  //loadList
+                    foreach ((string file, bool noext) in dicList)  //loadList
+                    {
+                        semaphore.WaitAsync();
+                        try
                         {
-                            semaphore.WaitAsync();
-                            try
+                            if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
+                                break;
+
+                            // we need to verify the criteria again, as some of the criteria is not able to be pre-filtered
+                            // in the cache, and we don't want to waste the time trying to read the file if it doesn't
+                            // meet the criteria.
+                            if (VerifyCriteria(drives, file, searchCriteria))
                             {
                                 if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                                     break;
 
-                                // we need to verify the criteria again, as some of the criteria is not able to be pre-filtered
-                                // in the cache, and we don't want to waste the time trying to read the file if it doesn't
-                                // meet the criteria.
-                                if (VerifyCriteria(drives, file, searchCriteria))
+                                // create task for each content search, this will help with performance, as we
+                                // can search for multiple content criteria at the same time, and it will also
+                                // help with large files, as we can read them in parallel.
+                                // FindContent verifies the file is not binary and less than 1 GB before
+                                // reading, so we don't have to worry about that here.
+                                searchTask.Add(FindContent(file, contentList).ContinueWith(t =>
                                 {
-                                    if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
-                                        break;
+                                    if (t.Result)
+                                        findingsDic.TryAdd(file, noext);
 
-                                    // create task for each content search, this will help with performance, as we
-                                    // can search for multiple content criteria at the same time, and it will also
-                                    // help with large files, as we can read them in parallel.
-                                    // FindContent verifies the file is not binary and less than 1 GB before
-                                    // reading, so we don't have to worry about that here.
-                                    searchTask.Add(FindContent(file, contentList).ContinueWith(t =>
+                                    if (Interlocked.Increment(ref _fileScanned) > _nextFileAlert)
                                     {
-                                        Interlocked.Increment(ref _fileScanned);
-                                        if (t.Result)
-                                            findingsDic.TryAdd(file, noext);
-
-                                        if (Volatile.Read(ref _fileScanned) > _nextFileAlert)
-                                        {
-                                            Interlocked.Exchange(ref _nextFileAlert, _nextFileAlert += (_fileScanned == 1 ? findStep - 1 : findStep));
-                                            SearchMessage.SendMsg(SearchMessageType.UpdateInProgress, $"Found: [{findingsDic.Count().FormatByComma()}] files matching content out of {Volatile.Read(ref _fileScanned)} scanned.");
-                                        }
-                                    }));
-                                }
-                            }
-                            finally
-                            {
-                                semaphore.Release();
+                                        Interlocked.Exchange(ref _nextFileAlert, _nextFileAlert += (_fileScanned == 1 ? SEND_MSG_NEXT_STEP - 1 : SEND_MSG_NEXT_STEP));
+                                        SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"Found: [{findingsDic.Count().FormatByComma()}] files matching content out of {_fileScanned} scanned.");
+                                    }
+                                }));
                             }
                         }
-
-                        try
+                        finally
                         {
-                            Task.WaitAll(searchTask.ToArray(), _cancelTokenSource.Token);
+                            semaphore.Release();
                         }
-                        catch (OperationCanceledException)
-                        {
-                            SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"User canceled: [{findingsDic.Count().FormatByComma()}] files were matched before cancel occured.");
-                            break;
-                        }
-                    //}
+                    }
 
-                    //try
-                    //{
-                        //Task.WaitAll(searchTask.ToArray(), _cancelTokenSource.Token);
-                        SearchMessage.SendMsg(SearchMessageType.UpdateInProgress, $"Found: [{findingsDic.Count().FormatByComma()}] files matching content.\n" +
-                                                                                  $"Took [{DateTime.UtcNow.Subtract(startTime).TotalSeconds:0.0}] seconds to " +
-                                                                                  $"search inside [{dicList.Count().FormatByComma()}] files.");
-                    //}
-                    //catch (OperationCanceledException) 
-                    //{
-                        //SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"User canceled: [{findingsDic.Count().FormatByComma()}] files were matched before cancel occured.");
-                    //}
+                    try
+                    {
+                        Task.WaitAll(searchTask.ToArray(), _cancelTokenSource.Token);
+                        totalTime = DateTime.UtcNow.Subtract(startTime).FormatAsTimer();
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"User canceled: [{findingsDic.Count().FormatByComma()}] files were matched before cancel occured.");
+                        break;
+                    }
+
+                    var updateMsg = $"Found: [{findingsDic.Count().FormatByComma()}] files matching content.\n" +
+                                                                                $"Took [{totalTime}] to " +
+                                                                                $"search inside [{contentSearchCnt.FormatByComma()}] files.";
+                    // if there was a content search, even if no files found.
+                    SearchMessage.SendMsg(SearchMessageType.UpdateInProgress, updateMsg);
                 }
                 // if the criteria is a path include, we want to filter the list based on the path, this
                 // will help with the search, and prevent us from having to parse the criteria multiple times.
@@ -679,8 +676,9 @@ namespace Chizl.SystemSearch
 
                 // Bulk send of all findings by split of '\n', instant...  Balances Windows with Linux strings.
                 var arrData = string.Join("\n", fileList);
+                // send event of all related files paths
                 SearchMessage.SendMsg(SearchMessageType.SearchResults, arrData);
-                // send found message
+                // send status event message
                 SearchMessage.SendMsg(SearchMessageType.SearchStatus, $"Filtered: {fileList.Count().FormatByComma()}, Total Found: {verifiedFiles.FormatByComma()}");
             }
 

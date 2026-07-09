@@ -324,8 +324,12 @@ namespace Chizl.SearchSystemUI
                             var unfileInfoList = GlobalSetup.GetFileInfo(unfiltList, IOFinder.FileContentFinds);    // D:\ [ext: log] [con: gemini]
                             // add to list, for sub filter refresh.
                             _unfilteredItemsList.AddRange(unfileInfoList);
-                            // add to ListView
-                            ResultsListView.Items.AddRange(unfileInfoList);
+
+                            if (ResultsListView.InvokeRequired)
+                                this.Invoke(new Action(() => { ResultsListView.Items.AddRange(unfileInfoList); }));
+                            else
+                                // add to ListView
+                                ResultsListView.Items.AddRange(unfileInfoList);
 
                             if (_excludeItems.Count == 0)
                                 LoadExcludesFromForm();
@@ -944,8 +948,8 @@ namespace Chizl.SearchSystemUI
                     //_scanRunning.SetFalse();
                     ScanEnded();
                     SetFilterStatus();
-                    var diff = DateTime.UtcNow - searchTime;
-                    ShowMsg(SearchMessageType.StatusMessage, $"Search Response: {diff.Seconds}s {diff.Milliseconds}ms.");
+                    //var diff = DateTime.UtcNow - searchTime;
+                    //ShowMsg(SearchMessageType.StatusMessage, $"Search Response: {diff.FormatAsTimer()}");   // diff.Seconds}s {diff.Milliseconds}ms.
                     SetScanTimer(true);
                 });
         }
@@ -1424,7 +1428,7 @@ namespace Chizl.SearchSystemUI
                     }
 
                     string[] tag = rawTagText.Split('\n');
-                    string customText = $"Found: {tag.Length}\n\n{rawTagText}"; 
+                    string customText = $"Found: {tag.Length}\n\n{rawTagText.Replace("\r", "\n")}"; 
 
                     // if text is not what it needs to be.
                     if (LabelTooltip.Text != customText)

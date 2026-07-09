@@ -92,7 +92,7 @@ namespace Chizl.SearchSystemUI
                             {
                                 (string count, string[] list) = content;
                                 var tag = liv.SubItems.Add(count);
-                                tag.Tag = string.Join("\n", list);
+                                tag.Tag = string.Join("\n", list);//.Replace("\r", "\n");
                             }
                             else
                                 liv.SubItems.Add("...");

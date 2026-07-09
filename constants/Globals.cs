@@ -109,7 +109,28 @@ namespace Chizl.SystemSearch
     public static class PublicExt
     {
         internal static readonly string[] suffixes = { "Bytes", "KB", "MB", "GB", "TB", "PB" };
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="totalSpan"></param>
+        /// <returns></returns>
+        public static string FormatAsTimer(this TimeSpan totalSpan)
+        {
+            var retVal = new List<string>();
+            if (totalSpan.TotalDays >= 1)
+                retVal.Add($"{totalSpan.Days:0}d");
+            if (totalSpan.TotalHours >= 1)
+                retVal.Add($"{totalSpan.Hours:0}h");
+            if (totalSpan.TotalMinutes >= 1)
+                retVal.Add($"{totalSpan.Minutes:0}m");
+            if (totalSpan.TotalSeconds >= 1)
+                retVal.Add($"{totalSpan.Seconds:00}s");
 
+            if (retVal.Count == 0)
+                retVal.Add($"{totalSpan.Milliseconds:0000}ms");
+
+            return string.Join(" ", retVal.ToArray());
+        }
         public static string FormatByComma(this int inSize) => inSize.ToString("N0");
         public static string FormatByComma(this long inSize) => inSize.ToString("N0");
         public static string FormatByteSize(this int intBytes) => ((double)intBytes).FormatByteSize();
