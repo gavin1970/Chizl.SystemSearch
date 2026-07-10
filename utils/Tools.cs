@@ -55,7 +55,6 @@ namespace Chizl.SystemSearch
         /// <summary>
         /// Create a 32-byte MD5 Hash without spaces.
         /// </summary>
-        /// <param name="input">String to create MD5 hash.</param>
         /// <returns>MD5 Hash without dashes</returns>
         internal static string CreateMD5(string text, ReturnCase caseType = ReturnCase.Upper)
         {
@@ -67,10 +66,6 @@ namespace Chizl.SystemSearch
         /// <summary>
         /// Converts byte[] into a string with options for Case settings as well as remove dashes.
         /// </summary>
-        /// <param name="input"></param>
-        /// <param name="caseType"></param>
-        /// <param name="removeDashs"></param>
-        /// <returns></returns>
         internal static string BytesToString(byte[] byteArray, ReturnCase caseType = ReturnCase.AsIs, bool removeDashs = false)
         {
             var retVal = BitConverter.ToString(byteArray);
@@ -85,5 +80,24 @@ namespace Chizl.SystemSearch
         }
         public static string[] SplitOn(this string @this, char[] sep) => @this.Split(sep, StringSplitOptions.RemoveEmptyEntries);
         public static string[] SplitOn(this string @this, char sep) => @this.Split(new char[] { sep }, StringSplitOptions.RemoveEmptyEntries);
+        public static string MakeReadable(this string @this)
+        {
+            if (string.IsNullOrEmpty(@this)) return @this;
+
+            StringBuilder sb = new StringBuilder(@this.Length);
+            foreach (char c in @this)
+            {
+                // Keeps standard text, numbers, symbols, and whitespace
+                if (char.IsControl(c) && c != '\r' && c != '\n' && c != '\t')
+                {
+                    sb.Append('.');
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+        }
     }
 }

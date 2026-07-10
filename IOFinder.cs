@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,8 +15,9 @@ namespace Chizl.SystemSearch
     {
         private const long SEND_MSG_NEXT_STEP = 100;
         private const int BYTE_SIZE_READS = 4096;
-        private const int MAX_FIND_RESPONSE  = 10000;                            // max response content to UI
-        private const long MAX_FILE_SIZE_CONTENT_SEARCH = 1024 * 1024 * 250;     // 250MB: (262,144,000) bytes
+        private const int MAX_FIND_RESPONSE  = 10000;                           // max response content to UI
+        private const int FILE_BUFFER_READ_SIZE = 1024 * 1024;                  // 1MB
+        private const long MAX_FILE_SIZE_CONTENT_SEARCH = 1024 * 1024 * 250;    // 250MB: (262,144,000) bytes
         private static readonly string _separator = new string('⸏', 25);        // ⟷  ⟚   ⸏
         private static readonly List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
         private static CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
@@ -210,10 +212,14 @@ namespace Chizl.SystemSearch
             if (!fi.Exists || fi.Length > MAX_FILE_SIZE_CONTENT_SEARCH)
                 yield break;
 
-            var isBinary = IsBinary(path, out _);
+            var enmIsBinary = IsFileBinary.NotVerified;
 
-            if (isBinary && !AllowBinaryContentSearch)
-                yield break;
+            if (!this.AllowBinaryContentSearch)
+            {
+                enmIsBinary = IsBinary(path, out _) ? IsFileBinary.Yes : IsFileBinary.No;
+                if (enmIsBinary.Equals(IsFileBinary.Yes))
+                    yield break;
+            }
 
             if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                 yield break;
@@ -223,21 +229,19 @@ namespace Chizl.SystemSearch
             if (!searchTextList.Any())
                 yield break;
 
-            const int bufferSize = 1024 * 1024; // 1 MiB buffer
-
-            using var fs = new FileStream(
+            using var fileStream = new FileStream(
                 path,
                 FileMode.Open,
                 FileAccess.Read,
                 FileShare.ReadWrite,
-                bufferSize,
+                FILE_BUFFER_READ_SIZE,
                 FileOptions.SequentialScan);
 
             using var reader = new StreamReader(
-                fs,
+                fileStream,
                 encoding: Encoding.UTF8,
                 detectEncodingFromByteOrderMarks: true,
-                bufferSize: bufferSize);
+                bufferSize: FILE_BUFFER_READ_SIZE);
 
             string line = string.Empty;
             long lineNumber = 0;
@@ -249,6 +253,7 @@ namespace Chizl.SystemSearch
                     yield break;
 
                 lineNumber++;
+                var cleanLine = line.Replace('\0', '.');
 
                 foreach (var searchText in searchTextList)
                 {
@@ -262,7 +267,7 @@ namespace Chizl.SystemSearch
                         if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                             yield break;
 
-                        int index = line.IndexOf(searchText, startIndex, comparison);
+                        int index = cleanLine.IndexOf(searchText, startIndex, comparison);
 
                         if (index < 0)
                             break;
@@ -274,9 +279,9 @@ namespace Chizl.SystemSearch
                         try
                         {
                             snipStart = index - searchText.Length < 0 ? 0 : index - searchText.Length;
-                            snipLength = snipStart + len > line.Length ? line.Length - snipStart : len;
+                            snipLength = snipStart + len > cleanLine.Length ? cleanLine.Length - snipStart : len;
                             // covers files from windows \r\n, linux \n, and old mac \r
-                            snippet = line.Substring(snipStart, snipLength).Replace("\n", ".").Replace("\r", ".").Trim();  
+                            snippet = cleanLine.Substring(snipStart, snipLength).Replace("\n", ".").Replace("\r", ".").Trim();  
                         }
                         catch (Exception ex)
                         {
@@ -287,10 +292,10 @@ namespace Chizl.SystemSearch
                         yield return new SearchHit(
                                 searchText,
                                 lineNumber,
-                                index + 1,  // 0 based
+                                index + 1,  // 0 based - char loc in line
                                 line,
                                 snippet,
-                                isBinary);
+                                enmIsBinary);
 
                         startIndex = index + searchText.Length;
                     }
@@ -324,21 +329,28 @@ namespace Chizl.SystemSearch
                         if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                             throw new TaskCanceledException();
 
+                        // check if we can get a max of 50 bytes total for the snippet
                         var snipit = finding.Snippet.Length > 50 ? finding.Snippet.Substring(0, 50) : finding.Snippet;
+                        // check if we trim down to a max of 50 bytes total displaying the one single content token being searched
                         var searched = finding.Searched.Length > 50 ? $"{finding.Searched.Substring(0, 50)}..." : finding.Searched;
 
                         var newItem = false;
+                        // if the last found token is different than this token, we need to set newItem for HR in the mouseover Tip 
                         if (!searched.Equals(lastSearched)) {
                             lastSearched = searched;
                             newItem = true;
                         }
 
-                        snips.Add($"{(newItem ? $"{_separator}\r{searched}\r" : "")}@ ln:{finding.LineNumber}:pos:{finding.CharPosition}\r - {snipit}");
+                        if (totalSnipCount < 100)
+                            snips.Add($"{(newItem ? $"{_separator}\r{searched}\r" : "")}@ ln:{finding.LineNumber}:pos:{finding.CharPosition}\r   - {snipit.MakeReadable()}");
+                        else
+                            Debug.WriteLine($"(A) {totalSnipCount}: {filePath}");
+
+                        totalSnipCount += 1;
                     }
 
-                    if (snips.Count > 0)
+                    if (totalSnipCount > 0)
                     {
-                        totalSnipCount += snips.Count;
                         // This is the same thread for all snips for each single file.
                         // So there is no reason to worry about prevValue being different
                         // by the time TryUpdate is called.
@@ -346,15 +358,29 @@ namespace Chizl.SystemSearch
                         {
                             // append new conten finds 
                             var newSnipsList = prevValue.snips.ToList();
-                            newSnipsList.AddRange(snips);
+                            var newTotal = prevValue.snips.Length + snips.Count;
 
-                            FileContentFinds.TryUpdate(filePath, ($"{{{newSnipsList.Count} found}}", newSnipsList.ToArray()), prevValue);
+                            if (newTotal > 100 && prevValue.snips.Length < 100)
+                            {
+                                var takeCnt = 100 - prevValue.snips.Length;
+                                if (takeCnt > 0)
+                                    newSnipsList.AddRange(snips.Take(takeCnt));
+                            }
+                            else
+                                newSnipsList.AddRange(snips);
+
+                            FileContentFinds.TryUpdate(filePath, ($"{{{(totalSnipCount == newSnipsList.Count ? "" : $"{newSnipsList.Count}/")}{totalSnipCount}}}", newSnipsList.ToArray()), prevValue);
                         }
                         else
-                            FileContentFinds.TryAdd(filePath, ($"{{{snips.Count} found}}", snips.ToArray()));
-                    }
-                    if (totalSnipCount > 0)
+                        {
+                            if (totalSnipCount > 100)
+                                Debug.WriteLine($"(B) {totalSnipCount}: {filePath}");
+
+                            FileContentFinds.TryAdd(filePath, ($"{{{(totalSnipCount == snips.Count ? "" : $"{snips.Count}/")}{totalSnipCount}}}", snips.ToArray()));
+                        }
+
                         return true;
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -462,7 +488,7 @@ namespace Chizl.SystemSearch
                                     if (Interlocked.Increment(ref _fileScanned) > _nextFileAlert)
                                     {
                                         Interlocked.Exchange(ref _nextFileAlert, _nextFileAlert += (_fileScanned == 1 ? SEND_MSG_NEXT_STEP - 1 : SEND_MSG_NEXT_STEP));
-                                        SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"Found: [{findingsDic.Count().FormatByComma()}] files matching content out of {_fileScanned} scanned.");
+                                        SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"File criteria match: [{contentSearchCnt.FormatByComma()}].\nFound content in [{findingsDic.Count().FormatByComma()}] files out of [{_fileScanned.FormatByComma()}] already scanned.");
                                     }
                                 }));
                             }
@@ -486,7 +512,7 @@ namespace Chizl.SystemSearch
 
                     var updateMsg = $"Found: [{findingsDic.Count().FormatByComma()}] files matching content.\n" +
                                                                                 $"Took [{totalTime}] to " +
-                                                                                $"search inside [{contentSearchCnt.FormatByComma()}] files.";
+                                                                                $"scan inside [{contentSearchCnt.FormatByComma()}] files.";
                     // if there was a content search, even if no files found.
                     SearchMessage.SendMsg(SearchMessageType.UpdateInProgress, updateMsg);
                 }
@@ -789,26 +815,6 @@ namespace Chizl.SystemSearch
 
             _systemUpdates.Enqueue((WatcherChangeTypes.Created, e.FullPath, string.Empty));
             ProcessSystemUpdatesQueue();
-
-            //List<Task> taskList = new List<Task>();
-            //// we found if a folder is being added, files are missed, so lets sleep a sec and see if that helps.
-            ////Tools.Sleep(100, SleepType.Milliseconds);
-
-            //if (File.Exists(e.FullPath))
-            //{
-            //    taskList.Add(Task.Run(() => { Scanner.AddFile(e.FullPath); return Task.CompletedTask; }));
-            //    SearchMessage.SendMsg(SearchMessageType.Info, $"Added: [{e.FullPath}] to cache.");
-            //}
-            //else if (Directory.Exists(e.FullPath))
-            //{
-            //    taskList.AddRange(Scanner.ScanSubFolders(new string[] { e.FullPath }, false));
-            //    if (taskList.Count > 0)
-            //        SearchMessage.SendMsg(SearchMessageType.Info, $"Adding: [{taskList.Count}] files to cache.");
-            //}
-
-            //Task.WaitAll(taskList.ToArray());
-
-            //SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
         }
         private void OnDeleted(object sender, FileSystemEventArgs e)
         {
@@ -817,27 +823,6 @@ namespace Chizl.SystemSearch
 
             _systemUpdates.Enqueue((WatcherChangeTypes.Deleted, e.FullPath, string.Empty));
             ProcessSystemUpdatesQueue();
-
-            //List<Task> removeList = new List<Task>();
-            //// we found if a folder is being added, files are missed, so lets sleep a sec and see if that helps.
-            ////Tools.Sleep(100, SleepType.Milliseconds);
-
-            //var dirWithSlash = e.FullPath.EndsWith("\\") ? e.FullPath : $"{e.FullPath}\\";
-            //var isDir = false;
-            //var isFile = false;
-            //if (Scanner.IsDirectory(dirWithSlash))
-            //    isDir = true;
-            //else
-            //    isFile = true;
-
-            //if (isDir)
-            //    removeList.AddRange(Scanner.RemoveRootFolder(dirWithSlash));
-            //else if (isFile)
-            //    removeList.Add(Task.Run(() => { Scanner.RemoveFile(e.FullPath); return Task.CompletedTask; }));
-
-            //Task.WaitAll(removeList.ToArray());
-
-            //SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
         }
         private void OnRenamed(object sender, RenamedEventArgs e)
         {
@@ -846,48 +831,6 @@ namespace Chizl.SystemSearch
 
             _systemUpdates.Enqueue((WatcherChangeTypes.Renamed, e.FullPath, e.OldFullPath));
             ProcessSystemUpdatesQueue();
-
-            //var fileGoodToGo = false;
-            //var removedFolders = 0;
-            //var addFolders = 0;
-
-            ////Tools.Sleep(100, SleepType.Milliseconds);
-            //var isDir = Scanner.IsDirectory(e.OldFullPath);
-            //List<Task> renameList = new List<Task>();
-
-            //if (isDir)
-            //    renameList.AddRange(Scanner.RemoveRootFolder(e.OldFullPath, false));
-            //else
-            //    renameList.Add(Task.Run(() => { Scanner.RemoveFile(e.OldFullPath, false); return Task.CompletedTask; }));
-
-            //removedFolders = renameList.Count;
-            //fileGoodToGo = removedFolders > 0;
-
-            //if (isDir)
-            //    renameList.AddRange(Scanner.ScanSubFolders(new string[] { e.FullPath }, false));
-            //else
-            //    renameList.Add(Task.Run(() => { Scanner.AddFile(e.FullPath); return Task.CompletedTask; }));
-
-            //addFolders = renameList.Count - removedFolders;
-            //fileGoodToGo = fileGoodToGo || addFolders > 0;
-
-            //if (fileGoodToGo)
-            //{
-            //    var info = $"[{e.OldFullPath}]  ->  [{e.FullPath}]";
-            //    var vInfo = info.SplitByStr("->");
-            //    if (e.FullPath.Length > 100 && vInfo.Length == 2)
-            //    {
-            //        SearchMessage.SendMsg(SearchMessageType.Info, $"Renamed: {vInfo[0].Trim()}");
-            //        SearchMessage.SendMsg(SearchMessageType.Info, $"To   ->: {vInfo[1].Trim()}");
-            //    }
-            //    else
-            //        SearchMessage.SendMsg(SearchMessageType.Info, $"Renamed: {info}");
-
-            //    Tools.Sleep(1);
-            //}
-
-            //Task.WaitAll(renameList.ToArray());
-            //SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files");
         }
         private async void ProcessSystemUpdatesQueue()
         {
@@ -906,7 +849,6 @@ namespace Chizl.SystemSearch
                             return;
 
                         // we found if a folder is being added, files are missed, so lets sleep a sec and see if that helps.
-                        //Tools.Sleep(100, SleepType.Milliseconds);
                         switch (sys.changeType)
                         {
                             case WatcherChangeTypes.Deleted:
