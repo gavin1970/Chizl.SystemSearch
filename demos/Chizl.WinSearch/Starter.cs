@@ -176,7 +176,7 @@ namespace Chizl.SearchSystemUI
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error setting system tray icon: {ex.Message}");
+                ShowMsg(SearchMessageType.Exception, $"Error setting system tray icon: {ex.Message}");
             }
         }
         private void ScanStarted()
@@ -670,13 +670,6 @@ namespace Chizl.SearchSystemUI
             if (InvokeRequired)
             {
                 this.Invoke(new Action(() => { SetFilterStatus(); }));
-                //var d = new NoParmDelegateEvent(SetFilterStatus);
-                //if (!Disposing && !IsDisposed)
-                //{
-                //    try { Invoke(d); }
-                //    catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
-                //    catch { /* Ignore, shutting down. */ }
-                //}
             }
             else if (!Disposing && !IsDisposed)
             {

@@ -343,8 +343,6 @@ namespace Chizl.SystemSearch
 
                         if (totalSnipCount < 100)
                             snips.Add($"{(newItem ? $"{_separator}\r{searched}\r" : "")}@ ln:{finding.LineNumber}:pos:{finding.CharPosition}\r   - {snipit.MakeReadable()}");
-                        else
-                            Debug.WriteLine($"(A) {totalSnipCount}: {filePath}");
 
                         totalSnipCount += 1;
                     }
@@ -372,12 +370,7 @@ namespace Chizl.SystemSearch
                             FileContentFinds.TryUpdate(filePath, ($"{{{(totalSnipCount == newSnipsList.Count ? "" : $"{newSnipsList.Count}/")}{totalSnipCount}}}", newSnipsList.ToArray()), prevValue);
                         }
                         else
-                        {
-                            if (totalSnipCount > 100)
-                                Debug.WriteLine($"(B) {totalSnipCount}: {filePath}");
-
                             FileContentFinds.TryAdd(filePath, ($"{{{(totalSnipCount == snips.Count ? "" : $"{snips.Count}/")}{totalSnipCount}}}", snips.ToArray()));
-                        }
 
                         return true;
                     }
@@ -389,7 +382,6 @@ namespace Chizl.SystemSearch
                 catch (Exception ex)
                 {
                     // if we can't read the file, we just skip it, but log the error.
-                    //Debug.WriteLine($"{ex.Message} -- Findings: {findings.Count}, LineText: {lineText}, Start: {start}, Length: {len}, Snippet: {snippet}");
                     SearchMessage.SendMsg(ex, $"Error reading file: {filePath}");
                 }
                 return false;
