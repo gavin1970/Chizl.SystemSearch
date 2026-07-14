@@ -28,8 +28,8 @@ namespace Chizl.SystemSearch
         private static bool disposedValue;
         //private static long _fileContentCount = 0;
 
-        private static ConcurrentQueue<(WatcherChangeTypes, string, string)> _systemUpdates = new ConcurrentQueue<(WatcherChangeTypes, string, string)>();
-        private static ABool _queProcessing = ABool.False;
+        private static readonly ConcurrentQueue<(WatcherChangeTypes, string, string)> _systemUpdates = new ConcurrentQueue<(WatcherChangeTypes, string, string)>();
+        private static readonly ABool _queProcessing = ABool.False;
 
         protected virtual void Dispose(bool disposing)
         {
@@ -229,75 +229,68 @@ namespace Chizl.SystemSearch
             if (!searchTextList.Any())
                 yield break;
 
-            using var fileStream = new FileStream(
-                path,
-                FileMode.Open,
-                FileAccess.Read,
-                FileShare.ReadWrite,
-                FILE_BUFFER_READ_SIZE,
-                FileOptions.SequentialScan);
-
-            using var reader = new StreamReader(
-                fileStream,
-                encoding: Encoding.UTF8,
-                detectEncodingFromByteOrderMarks: true,
-                bufferSize: FILE_BUFFER_READ_SIZE);
-
-            string line = string.Empty;
-            long lineNumber = 0;
-            var lowerPath = path.ToLower();
-
-            while ((line = reader.ReadLine()) != null)
+            // moved this back so netstandard2.0 still works and because it's supported by all frameworks.
+            using (var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, FILE_BUFFER_READ_SIZE, FileOptions.SequentialScan))
             {
-                if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
-                    yield break;
-
-                lineNumber++;
-                var cleanLine = line.Replace('\0', '.');
-
-                foreach (var searchText in searchTextList)
+                using (var reader = new StreamReader(fileStream, encoding: Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: FILE_BUFFER_READ_SIZE))
                 {
-                    if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
-                        yield break;
+                    string line = string.Empty;
+                    long lineNumber = 0;
+                    var lowerPath = path.ToLower();
 
-                    int startIndex = 0;
-
-                    while (true)
+                    while ((line = reader.ReadLine()) != null)
                     {
                         if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                             yield break;
 
-                        int index = cleanLine.IndexOf(searchText, startIndex, comparison);
+                        lineNumber++;
+                        var cleanLine = line.Replace('\0', '.');
 
-                        if (index < 0)
-                            break;
-
-                        var len = searchText.Length > 50 ? 50 : 50 - searchText.Length;
-                        var snippet = string.Empty;
-                        var snipStart = 0;
-                        var snipLength = 0;
-                        try
+                        foreach (var searchText in searchTextList)
                         {
-                            snipStart = index - searchText.Length < 0 ? 0 : index - searchText.Length;
-                            snipLength = snipStart + len > cleanLine.Length ? cleanLine.Length - snipStart : len;
-                            // covers files from windows \r\n, linux \n, and old mac \r
-                            snippet = cleanLine.Substring(snipStart, snipLength).Replace("\n", ".").Replace("\r", ".").Trim();  
-                        }
-                        catch (Exception ex)
-                        {
-                            SearchMessage.SendMsg(ex, $"SearchFile('{path}')");
-                            yield break;
-                        }
+                            if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
+                                yield break;
 
-                        yield return new SearchHit(
-                                searchText,
-                                lineNumber,
-                                index + 1,  // 0 based - char loc in line
-                                line,
-                                snippet,
-                                enmIsBinary);
+                            int startIndex = 0;
 
-                        startIndex = index + searchText.Length;
+                            while (true)
+                            {
+                                if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
+                                    yield break;
+
+                                int index = cleanLine.IndexOf(searchText, startIndex, comparison);
+
+                                if (index < 0)
+                                    break;
+
+                                var len = searchText.Length > 50 ? 50 : 50 - searchText.Length;
+                                var snippet = string.Empty;
+                                var snipStart = 0;
+                                var snipLength = 0;
+                                try
+                                {
+                                    snipStart = index - searchText.Length < 0 ? 0 : index - searchText.Length;
+                                    snipLength = snipStart + len > cleanLine.Length ? cleanLine.Length - snipStart : len;
+                                    // covers files from windows \r\n, linux \n, and old mac \r
+                                    snippet = cleanLine.Substring(snipStart, snipLength).Replace("\n", ".").Replace("\r", ".").Trim();
+                                }
+                                catch (Exception ex)
+                                {
+                                    SearchMessage.SendMsg(ex, $"SearchFile('{path}')");
+                                    yield break;
+                                }
+
+                                yield return new SearchHit(
+                                        searchText,
+                                        lineNumber,
+                                        index + 1,  // 0 based - char loc in line
+                                        line,
+                                        snippet,
+                                        enmIsBinary);
+
+                                startIndex = index + searchText.Length;
+                            }
+                        }
                     }
                 }
             }
