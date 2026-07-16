@@ -44,9 +44,9 @@ namespace Chizl.SearchSystemUI
 
         private static ABool _scanAborted = ABool.False;
         private static ABool _scanRunning = ABool.False;
-        private static bool _ieKeyControl = false;
-        private static bool _hideErrors = false;
-        private static bool _hideInformation = false;
+        private static ABool _ieKeyControl = ABool.False;
+        private static ABool _hideErrors = ABool.False;
+        private static ABool _hideInformation = ABool.False;
         private static bool _hasDrives = true;
         private static bool _allowBinaryContentSearch = false;
         private static int _mainSplitterDistance = -1;
@@ -81,7 +81,6 @@ namespace Chizl.SearchSystemUI
         private static ScanProperties _criterias = _finder.Criteria;
         private static SysNotify _systemNotify;
 
-        private delegate void MessageDelegateEvent(SearchEventArgs e);
         private delegate void NoParmDelegateEvent();
         private delegate Tuple<int, int> NoParmWRespDelegateEvent();
 
@@ -225,153 +224,146 @@ namespace Chizl.SearchSystemUI
 
             if (InvokeRequired)
             {
-                var d = new MessageDelegateEvent(ShowMsg);
-                if (!Disposing && !IsDisposed)
+                this.Invoke(new Action(() => { ShowMsg(e); }));
+                return;
+            }
+
+            var nowTime = GetNowTime();
+            try
+            {
+                switch (e.MessageType)
                 {
-                    try { Invoke(d, e); }
-                    catch (ObjectDisposedException ex) { Debug.WriteLine(ex.Message); }
-                    catch { /* Ignore, shutting down. */ }
+                    case SearchMessageType.SearchQueryUsed:
+                        TxtSearchName.Text = e.Message;
+                        break;
+                    case SearchMessageType.Exception:
+                    case SearchMessageType.Error:
+                        // If we are hiding information message then errors
+                        // can't be seen anyway. Stop backend overhead.
+                        if (!_hideErrors)
+                        {
+                            var msg = e.Message;
+                            if (e.Message.Contains("Access to the"))
+                                ErrorList.Items.Add($"{nowTime}: {e.Message}");
+                            else
+                                ErrorList.Items.Add($"{nowTime}: [{e.MessageType}] {e.Message}");
+
+                            if (!_ieKeyControl)
+                            {
+                                ErrorList.ClearSelected();
+                                ErrorList.SelectedIndex = ErrorList.Items.Count - 1;
+                            }
+                        }
+                        break;
+                    case SearchMessageType.SkippingOptionalFolder:
+                        // TODO: make this an option, not sure we want to fill up the information list with it.
+                        break;
+                    case SearchMessageType.Warning:
+                    case SearchMessageType.Info:
+                        if (!_hideInformation)
+                        {
+                            var preMsg = e.MessageType == SearchMessageType.Warning ? $"[{nowTime}-{e.MessageType}]" : $"[{nowTime}]";
+                            EventList.Items.Add($"{preMsg} {e.Message}");
+
+                            if (!_ieKeyControl)
+                            {
+                                EventList.ClearSelected();
+                                EventList.SelectedIndex = EventList.Items.Count - 1;
+                            }
+                        }
+                        break;
+                    case SearchMessageType.SearchStatus:
+                        SearchStatusToolStripStatusLabel.Text = e.Message;
+                        break;
+                    case SearchMessageType.FileScanStatus:
+                        if (!_hasDrives && e.Message.Contains(") Files"))
+                        {
+                            _hasDrives = (GlobalSetup.DriveList.Length > 0);
+                        }
+                        else if (!_hasDrives)
+                        {
+                            // reset all objects, execute garbage collector, and start over.
+                            _finder.StopScan();
+                            _finder.ResetCache();
+                            _finder.Dispose();
+                            GlobalSetup.Finder.Dispose();
+                            _finder = GlobalSetup.Finder;
+                            _finder.EventMessaging += new SearchEventHandler(IOFinder_EventMessaging);
+                        }
+
+                        FilesAvailableToolStripStatusLabel.Text = e.Message;
+                        // multi-thread so, if one stops, it might set status as complete, but
+                        // the libary will auto correct if still processing in another thread.
+                        // This verifies, if still running and UI refresh is done, then lets
+                        // set UI back it scanning.
+                        if (resetRefreshCnt.Equals(0) && _finder.CurrentStatus.Equals(LookupStatus.Running))
+                            ScanStarted();
+                        break;
+                    case SearchMessageType.DriveScanStatus:
+                        SearchStatusToolStripStatusLabel.Text = e.Message;
+                        break;
+                    case SearchMessageType.SearchResults:
+                        if (_scanAborted)
+                            break;
+
+                        // clear last unfiltered list.
+                        _unfilteredItemsList.Clear();
+                        // clear sub filter items.
+                        _excludeItems.Clear();
+
+                        // this will cover single line or multi response.
+                        var unfiltList = e.Message.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        // build ListViewItem[] list
+                        var unfileInfoList = GlobalSetup.GetFileInfo(unfiltList, IOFinder.FileContentFinds);    // D:\ [ext: log] [con: gemini]
+                        // add to list, for sub filter refresh.
+                        _unfilteredItemsList.AddRange(unfileInfoList);
+
+                        if (ResultsListView.InvokeRequired)
+                            this.Invoke(new Action(() => { ResultsListView.Items.AddRange(unfileInfoList); }));
+                        else
+                            // add to ListView
+                            ResultsListView.Items.AddRange(unfileInfoList);
+
+                        if (_excludeItems.Count == 0)
+                            LoadExcludesFromForm();
+
+                        (var added, var removed) = CheckFilterData();
+                        if (added > 0 || removed > 0)
+                        {
+                            _driveFilterOn.SetTrue();
+                            SetFilterStatus();
+                        }
+                        else
+                            ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
+
+                        // Use tread safe boolean to flag that Scan is no longer running.
+                        //_scanRunning.SetFalse();
+
+                        CheckListColumns();
+                        ScanEnded(); 
+
+                        break;
+                    case SearchMessageType.SearchTime:
+                        StatusToolStripSearchTime.Text = e.Message;
+                        break;
+                    case SearchMessageType.StatusMessage:
+                        StatusToolStripStatusLabel.Text = $"[{e.MessageType}] {e.Message}";
+                        break;
+                    case SearchMessageType.UpdateInProgress:
+                        StatusToolStripStatusLabel.Text = $"[{e.MessageType}] {e.Message}";
+                        ScanStarted();
+                        break;
+                    case SearchMessageType.ScanAborted:
+                    case SearchMessageType.ScanComplete:
+                        _scanAborted.SetVal(e.MessageType.Equals(SearchMessageType.ScanAborted));
+                        FilesAvailableToolStripStatusLabel.Text = e.Message;
+                        ScanEnded();
+                        break;
                 }
             }
-            else if (!Disposing && !IsDisposed)
+            catch (Exception ex)
             {
-                var nowTime = GetNowTime();
-                try
-                {
-                    switch (e.MessageType)
-                    {
-                        case SearchMessageType.SearchQueryUsed:
-                            TxtSearchName.Text = e.Message;
-                            break;
-                        case SearchMessageType.Exception:
-                        case SearchMessageType.Error:
-                            // If we are hiding information message then errors
-                            // can't be seen anyway. Stop backend overhead.
-                            if (!_hideErrors)
-                            {
-                                var msg = e.Message;
-                                if (e.Message.Contains("Access to the"))
-                                    ErrorList.Items.Add($"{nowTime}: {e.Message}");
-                                else
-                                    ErrorList.Items.Add($"{nowTime}: [{e.MessageType}] {e.Message}");
-
-                                if (!_ieKeyControl)
-                                {
-                                    ErrorList.ClearSelected();
-                                    ErrorList.SelectedIndex = ErrorList.Items.Count - 1;
-                                }
-                            }
-                            break;
-                        case SearchMessageType.SkippingOptionalFolder:
-                            // TODO: make this an option, not sure we want to fill up the information list with it.
-                            break;
-                        case SearchMessageType.Warning:
-                        case SearchMessageType.Info:
-                            if (!_hideInformation)
-                            {
-                                var preMsg = e.MessageType == SearchMessageType.Warning ? $"[{nowTime}-{e.MessageType}]" : $"[{nowTime}]";
-                                EventList.Items.Add($"{preMsg} {e.Message}");
-
-                                if (!_ieKeyControl)
-                                {
-                                    EventList.ClearSelected();
-                                    EventList.SelectedIndex = EventList.Items.Count - 1;
-                                }
-                            }
-                            break;
-                        case SearchMessageType.SearchStatus:
-                            SearchStatusToolStripStatusLabel.Text = e.Message;
-                            break;
-                        case SearchMessageType.FileScanStatus:
-                            if (!_hasDrives && e.Message.Contains(") Files"))
-                            {
-                                _hasDrives = (GlobalSetup.DriveList.Length > 0);
-                            }
-                            else if (!_hasDrives)
-                            {
-                                // reset all objects, execute garbage collector, and start over.
-                                _finder.StopScan();
-                                _finder.ResetCache();
-                                _finder.Dispose();
-                                GlobalSetup.Finder.Dispose();
-                                _finder = GlobalSetup.Finder;
-                                _finder.EventMessaging += new SearchEventHandler(IOFinder_EventMessaging);
-                            }
-
-                            FilesAvailableToolStripStatusLabel.Text = e.Message;
-                            // multi-thread so, if one stops, it might set status as complete, but
-                            // the libary will auto correct if still processing in another thread.
-                            // This verifies, if still running and UI refresh is done, then lets
-                            // set UI back it scanning.
-                            if (resetRefreshCnt.Equals(0) && _finder.CurrentStatus.Equals(LookupStatus.Running))
-                                ScanStarted();
-                            break;
-                        case SearchMessageType.DriveScanStatus:
-                            SearchStatusToolStripStatusLabel.Text = e.Message;
-                            break;
-                        case SearchMessageType.SearchResults:
-                            if (_scanAborted)
-                                break;
-
-                            // clear last unfiltered list.
-                            _unfilteredItemsList.Clear();
-                            // clear sub filter items.
-                            _excludeItems.Clear();
-
-                            // this will cover single line or multi response.
-                            var unfiltList = e.Message.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                            // build ListViewItem[] list
-                            var unfileInfoList = GlobalSetup.GetFileInfo(unfiltList, IOFinder.FileContentFinds);    // D:\ [ext: log] [con: gemini]
-                            // add to list, for sub filter refresh.
-                            _unfilteredItemsList.AddRange(unfileInfoList);
-
-                            if (ResultsListView.InvokeRequired)
-                                this.Invoke(new Action(() => { ResultsListView.Items.AddRange(unfileInfoList); }));
-                            else
-                                // add to ListView
-                                ResultsListView.Items.AddRange(unfileInfoList);
-
-                            if (_excludeItems.Count == 0)
-                                LoadExcludesFromForm();
-
-                            (var added, var removed) = CheckFilterData();
-                            if (added > 0 || removed > 0)
-                            {
-                                _driveFilterOn.SetTrue();
-                                SetFilterStatus();
-                            }
-                            else
-                                ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
-
-                            // Use tread safe boolean to flag that Scan is no longer running.
-                            //_scanRunning.SetFalse();
-
-                            CheckListColumns();
-                            ScanEnded(); 
-
-                            break;
-                        case SearchMessageType.SearchTime:
-                            StatusToolStripSearchTime.Text = e.Message;
-                            break;
-                        case SearchMessageType.StatusMessage:
-                            StatusToolStripStatusLabel.Text = $"[{e.MessageType}] {e.Message}";
-                            break;
-                        case SearchMessageType.UpdateInProgress:
-                            StatusToolStripStatusLabel.Text = $"[{e.MessageType}] {e.Message}";
-                            ScanStarted();
-                            break;
-                        case SearchMessageType.ScanAborted:
-                        case SearchMessageType.ScanComplete:
-                            _scanAborted.SetVal(e.MessageType.Equals(SearchMessageType.ScanAborted));
-                            FilesAvailableToolStripStatusLabel.Text = e.Message;
-                            ScanEnded();
-                            break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ErrorList.Items.Add($"[UI.ShowMsg()] {ex.Message}");
-                }
+                ErrorList.Items.Add($"[UI.ShowMsg()] {ex.Message}");
             }
         }
         private void CheckListColumns()
@@ -549,9 +541,9 @@ namespace Chizl.SearchSystemUI
             ConfigData.GetItem<bool>("MnuBinaryContentSearch", false, out isChecked);
             _allowBinaryContentSearch = isChecked;
             ConfigData.GetItem<bool>("ChkHideInfo", false, out isChecked);
-            _hideInformation = isChecked;
+            _hideInformation.TrySetValue(isChecked);
             ConfigData.GetItem<bool>("ChkHideErrors", true, out isChecked);
-            _hideErrors = isChecked || _hideInformation;
+            _hideErrors.TrySetValue(isChecked || _hideInformation);
 
             ConfigData.GetItem<int>("MainSplitterDistance", -1, out int splitterDistance);
             _mainSplitterDistance = splitterDistance;
@@ -809,8 +801,7 @@ namespace Chizl.SearchSystemUI
         }
         private void StartupTimer_Tick(object sender, EventArgs e)
         {
-            if (_msgQueue.TryDequeue(out SearchEventArgs msg) &&
-               (!_scanAborted || _msgQueue.Count < 10))
+            while (_msgQueue.TryDequeue(out SearchEventArgs msg) && (!_scanAborted || _msgQueue.Count < 10))
                 ShowMsg(msg);
         }
         private void IOFinder_EventMessaging(object sender, SearchEventArgs e)
@@ -1020,7 +1011,7 @@ namespace Chizl.SearchSystemUI
             switch (chkBoxName)
             {
                 case "ChkHideErrors":
-                    _hideErrors = isChecked;
+                    _hideErrors.TrySetValue(isChecked);
                     EventListsSplitContainer.Panel2Collapsed = _hideErrors;
                     break;
                 case "ChkHideInfo":
@@ -1028,7 +1019,7 @@ namespace Chizl.SearchSystemUI
                     if (isChecked && !_hideErrors)
                         ChkHideErrors.Checked = isChecked;
 
-                    _hideInformation = isChecked;
+                    _hideInformation.TrySetValue(isChecked);
                     MainSplitContainer.Panel2Collapsed = _hideInformation;
                     break;
                 case "MnuBinaryContentSearch":
@@ -1528,14 +1519,14 @@ namespace Chizl.SearchSystemUI
         }
         private void InfoError_KeyDown(object sender, KeyEventArgs e)
         {
-            _ieKeyControl = e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey;
+            _ieKeyControl.TrySetValue(e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey);
             if (e.Control && e.KeyCode == Keys.C)
                 CopyInfoErrorToClipboard();
         }
         private void InfoError_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey)
-                _ieKeyControl = false;
+                _ieKeyControl.TrySetFalse();
         }
         #endregion
 

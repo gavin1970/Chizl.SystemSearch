@@ -565,7 +565,7 @@
             this.MnuBinaryContentSeparator,
             this.MnuBinaryContentSearch});
             this.CMenuOptions.Name = "CMenuOptions";
-            this.CMenuOptions.Size = new System.Drawing.Size(225, 120);
+            this.CMenuOptions.Size = new System.Drawing.Size(225, 98);
             // 
             // ChkFilename
             // 
