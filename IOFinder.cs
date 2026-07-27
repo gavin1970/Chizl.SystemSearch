@@ -701,7 +701,7 @@ namespace Chizl.SystemSearch
                 // send event of all related files paths
                 SearchMessage.SendMsg(SearchMessageType.SearchResults, arrData);
                 // send status event message
-                SearchMessage.SendMsg(SearchMessageType.SearchStatus, $"Filtered: {fileList.Count().FormatByComma()}, Total Found: {verifiedFiles.FormatByComma()}");
+                SearchMessage.SendMsg(SearchMessageType.TotalFileStatus, $"Filtered: {fileList.Count().FormatByComma()}, Total Found: {verifiedFiles.FormatByComma()}");    //SearchStatus
             }
 
             return retVal;

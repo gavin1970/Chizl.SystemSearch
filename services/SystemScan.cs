@@ -366,10 +366,7 @@ namespace Chizl.SystemSearch
                 return retVal;
 
             if (!GlobalSettings.ScanSettings.AllowDir(folder))
-            {
-                // SearchMessage.SendMsg(SearchMessageType.SkippingOptionalFolder, $"Skipping Optional Folder: '{folder}");
                 return retVal;
-            }
 
             try
             {

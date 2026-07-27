@@ -36,6 +36,6 @@
         ScanComplete,
         ScanAborted,
         UpdateInProgress,
-        SkippingOptionalFolder
+        TotalFileStatus
     }
 }

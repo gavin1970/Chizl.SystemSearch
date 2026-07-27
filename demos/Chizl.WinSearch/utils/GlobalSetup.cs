@@ -68,12 +68,13 @@ namespace Chizl.SearchSystemUI
                 return _finder;
             }
         }
-        public static ListViewItem[] GetFileInfo(string[] unfiltList, ConcurrentDictionary<string, (string, string[])> contentList)
+        public static ListViewItem[] GetFileInfo(string[] unfiltList, ConcurrentDictionary<string, (string, string[])> contentList, out double allFilesSize)
         {
             var listViewItems = new List<ListViewItem>();
             var rescanFiles = new List<string>();
-
             var useContent = contentList?.Keys.Count() > 0;
+
+            allFilesSize = 0.0f;
             foreach (var filePath in unfiltList)
             {
                 try
@@ -81,6 +82,7 @@ namespace Chizl.SearchSystemUI
                     var fi = new FileInfo(filePath);
                     if (fi.Exists)
                     {
+                        allFilesSize += fi.Length;
                         var liv = new ListViewItem(fi.Name);
                         liv.SubItems.Add(fi.Length.ToString());
                         liv.SubItems.Add($"{fi.Length.FormatByteSize()}");

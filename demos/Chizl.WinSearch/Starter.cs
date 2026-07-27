@@ -31,6 +31,7 @@ namespace Chizl.SearchSystemUI
 
         private static ListBox _selListBox;
         private static bool _loaded = false;
+        private static double _allFilesSize = 0.0f;
         private static bool _shuttingDown = false;
         private static Dictionary<string, ToolStripMenuItem> _scanFolders = new Dictionary<string, ToolStripMenuItem>();
 
@@ -80,6 +81,7 @@ namespace Chizl.SearchSystemUI
         private static IOFinder _finder = GlobalSetup.Finder;
         private static ScanProperties _criterias = _finder.Criteria;
         private static SysNotify _systemNotify;
+        private static string _totalFileStatus = string.Empty;
 
         private delegate void NoParmDelegateEvent();
         private delegate Tuple<int, int> NoParmWRespDelegateEvent();
@@ -255,8 +257,15 @@ namespace Chizl.SearchSystemUI
                             }
                         }
                         break;
-                    case SearchMessageType.SkippingOptionalFolder:
-                        // TODO: make this an option, not sure we want to fill up the information list with it.
+                    case SearchMessageType.TotalFileStatus:
+                        if (string.IsNullOrWhiteSpace(_totalFileStatus))
+                            _totalFileStatus = e.Message;
+                        else
+                        {
+                            _totalFileStatus += $", {e.Message}";
+                            SearchStatusToolStripStatusLabel.Text = _totalFileStatus;
+                            _totalFileStatus = "";
+                        }
                         break;
                     case SearchMessageType.Warning:
                     case SearchMessageType.Info:
@@ -314,7 +323,9 @@ namespace Chizl.SearchSystemUI
                         // this will cover single line or multi response.
                         var unfiltList = e.Message.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
                         // build ListViewItem[] list
-                        var unfileInfoList = GlobalSetup.GetFileInfo(unfiltList, IOFinder.FileContentFinds);    // D:\ [ext: log] [con: gemini]
+                        var unfileInfoList = GlobalSetup.GetFileInfo(unfiltList, IOFinder.FileContentFinds, out double allFilesSize);    // D:\ [ext: log] [con: gemini]
+                        // set for later calculation 
+                        _allFilesSize = allFilesSize;
                         // add to list, for sub filter refresh.
                         _unfilteredItemsList.AddRange(unfileInfoList);
 
@@ -334,7 +345,19 @@ namespace Chizl.SearchSystemUI
                             SetFilterStatus();
                         }
                         else
-                            ShowMsg(SearchMessageType.SearchStatus, $"Showing: {ResultsListView.Items.Count}, {_lastFilteringStatus}");
+                        {
+                            if (string.IsNullOrWhiteSpace(_totalFileStatus))
+                                _totalFileStatus = $"Filtered Size: {_allFilesSize.FormatByteSize()}{(_lastFilteringStatus.Length>0?$", {_lastFilteringStatus}" :"")}";
+                            else
+                            {
+                                if (!_totalFileStatus.Trim().StartsWith("Filtered Size: ", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    _totalFileStatus = $"Filtered Size: {_allFilesSize.FormatByteSize()}, {_lastFilteringStatus}, {_totalFileStatus}";
+                                    SearchStatusToolStripStatusLabel.Text = _totalFileStatus;
+                                    _totalFileStatus = "";
+                                }
+                            }
+                        }
 
                         // Use tread safe boolean to flag that Scan is no longer running.
                         //_scanRunning.SetFalse();
@@ -923,6 +946,7 @@ namespace Chizl.SearchSystemUI
                 return;
 
             SetScanTimer(false);
+            _lastFilteringStatus = "";
             var searchTime = DateTime.UtcNow;
             _finder.Search(GetScanDriveList(), TxtSearchName.Text)
                 .ContinueWith(t =>
@@ -1238,7 +1262,7 @@ namespace Chizl.SearchSystemUI
             ResultsListView.Items.Clear();
             _subFilterForm?.ExcludeItems.Clear();
             TxtSearchName.Text = "";
-            _lastFilteringStatus = "Filtered: 0";
+            _lastFilteringStatus = "";
             ShowMsg(SearchMessageType.SearchStatus, _lastFilteringStatus);
             SetFilterStatus();
 
