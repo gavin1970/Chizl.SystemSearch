@@ -566,6 +566,7 @@
             this.MnuBinaryContentSearch});
             this.CMenuOptions.Name = "CMenuOptions";
             this.CMenuOptions.Size = new System.Drawing.Size(225, 98);
+            this.CMenuOptions.Opened += new System.EventHandler(this.CMenuOptions_Opened);
             // 
             // ChkFilename
             // 
@@ -590,6 +591,7 @@
             this.MnuSkipFolders.Name = "MnuSkipFolders";
             this.MnuSkipFolders.Size = new System.Drawing.Size(224, 22);
             this.MnuSkipFolders.Text = "Set Allowed Folders";
+            this.MnuSkipFolders.Click += new System.EventHandler(this.MnuSkipFolders_Click);
             this.MnuSkipFolders.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MnuSkipFolders_MouseUp);
             // 
             // MnuBinaryContentSeparator

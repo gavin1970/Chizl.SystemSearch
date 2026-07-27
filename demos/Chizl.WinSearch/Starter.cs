@@ -443,6 +443,7 @@ namespace Chizl.SearchSystemUI
 
         private bool PathIsEnabled(List<String> disabledDrives, string path, ref bool isChecked, bool defIfMissing = false)
         {
+            //Contains(folder, StringComparison.CurrentCultureIgnoreCase
             if (!disabledDrives.Contains(path.ToLower().Substring(0, 3)))
             {
                 ConfigData.GetItem<bool>(_scanFolders[path].Name, defIfMissing, out isChecked);
@@ -1125,6 +1126,16 @@ namespace Chizl.SearchSystemUI
         #endregion
 
         #region Search Context Menu Events
+        private void CMenuOptions_Opened(object sender, EventArgs e)
+        {
+            var menuRight = CMenuOptions.Left + CMenuOptions.Width;
+            var screenRight = Screen.PrimaryScreen.WorkingArea.Left + Screen.PrimaryScreen.WorkingArea.Width;
+
+            if (menuRight > screenRight)
+                CMenuOptions.Left = (screenRight - CMenuOptions.Width) - 10;
+
+            _loc = new Point(CMenuOptions.Left, CMenuOptions.Top);
+        }
         private void ListMenuOpenLocation_Click(object sender, EventArgs e)
         {
             if (GetSelectedItems(out string[] selectedItems, true))
@@ -1348,7 +1359,7 @@ namespace Chizl.SearchSystemUI
         }
         private void MnuSkipFolders_MouseUp(object sender, MouseEventArgs e)
         {
-            _loc = new Point(CMenuOptions.Left, CMenuOptions.Top);
+            Debug.WriteLine($"CMenuOptions.Left (After 2): {CMenuOptions.Left}");
             MnuAllowedFolders.Show(_loc);
         }
         private void ListMenuRescanRoot_Click(object sender, EventArgs e)
@@ -1622,5 +1633,10 @@ namespace Chizl.SearchSystemUI
             return cols;
         }
         #endregion
+
+        private void MnuSkipFolders_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

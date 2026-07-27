@@ -1,4 +1,5 @@
 ﻿using Chizl.SystemSearch;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
@@ -180,5 +181,14 @@ namespace Chizl.SearchSystemUI
             
             return Task.FromResult(false);
         });
+    }
+
+    public static class CustomExt
+    {
+        public static bool Contains(this string str, string value, StringComparison comparison)
+        {
+            if (str == null) throw new ArgumentNullException(nameof(str));
+            return str.IndexOf(value, comparison) >= 0;
+        }
     }
 }

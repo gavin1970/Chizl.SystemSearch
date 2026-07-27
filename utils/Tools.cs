@@ -99,5 +99,13 @@ namespace Chizl.SystemSearch
             }
             return sb.ToString();
         }
+#if NETSTANDARD2_0 || NET48_OR_GREATER
+        // This wrapper only applies when compiling the netstandard2.0 target asset
+        public static bool Contains(this string str, string value, StringComparison comparison)
+        {
+            if (str == null) throw new ArgumentNullException(nameof(str));
+            return str.IndexOf(value, comparison) >= 0;
+        }
+#endif
     }
 }

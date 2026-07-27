@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Chizl.ThreadSupport;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -10,12 +11,16 @@ namespace Chizl.SystemSearch
 {
     internal class SystemScan : IDisposable
     {
-        private const int _maxSendInfoMsg = 5;
+        private const int _maxSendInfoMsg = 50;
         private static long _scannedFolders;
         private static long _fastPullScannedFolders;
         private static long _scannedFiles;
         private static long _fastPullScannedFiles;
+        private static long _deletedFiles;
+        private static long _deletedFolders;
 
+        private static readonly TimeSpan _eventMessageWait = TimeSpan.FromSeconds(3);
+        private static ADateTime _nextEventMessageTime = ADateTime.UtcNow;
         private static readonly ConcurrentDictionary<string, bool> _fileDictionary = new ConcurrentDictionary<string, bool>();
         private static readonly ConcurrentDictionary<string, byte> _folderDictionary = new ConcurrentDictionary<string, byte>();
         private static readonly ConcurrentDictionary<string, byte> _deniedDictionary = new ConcurrentDictionary<string, byte>();
@@ -262,35 +267,36 @@ namespace Chizl.SystemSearch
 
             return taskList;
         }
+
         internal List<Task> RemoveRootFolder(string folder, bool sendInfoMsg = true)
         {
             int toFileSentMsg = 0;
             int toFolderSentMsg = 0;
-            folder = folder.Trim().ToLower();
+            folder = folder.Trim();
             if (!folder.EndsWith(@"\"))
                 folder += "\\";
 
-            List<Task> removeTaskList = new List<Task>();
+            var removeTaskList = new List<Task>();
+            //var fileKeys = new List<string>();
+            //var folderKeys = new List<string>();
+            var fileKeys = new string[] { };
+            var folderKeys = new string[] { };
+
+            var id = DateTime.UtcNow.Ticks;
 
             // sending too many sent messages from the following loops, slows down the UI.
             // lets max mount of sends within each loop.
             Interlocked.Exchange(ref toFileSentMsg, _maxSendInfoMsg + 1);
             Interlocked.Exchange(ref toFolderSentMsg, _maxSendInfoMsg + 1);
 
-            // get all files under folder path.
-            var fileKeys = _fileDictionary.Keys.Where(w => w.ToLower().Contains(folder)).ToList();
-            // get all folders under folder path.
-            var folderKeys = _folderDictionary.Keys.Where(w => w.ToLower().Contains(folder)).ToList();
-
             // send a quick message
-            SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"Deleting '{fileKeys.Count}' file entries and '{folderKeys.Count}' folder entries from cache. - Please wait.");
+            SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"ID: #{id} - Deleting file and folder entries from cache. - Please wait.");
 
-            if (fileKeys.Count > _maxSendInfoMsg)
-                SearchMessage.SendMsg(SearchMessageType.Info, $"Showing the first '{_maxSendInfoMsg} of {fileKeys.Count}' files removed from cache related to '{folder}'.");
-            else
-                SearchMessage.SendMsg(SearchMessageType.Info, $"'{fileKeys.Count}' files are being removed from cache related to '{folder}'.");
-
-            foreach (var key in fileKeys)
+            if (sendInfoMsg && DateTime.UtcNow > _nextEventMessageTime.Value)
+                _nextEventMessageTime.AdjustTime(DateTime.UtcNow.Add(_eventMessageWait));
+            
+            // remove files in list
+            foreach (var key in _fileDictionary.Where(w => w.Key.Contains(folder, StringComparison.OrdinalIgnoreCase)).Select(s => s.Key))
             {
                 // remove each file asynchronously.
                 removeTaskList.Add(
@@ -299,34 +305,53 @@ namespace Chizl.SystemSearch
                         if (_fileDictionary.TryRemove(key, out _))
                         {
                             Interlocked.Decrement(ref _scannedFiles);
-                            if (sendInfoMsg && Interlocked.Decrement(ref toFileSentMsg) > 0)
-                                SearchMessage.SendMsg(SearchMessageType.Info, $"{toFileSentMsg}: Removed '{key}' file from cache.");
+                            Interlocked.Increment(ref _deletedFiles);
                         }
                     })
                 );
             }
 
-            if (folderKeys.Count > _maxSendInfoMsg)
-                SearchMessage.SendMsg(SearchMessageType.Info, $"Showing the first '{_maxSendInfoMsg} of {folderKeys.Count}' folders removed from cache related to '{folder}'.");
-            else
-                SearchMessage.SendMsg(SearchMessageType.Info, $"'{folderKeys.Count}' folders are being removed from cache related to '{folder}'.");
-
-            foreach (var key in folderKeys)
+            // _nextEventMessageTime is a ThreadSafe DateTime check and update.
+            if (sendInfoMsg && fileKeys.Length > 0 && DateTime.UtcNow > _nextEventMessageTime.Value)
             {
-                // remove each root folder asynchronously.
-                removeTaskList.Add(
-                    Task.Run(() =>
-                    {
-                        if (_folderDictionary.TryRemove(key, out _))
-                        {
-                            Interlocked.Decrement(ref _scannedFolders);
-                            if (sendInfoMsg && Interlocked.Decrement(ref toFolderSentMsg) > 0)
-                                SearchMessage.SendMsg(SearchMessageType.Info, $"{toFolderSentMsg}: Removed '{key}' folder from cache.");
-                        }
-                    })
-                );
+                SearchMessage.SendMsg(SearchMessageType.Info, $"Removed '{_deletedFiles}' files from cache.");
+                Interlocked.Exchange(ref _deletedFiles, 0);
             }
 
+            if (IsDirectory(folder))
+            {
+                // remove folders in list
+                foreach (var key in _folderDictionary.Where(w => w.Key.Contains(folder, StringComparison.OrdinalIgnoreCase)).Select(s => s.Key))
+                {
+                    // remove each root folder asynchronously.
+                    removeTaskList.Add(
+                        Task.Run(() =>
+                        {
+                            if (_folderDictionary.TryRemove(key, out _))
+                            {
+                                Interlocked.Decrement(ref _scannedFolders);
+                                Interlocked.Increment(ref _deletedFolders);
+                            }
+                        })
+                    );
+                }
+
+                // _nextEventMessageTime is a ThreadSafe DateTime check and update.
+                if (sendInfoMsg && folderKeys.Length > 0 && DateTime.UtcNow > _nextEventMessageTime.Value)
+                {
+                    SearchMessage.SendMsg(SearchMessageType.Info, $"Removed '{_deletedFolders}' folders from cache.");
+                    Interlocked.Exchange(ref _deletedFolders, 0);
+                }
+            }
+
+
+            if (sendInfoMsg && DateTime.UtcNow > _nextEventMessageTime.Value)
+                _nextEventMessageTime.AdjustTime(DateTime.UtcNow.Add(_eventMessageWait));
+
+            // send a quick message
+            SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"ID: #{id} - Deleting file and folder entries from cache. - Finished.");
+
+            // remove
             return removeTaskList;
         }
         internal Task ScanFolder(string folder, bool skipSubfolders = false)
@@ -458,6 +483,6 @@ namespace Chizl.SystemSearch
         }
         internal void SetStatus(bool success) => SetStatus((success ? LookupStatus.Completed : LookupStatus.Aborted));
 
-        private bool IsAllowed(string path) => GlobalSettings.CustomExclusions.Where(w => path.ToLower().Contains(w.Key.ToLower())).Count() == 0;
+        private bool IsAllowed(string path) => GlobalSettings.CustomExclusions.Where(w => path.Contains(w.Key, StringComparison.OrdinalIgnoreCase)).Count() == 0;
     }
 }

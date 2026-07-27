@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -28,7 +27,8 @@ namespace Chizl.SystemSearch
         private static bool disposedValue;
         //private static long _fileContentCount = 0;
 
-        private static readonly ConcurrentQueue<(WatcherChangeTypes, string, string)> _systemUpdates = new ConcurrentQueue<(WatcherChangeTypes, string, string)>();
+        //private static readonly ConcurrentQueue<(WatcherChangeTypes, string, string)> _systemUpdates = new ConcurrentQueue<(WatcherChangeTypes, string, string)>();
+        private static readonly ConcurrentStack<(WatcherChangeTypes, string, string)> _systemUpdates = new ConcurrentStack<(WatcherChangeTypes, string, string)>();
         private static readonly ABool _queProcessing = ABool.False;
 
         protected virtual void Dispose(bool disposing)
@@ -236,7 +236,6 @@ namespace Chizl.SystemSearch
                 {
                     string line = string.Empty;
                     long lineNumber = 0;
-                    var lowerPath = path.ToLower();
 
                     while ((line = reader.ReadLine()) != null)
                     {
@@ -385,6 +384,7 @@ namespace Chizl.SystemSearch
             _fileScanned = 0;
             _nextFileAlert = 0;
 
+            var alreadyVerified = false;
             var startTime = DateTime.UtcNow;
             var totalTime = string.Empty;
             var contentSearchCnt = 0;
@@ -427,10 +427,28 @@ namespace Chizl.SystemSearch
 
                     List<string> removePaths = new List<string>();
                     ConcurrentDictionary<string, bool> contentFindings = new ConcurrentDictionary<string, bool>();
+                    // List<(string file, bool noext)> dicList = findingsDic.Select(s => (s.Key, s.Value)).Cast<(string, bool)>().ToList();
+                    var dicList = new List<(string file, bool noext)>();
+                    var verified = 0;
 
-                    retVal = true;
+                    // verify all files before gathering count and opening them.  More for count, was validating within loop below,
+                    // but count would show much more data was being scanned since the count came from an array before it was verified.
+                    foreach (var file in findingsDic)
+                    {
+                        if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
+                            break;
+
+                        if (VerifyCriteria(drives, file.Key, searchCriteria))
+                        {
+                            if (verified < MAX_FIND_RESPONSE)
+                                dicList.Add((file.Key, file.Value));
+                            verified++;
+                        }
+                    }
+                    alreadyVerified = true;
+                    // retVal = true;
                     // [includes:D:\] + [extensions:log|md] + [contents:gavin]
-                    List<(string file, bool noext)> dicList = findingsDic.Select(s => (s.Key, s.Value)).Cast<(string, bool)>().ToList();
+                    // List<(string file, bool noext)> dicList = findingsDic.Select(s => (s.Key, s.Value)).Cast<(string, bool)>().ToList();
                     // for later
                     contentSearchCnt = dicList.Count;
                     // reset
@@ -452,31 +470,23 @@ namespace Chizl.SystemSearch
                             if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                                 break;
 
-                            // we need to verify the criteria again, as some of the criteria is not able to be pre-filtered
-                            // in the cache, and we don't want to waste the time trying to read the file if it doesn't
-                            // meet the criteria.
-                            if (VerifyCriteria(drives, file, searchCriteria))
+                            // create task for each content search, this will help with performance, as we
+                            // can search for multiple content criteria at the same time, and it will also
+                            // help with large files, as we can read them in parallel.
+                            // FindContent verifies the file is not binary and less than 1 GB before
+                            // reading, so we don't have to worry about that here.
+                            searchTask.Add(FindContent(file, contentList).ContinueWith(t =>
                             {
-                                if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
-                                    break;
+                                if (t.Result)
+                                    findingsDic.TryAdd(file, noext);
 
-                                // create task for each content search, this will help with performance, as we
-                                // can search for multiple content criteria at the same time, and it will also
-                                // help with large files, as we can read them in parallel.
-                                // FindContent verifies the file is not binary and less than 1 GB before
-                                // reading, so we don't have to worry about that here.
-                                searchTask.Add(FindContent(file, contentList).ContinueWith(t =>
+                                if (Interlocked.Increment(ref _fileScanned) > _nextFileAlert)
                                 {
-                                    if (t.Result)
-                                        findingsDic.TryAdd(file, noext);
-
-                                    if (Interlocked.Increment(ref _fileScanned) > _nextFileAlert)
-                                    {
-                                        Interlocked.Exchange(ref _nextFileAlert, _nextFileAlert += (_fileScanned == 1 ? SEND_MSG_NEXT_STEP - 1 : SEND_MSG_NEXT_STEP));
-                                        SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"File criteria match: [{contentSearchCnt.FormatByComma()}].\nFound content in [{findingsDic.Count().FormatByComma()}] files out of [{_fileScanned.FormatByComma()}] already scanned.");
-                                    }
-                                }));
-                            }
+                                    Interlocked.Exchange(ref _nextFileAlert, _nextFileAlert += (_fileScanned == 1 ? SEND_MSG_NEXT_STEP - 1 : SEND_MSG_NEXT_STEP));
+                                    SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"File criteria match: [{contentSearchCnt.FormatByComma()}].\n" +
+                                                                                           $"Found content in [{findingsDic.Count().FormatByComma()}] files out of [{_fileScanned.FormatByComma()}] already scanned.");
+                                }
+                            }));
                         }
                         finally
                         {
@@ -519,18 +529,18 @@ namespace Chizl.SystemSearch
                         // extensions, not filter out after the first extension is found.
                         if (hasData)
                         {
-                            if (p.Search.ToLower() == Seps.sNOEXT.ToLower())
+                            if (p.Search.Equals(Seps.sNOEXT, StringComparison.OrdinalIgnoreCase))
                                 filters.AddRange(findingsDic.Where(w => !w.Value).Select(s => (s.Key, s.Value)));
                             else
-                                filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(p.Search.ToLower())).Select(s => (s.Key, s.Value)));
+                                filters.AddRange(findingsDic.Where(w => w.Key.Contains(p.Search, StringComparison.OrdinalIgnoreCase)).Select(s => (s.Key, s.Value)));
                         }
                         else
                         {
-                            if (p.Search.ToLower() == Seps.sNOEXT.ToLower())
+                            if (p.Search.Equals(Seps.sNOEXT, StringComparison.OrdinalIgnoreCase))
                                 foreach (var item in fullFileList.Where(w => !w.Value))
                                     findingsDic.TryAdd(item.Key, item.Value);
                             else
-                                foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(p.Search.ToLower())))
+                                foreach (var item in fullFileList.Where(w => w.Key.Contains(p.Search, StringComparison.OrdinalIgnoreCase)))
                                     findingsDic.TryAdd(item.Key, item.Value);
                         }
                     }
@@ -568,7 +578,7 @@ namespace Chizl.SystemSearch
                             if(e.Search==Seps.cNOEXT.ToString())
                                 filters.AddRange(findingsDic.Where(w => !w.Value).Select(s => (s.Key, s.Value)));
                             else
-                                filters.AddRange(findingsDic.Where(w => w.Key.ToLower().EndsWith(e.Search.ToLower())).Select(s => (s.Key, s.Value)));
+                                filters.AddRange(findingsDic.Where(w => w.Key.EndsWith(e.Search, StringComparison.OrdinalIgnoreCase)).Select(s => (s.Key, s.Value)));
                         }
                         else
                         {
@@ -576,7 +586,7 @@ namespace Chizl.SystemSearch
                                 foreach (var item in fullFileList.Where(w => !w.Value))
                                     findingsDic.TryAdd(item.Key, item.Value);
                             else
-                                foreach (var item in fullFileList.Where(w => w.Key.ToLower().EndsWith(e.Search.ToLower())))
+                                foreach (var item in fullFileList.Where(w => w.Key.EndsWith(e.Search, StringComparison.OrdinalIgnoreCase)))
                                     findingsDic.TryAdd(item.Key, item.Value);
                         }
                     }
@@ -608,10 +618,10 @@ namespace Chizl.SystemSearch
                         // If we don't have content, we have nothing to exclude, so we skip.
                         if (prevDicCount > 0)
                         {
-                            if (f.Search.ToLower() == Seps.sNOEXT.ToLower())
+                            if (f.Search.Equals(Seps.sNOEXT, StringComparison.OrdinalIgnoreCase))
                                 filters.AddRange(findingsDic.Where(w => w.Value).Select(s => (s.Key, s.Value)));
                             else
-                                filters.AddRange(findingsDic.Where(w => !w.Key.ToLower().Contains(f.Search.ToLower())).Select(s => (s.Key, s.Value)));
+                                filters.AddRange(findingsDic.Where(w => !w.Key.Contains(f.Search, StringComparison.OrdinalIgnoreCase)).Select(s => (s.Key, s.Value)));
 
                             if (filters.Count() > 0)
                             {
@@ -623,14 +633,14 @@ namespace Chizl.SystemSearch
                         }
                         else
                         {
-                            if (f.Search.ToLower() == Seps.sNOEXT.ToLower())
+                            if (f.Search.Equals(Seps.sNOEXT, StringComparison.OrdinalIgnoreCase))
                             {
                                 foreach (var item in fullFileList.Where(w => w.Value).Select(s => (s.Key, s.Value)).ToList())
                                     findingsDic.TryAdd(item.Key, item.Value);
                             }
                             else
                             {
-                                foreach (var item in fullFileList.Where(w => !w.Key.ToLower().Contains(f.Search.ToLower())).ToList())
+                                foreach (var item in fullFileList.Where(w => !w.Key.Contains(f.Search, StringComparison.OrdinalIgnoreCase)).ToList())
                                     findingsDic.TryAdd(item.Key, item.Value);
                             }
                         }
@@ -646,7 +656,7 @@ namespace Chizl.SystemSearch
                     // if we have content, we now need to filter down for each criteria.
                     if (prevDicCount > 0)
                     {
-                        filters.AddRange(findingsDic.Where(w => w.Key.ToLower().Contains(wc.ToLower())).Select(s => (s.Key, s.Value)));
+                        filters.AddRange(findingsDic.Where(w => w.Key.Contains(wc, StringComparison.OrdinalIgnoreCase)).Select(s => (s.Key, s.Value)));
                         findingsDic.Clear();
                         if (filters.Count() > 0)
                         {
@@ -656,7 +666,7 @@ namespace Chizl.SystemSearch
                     }
                     else
                     {
-                        foreach (var item in fullFileList.Where(w => w.Key.ToLower().Contains(wc.ToLower())).ToList())
+                        foreach (var item in fullFileList.Where(w => w.Key.Contains(wc, StringComparison.OrdinalIgnoreCase)).ToList())
                             findingsDic.TryAdd(item.Key, item.Value);
                     }
                 }
@@ -677,7 +687,8 @@ namespace Chizl.SystemSearch
                     if (_cancelTokenSource.IsCancellationRequested || GlobalSettings.HasShutdown)
                         break;
 
-                    if (VerifyCriteria(drives, file, searchCriteria))
+                    // Content search auto verifies before opening files.
+                    if (alreadyVerified || VerifyCriteria(drives, file, searchCriteria))
                     {
                         if (verifiedFiles < MAX_FIND_RESPONSE)
                             fileList.Add(file);
@@ -705,7 +716,7 @@ namespace Chizl.SystemSearch
             var loc = 0;
             var prevLoc = 0;
 
-            if (drives.Where(w => w.Substring(0, 2).Equals(file.Substring(0, 2), StringComparison.CurrentCultureIgnoreCase)).Count().Equals(0))
+            if (drives.Where(w => w.Substring(0, 2).Equals(file.Substring(0, 2), StringComparison.OrdinalIgnoreCase)).Count().Equals(0))
                 return false;
 
             if (Criteria.SearchDirectory)
@@ -721,9 +732,9 @@ namespace Chizl.SystemSearch
                     if (findCount >= searchCriteria.SearchCriteria.Length)
                         break;
                     var clnUp = sArr.EndsWith("\\") ? sArr.Substring(0, sArr.Length - 1) : sArr;
-                    loc = folderName.IndexOf(sArr, prevLoc, StringComparison.CurrentCultureIgnoreCase);
+                    loc = folderName.IndexOf(sArr, prevLoc, StringComparison.OrdinalIgnoreCase);
                     if (loc.Equals(-1) && folderName.EndsWith(clnUp))
-                        loc = folderName.IndexOf(clnUp, prevLoc, StringComparison.CurrentCultureIgnoreCase);
+                        loc = folderName.IndexOf(clnUp, prevLoc, StringComparison.OrdinalIgnoreCase);
 
                     if (loc < prevLoc)
                     {
@@ -753,7 +764,7 @@ namespace Chizl.SystemSearch
                     if (findCount >= searchCriteria.SearchCriteria.Length)
                         break;
 
-                    loc = fileName.IndexOf(sArr, prevLoc, StringComparison.CurrentCultureIgnoreCase);
+                    loc = fileName.IndexOf(sArr, prevLoc, StringComparison.OrdinalIgnoreCase);
                     if (loc < prevLoc)
                         return false;
                     else
@@ -798,7 +809,7 @@ namespace Chizl.SystemSearch
             if (e.ChangeType != WatcherChangeTypes.Created)
                 return;
 
-            _systemUpdates.Enqueue((WatcherChangeTypes.Created, e.FullPath, string.Empty));
+            _systemUpdates.Push((WatcherChangeTypes.Created, e.FullPath, string.Empty));
             ProcessSystemUpdatesQueue();
         }
         private void OnDeleted(object sender, FileSystemEventArgs e)
@@ -806,7 +817,7 @@ namespace Chizl.SystemSearch
             if (e.ChangeType != WatcherChangeTypes.Deleted)
                 return;
 
-            _systemUpdates.Enqueue((WatcherChangeTypes.Deleted, e.FullPath, string.Empty));
+            _systemUpdates.Push((WatcherChangeTypes.Deleted, e.FullPath, string.Empty));
             ProcessSystemUpdatesQueue();
         }
         private void OnRenamed(object sender, RenamedEventArgs e)
@@ -814,7 +825,7 @@ namespace Chizl.SystemSearch
             if (e.ChangeType != WatcherChangeTypes.Renamed)
                 return;
 
-            _systemUpdates.Enqueue((WatcherChangeTypes.Renamed, e.FullPath, e.OldFullPath));
+            _systemUpdates.Push((WatcherChangeTypes.Renamed, e.FullPath, e.OldFullPath));
             ProcessSystemUpdatesQueue();
         }
         private async void ProcessSystemUpdatesQueue()
@@ -827,11 +838,12 @@ namespace Chizl.SystemSearch
                 await Task.Delay(1).ContinueWith(t =>
                 {
                     List<Task> taskList = new List<Task>();
+                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Queue Size: {_systemUpdates.Count} : Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
 
-                    while (_systemUpdates.TryDequeue(out (WatcherChangeTypes changeType, string newPath, string oldPath) sys))
+                    while (_systemUpdates.TryPop(out (WatcherChangeTypes changeType, string newPath, string oldPath) sys))
                     {
                         if (!GlobalSettings.ScanSettings.AllowDir(sys.newPath))
-                            return;
+                            continue;
 
                         // we found if a folder is being added, files are missed, so lets sleep a sec and see if that helps.
                         switch (sys.changeType)
@@ -849,8 +861,8 @@ namespace Chizl.SystemSearch
                         }
                     }
 
+                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Queue Size: {_systemUpdates.Count} : Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
                     Task.WaitAll(taskList.ToArray());
-                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
                 });
             }
             finally
@@ -858,6 +870,8 @@ namespace Chizl.SystemSearch
                 _queProcessing.SetFalse();
                 if (_systemUpdates.Count > 0)
                     ProcessSystemUpdatesQueue();
+                else
+                    SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Queue Size: {_systemUpdates.Count} : Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");
             }
         }
         private List<Task> ProcessCreated(string newFile)
@@ -883,16 +897,10 @@ namespace Chizl.SystemSearch
             List<Task> taskList = new List<Task>();
 
             var dirWithSlash = delFile.EndsWith("\\") ? delFile : $"{delFile}\\";
-            var isDir = false;
-            var isFile = false;
-            if (Scanner.IsDirectory(dirWithSlash))
-                isDir = true;
-            else
-                isFile = true;
 
-            if (isDir)
+            if (Scanner.IsDirectory(dirWithSlash))
                 taskList.AddRange(Scanner.RemoveRootFolder(dirWithSlash));
-            else if (isFile)
+            else
                 taskList.Add(Task.Run(() => { Scanner.RemoveFile(delFile); return Task.CompletedTask; }));
 
             return taskList;
