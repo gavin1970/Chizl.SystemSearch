@@ -696,13 +696,14 @@ namespace Chizl.SystemSearch
                     }
                 }
 
-                // Bulk send of all findings by split of '\n', instant...  Balances Windows with Linux strings.
-                var arrData = string.Join("\n", fileList);
-                // send event of all related files paths
-                SearchMessage.SendMsg(SearchMessageType.SearchResults, arrData);
-                // send status event message
-                SearchMessage.SendMsg(SearchMessageType.TotalFileStatus, $"Filtered: {fileList.Count().FormatByComma()}, Total Found: {verifiedFiles.FormatByComma()}");    //SearchStatus
             }
+
+            // Bulk send of all findings by split of '\n', instant...  Balances Windows with Linux strings.
+            var arrData = string.Join("\n", fileList);
+            // send event of all related files paths
+            SearchMessage.SendMsg(SearchMessageType.SearchResults, arrData);
+            // send status event message
+            SearchMessage.SendMsg(SearchMessageType.TotalFileStatus, $"Filtered: {fileList.Count().FormatByComma()}, Total Found: {verifiedFiles.FormatByComma()}");    //SearchStatus
 
             return retVal;
         }

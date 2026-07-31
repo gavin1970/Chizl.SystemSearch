@@ -338,25 +338,26 @@ namespace Chizl.SearchSystemUI
                         if (_excludeItems.Count == 0)
                             LoadExcludesFromForm();
 
+                        if (string.IsNullOrWhiteSpace(_totalFileStatus))
+                        {
+                            _totalFileStatus = $"Filtered Size: {_allFilesSize.FormatByteSize()}{(_lastFilteringStatus.Length > 0 ? $", {_lastFilteringStatus}" : "")}";
+                            SearchStatusToolStripStatusLabel.Text = _totalFileStatus;
+                        }
+                        else
+                        {
+                            if (!_totalFileStatus.Trim().StartsWith("Filtered Size: ", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _totalFileStatus = $"Filtered Size: {_allFilesSize.FormatByteSize()}, {_lastFilteringStatus}, {_totalFileStatus}";
+                                SearchStatusToolStripStatusLabel.Text = _totalFileStatus;
+                                _totalFileStatus = "";
+                            }
+                        }
+
                         (var added, var removed) = CheckFilterData();
                         if (added > 0 || removed > 0)
                         {
                             _driveFilterOn.SetTrue();
                             SetFilterStatus();
-                        }
-                        else
-                        {
-                            if (string.IsNullOrWhiteSpace(_totalFileStatus))
-                                _totalFileStatus = $"Filtered Size: {_allFilesSize.FormatByteSize()}{(_lastFilteringStatus.Length>0?$", {_lastFilteringStatus}" :"")}";
-                            else
-                            {
-                                if (!_totalFileStatus.Trim().StartsWith("Filtered Size: ", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    _totalFileStatus = $"Filtered Size: {_allFilesSize.FormatByteSize()}, {_lastFilteringStatus}, {_totalFileStatus}";
-                                    SearchStatusToolStripStatusLabel.Text = _totalFileStatus;
-                                    _totalFileStatus = "";
-                                }
-                            }
                         }
 
                         // Use tread safe boolean to flag that Scan is no longer running.
