@@ -82,6 +82,8 @@
             this.StartupMenuStrip = new System.Windows.Forms.MenuStrip();
             this.FileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ExitTSMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.ThemeStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DarkTSMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
@@ -668,6 +670,7 @@
             this.StartupMenuStrip.ForeColor = System.Drawing.SystemColors.MenuText;
             this.StartupMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.FileToolStripMenuItem,
+            this.ThemeStripMenuItem,
             this.HelpToolStripMenuItem});
             this.StartupMenuStrip.Location = new System.Drawing.Point(0, 0);
             this.StartupMenuStrip.Name = "StartupMenuStrip";
@@ -690,6 +693,23 @@
             this.ExitTSMenu.Size = new System.Drawing.Size(134, 22);
             this.ExitTSMenu.Text = "E&xit";
             this.ExitTSMenu.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
+            // 
+            // ThemeStripMenuItem
+            // 
+            this.ThemeStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.DarkTSMenu});
+            this.ThemeStripMenuItem.Name = "ThemeStripMenuItem";
+            this.ThemeStripMenuItem.Size = new System.Drawing.Size(56, 20);
+            this.ThemeStripMenuItem.Text = "&Theme";
+            // 
+            // DarkTSMenu
+            // 
+            this.DarkTSMenu.CheckOnClick = true;
+            this.DarkTSMenu.Name = "DarkTSMenu";
+            this.DarkTSMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D)));
+            this.DarkTSMenu.Size = new System.Drawing.Size(174, 22);
+            this.DarkTSMenu.Text = "&Dark Mode";
+            this.DarkTSMenu.Click += new System.EventHandler(this.DarkTSMenuStripMenuItem_Click);
             // 
             // HelpToolStripMenuItem
             // 
@@ -734,7 +754,7 @@
             // StatusToolStripStatusLabel
             // 
             this.StatusToolStripStatusLabel.Name = "StatusToolStripStatusLabel";
-            this.StatusToolStripStatusLabel.Size = new System.Drawing.Size(830, 19);
+            this.StatusToolStripStatusLabel.Size = new System.Drawing.Size(594, 19);
             this.StatusToolStripStatusLabel.Spring = true;
             this.StatusToolStripStatusLabel.Text = "Ready...";
             this.StatusToolStripStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -1020,7 +1040,9 @@
         private System.Windows.Forms.Button BtnStartStopScan;
         private System.Windows.Forms.MenuStrip StartupMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem FileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ThemeStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ExitTSMenu;
+        private System.Windows.Forms.ToolStripMenuItem DarkTSMenu;
         private System.Windows.Forms.StatusStrip StartupStatusStrip;
         private System.Windows.Forms.ToolStripStatusLabel StatusToolStripStatusLabel;
         private System.Windows.Forms.ToolStripStatusLabel SearchStatusToolStripStatusLabel;

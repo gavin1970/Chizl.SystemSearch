@@ -50,6 +50,7 @@ namespace Chizl.SearchSystemUI
         private static ABool _hideInformation = ABool.False;
         private static bool _hasDrives = true;
         private static bool _allowBinaryContentSearch = false;
+        private static bool _darkMode = false;
         private static int _mainSplitterDistance = -1;
 
         private static TimeSpan _scanTime = TimeSpan.Zero;
@@ -226,7 +227,8 @@ namespace Chizl.SearchSystemUI
 
             if (InvokeRequired)
             {
-                this.Invoke(new Action(() => { ShowMsg(e); }));
+                try { this.Invoke(new Action(() => { ShowMsg(e); })); }
+                catch { }
                 return;
             }
 
@@ -563,6 +565,8 @@ namespace Chizl.SearchSystemUI
             else
                 _criterias.AllowWindows = false;
 
+            ConfigData.GetItem<bool>("DarkMode", false, out isChecked);
+            _darkMode = isChecked;
             ConfigData.GetItem<bool>("MnuBinaryContentSearch", false, out isChecked);
             _allowBinaryContentSearch = isChecked;
             ConfigData.GetItem<bool>("ChkHideInfo", false, out isChecked);
@@ -723,12 +727,15 @@ namespace Chizl.SearchSystemUI
             ChkHideInfo.Checked = _hideInformation;
             ChkHideErrors.Checked = _hideErrors;
             MnuBinaryContentSearch.Checked = _allowBinaryContentSearch;
+            DarkTSMenu.Checked = _darkMode;
             _finder.AllowBinaryContentSearch = _allowBinaryContentSearch;
 
             MainSplitContainer.Panel2Collapsed = _hideInformation;
             EventListsSplitContainer.Panel2Collapsed = _hideErrors;
             if (_mainSplitterDistance != -1)
                 MainSplitContainer.SplitterDistance = _mainSplitterDistance;
+
+            SetTheme();
         }
         private Tuple<int, int> CheckFilterData()
         {
@@ -1147,6 +1154,50 @@ namespace Chizl.SearchSystemUI
 
         #region Toolbar Menu Events
         private void ExitToolStripMenuItem_Click(object sender, EventArgs e) => CloseApp();
+        private void SetTheme()
+        {
+            if (_darkMode)
+            {
+                TxtSearchName.BackColor = Color.DarkGray;
+                //TxtSearchName.ForeColor = Color.Wheat;
+
+                BtnFind.BackColor = Color.DarkGray;
+                //BtnFind.ForeColor = Color.White;
+
+                ResultsListView.BackColor = Color.DarkGray;
+                //ResultsListView.ForeColor = Color.White;
+
+                EventList.BackColor = Color.Black;
+                EventList.ForeColor = Color.Wheat;
+
+                ErrorList.BackColor = Color.Black;
+                ErrorList.ForeColor = Color.Wheat;
+            }
+            else
+            {
+                TxtSearchName.BackColor = SystemColors.Control;
+                TxtSearchName.ForeColor = SystemColors.ControlText;
+
+                BtnFind.BackColor = SystemColors.Control;
+                BtnFind.ForeColor = SystemColors.ControlText;
+
+                ResultsListView.BackColor = Color.AliceBlue;
+                ResultsListView.ForeColor = Color.Black;
+
+                EventList.BackColor = Color.Beige;
+                EventList.ForeColor = Color.Black;
+
+                ErrorList.BackColor = Color.MistyRose;
+                ErrorList.ForeColor = Color.Black;
+            }
+        }
+        private void DarkTSMenuStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _darkMode = DarkTSMenu.Checked;
+            SetTheme();
+            if (!ConfigData.AddItem("DarkMode", _darkMode, true))
+                MessageBox.Show($"'DarkMode' failed to save to configuration file.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e) => MessageBox.Show(this, "Not Implemented Yet.", About.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         #endregion
 
