@@ -229,12 +229,12 @@ namespace Chizl.SystemSearch
             List<Task> taskList = new List<Task>();
 
             // Run asynchronously based on processor count to prevent max CPU costs.
-            //var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
+            var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
 
             // only holds root folders of each drive.
             foreach (var subfolder in folderList)
             {
-                //semaphore.WaitAsync();
+                semaphore.WaitAsync();
 
                 try
                 {
@@ -261,7 +261,7 @@ namespace Chizl.SystemSearch
                 }
                 finally
                 {
-                    //semaphore.Release();
+                    semaphore.Release();
                 }
             }
 
@@ -368,6 +368,10 @@ namespace Chizl.SystemSearch
             if (!GlobalSettings.ScanSettings.AllowDir(folder))
                 return retVal;
 
+            // resolves problem with reparse points, which can cause infinite loops.
+            if ((new DirectoryInfo(folder).Attributes & FileAttributes.ReparsePoint) != 0)
+                return retVal;
+
             try
             {
                 // This filters out files looking for and if all, the search string is not needed.
@@ -375,6 +379,10 @@ namespace Chizl.SystemSearch
                 {
                     if (GlobalSettings.HasShutdown)
                         return retVal;
+
+                    // resolves problem with reparse points, which can cause infinite loops.
+                    if ((File.GetAttributes(file) & FileAttributes.ReparsePoint) != 0) 
+                        continue;
 
                     try
                     {

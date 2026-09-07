@@ -1,6 +1,6 @@
 # Chizl.SystemSearch
 
-High-performance, cross-platform .NET library for scanning drives and searching files and folders — includes a fully usable Windows demo UI.
+High-performance, cross-platform .NET library for scanning drives and searching files and folders — includes a fully usable Windows demo UI.  Allow developers to quickly add fast file and folder searching to their applications without needing to write any code.   This library is designed for speed: it caches **full file paths in memory** (ConcurrentDictionary) while the UI is running, so searches remain fast after the   initial scan and efficiently handles reparse points within an OS, which can cause infinite loops.
 
 ---
 

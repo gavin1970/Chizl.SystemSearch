@@ -458,7 +458,7 @@ namespace Chizl.SystemSearch
                     // set in file status files found that will be searched.
                     SearchMessage.SendMsg(SearchMessageType.FileScanStatus, $"Found: [{contentSearchCnt.FormatByComma()}] files to scan for content.");
 
-                    var semaphore = new SemaphoreSlim(1024);
+                    var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
                     // [includes:d:\code\|c:\code\] + [extensions:cs|md|log] + [excludes:\3rdparty\|\Unity\|SVG] + [contents:gavin|landon]
                     // [includes:d:\code\] + [extensions:cs|md|log] + [excludes:\3rdparty\|\Unity\|SVG] + [contents:gavin|landon]
 
