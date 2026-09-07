@@ -380,9 +380,9 @@ namespace Chizl.SystemSearch
                     if (GlobalSettings.HasShutdown)
                         return retVal;
 
-                    // resolves problem with reparse points, which can cause infinite loops.
-                    if ((File.GetAttributes(file) & FileAttributes.ReparsePoint) != 0) 
-                        continue;
+                    //// resolves problem with reparse points, which can cause infinite loops.
+                    //if ((File.GetAttributes(file) & FileAttributes.ReparsePoint) != 0) 
+                    //    continue;
 
                     try
                     {
