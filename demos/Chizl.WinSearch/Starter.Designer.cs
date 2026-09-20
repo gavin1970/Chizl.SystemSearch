@@ -41,7 +41,7 @@
             this.ResultsPanel = new System.Windows.Forms.Panel();
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
             this.panel4 = new System.Windows.Forms.Panel();
-            this.ResultsListView = new System.Windows.Forms.ListView();
+            this.ResultsListView = new ChizlListView();
             this.CMenuList = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ListMenuFilters = new System.Windows.Forms.ToolStripMenuItem();
             this.ListMenuFilterClear = new System.Windows.Forms.ToolStripMenuItem();
@@ -1068,7 +1068,7 @@
         private System.Windows.Forms.ToolStripMenuItem CMenuInfoErrCopy;
         private System.Windows.Forms.ToolStripMenuItem ListMenuExclude;
         private System.Windows.Forms.ToolStripStatusLabel StatusToolStripSubFiltered;
-        private System.Windows.Forms.ListView ResultsListView;
+        private ChizlListView ResultsListView;
         private System.Windows.Forms.Timer LastScanTimer;
         private System.Windows.Forms.SplitContainer EventListsSplitContainer;
         private System.Windows.Forms.SplitContainer MainSplitContainer;

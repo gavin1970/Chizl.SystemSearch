@@ -54,7 +54,7 @@ namespace Chizl.SystemSearch
     {
         const string _NOEXT = "NOEXT";
         private string[] _searchCriteria = new string[0];
-        private readonly string[] _spaceRemovals = new string[4] { ":", "|", "[", "]" };
+        private readonly string[] _spaceRemovals = new string[5] { ":", "|", @"\", "[", "]" };
 
         private BuildSearchCmd() { IsEmpty = true; }
         public BuildSearchCmd(ref string searchCriteria) => _searchCriteria = FindCommands(ref searchCriteria);
@@ -171,10 +171,15 @@ namespace Chizl.SystemSearch
             foreach (var ch in _spaceRemovals)
             {
                 // this will auto correct the following type of query:
-                //      "Landon + ,  [includes:code|Gavin] ;  [ext: .txt | PDF |. doc | docx | .mp4]"
+                //      Landon + ,  [includes:code|Gavin] ;  [ext: .txt | PDF |. doc | docx | .mp4]
                 // to look like this:
-                //      "Landon[includes:code|Gavin][ext:.txt|PDF|. doc|docx|.mp4]"
+                //      Landon[includes:code|Gavin][ext:.txt|PDF|. doc|docx|.mp4]
                 searchCriteria = DupSearchReplace(searchCriteria, new string[] { $"{ch} ", $" {ch}" }, $"{ch}");
+                // this will auto correct the following type of query:
+                //      Chrome      [      exc     :     \   anyos              \    ||     \\     \       systemapps \   |   |  \\\\\\\nuget        \        ]
+                // to look like this:
+                //      Chrome[exc:\anyos\|\systemapps\|\nuget\]
+                searchCriteria = DupSearchReplace(searchCriteria, new string[] { $"{ch}{ch}" }, $"{ch}");
             }
 
             // does the token label/command for contents exist?

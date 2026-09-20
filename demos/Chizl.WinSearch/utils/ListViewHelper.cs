@@ -29,11 +29,11 @@ public class ListViewHelper
     public ListViewColumnSorter LvColumnSorter { get; set; }
     private void Lv_ColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
     {
-        ListView lv = (ListView)sender;
+        ChizlListView lv = (ChizlListView)sender;
         e.NewWidth = lv.Columns[e.ColumnIndex].Width;
         e.Cancel = true;
     }
-    public void SetupListView(ListView lv, ColumnHeader[] columns, ListViewOptions lvo = null)
+    public void SetupListView(ChizlListView lv, ColumnHeader[] columns, ListViewOptions lvo = null)
     {
         if (lv.IsDisposed || lv.Disposing)
             return;
@@ -51,7 +51,7 @@ public class ListViewHelper
             if (_listViewOptions.HideHeader)
                 lv.HeaderStyle = ColumnHeaderStyle.None;
 
-            Lv_ResizeGrid(lv, _listViewOptions.HideColumns.Select(s=>(uint)s.DisplayIndex).ToArray(), _listViewOptions.AutoSizeLastCol);
+            Lv_ResizeGrid(lv, _listViewOptions.HideColumns?.Select(s=>(uint)s.DisplayIndex).ToArray(), _listViewOptions.AutoSizeLastCol);
 
             if (lv.Columns.Count == 0)
                 lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
@@ -63,7 +63,7 @@ public class ListViewHelper
     /// sets default settings for any listView passed to it.
     /// </summary>
     /// <param name="lv"></param>
-    private void DefaultListView(ListView lv)
+    private void DefaultListView(ChizlListView lv)
     {
         if (lv.IsDisposed || lv.Disposing)
             return;
@@ -141,7 +141,7 @@ public class ListViewHelper
 
     private void Lv_ColumnClick(object sender, ColumnClickEventArgs e)
     {
-        var lv = (ListView)sender;
+        var lv = (ChizlListView)sender;
         ColumnClickEventArgs colClickEvtArgs = e;
 
         if (e.Column == 2)
@@ -154,7 +154,7 @@ public class ListViewHelper
     {
         if (_loaded.TrySetTrue())
         {
-            var lv = (ListView)sender;
+            var lv = (ChizlListView)sender;
 
             if (lv.Items.Count > 0 && lv.Columns.Count > 0 && e.ColumnIndex != lv.Columns.Count - 1)
             {
@@ -230,7 +230,7 @@ public class ListViewHelper
     }
     #endregion
 
-    public void Lv_Column_Sort(ListView lv, ColumnClickEventArgs e)
+    public void Lv_Column_Sort(ChizlListView lv, ColumnClickEventArgs e)
     {
         if (lv.IsDisposed || lv.Disposing)
             return;
@@ -258,7 +258,7 @@ public class ListViewHelper
         lv.Sort();
     }
     
-    public void Lv_ResizeGrid(ListView lv, uint[] hideColumnIndex = null, bool autoSizeLastCol = true)
+    public void Lv_ResizeGrid(ChizlListView lv, uint[] hideColumnIndex = null, bool autoSizeLastCol = true)
     {
         if (lv.IsDisposed || lv.Disposing)
             return;
@@ -283,7 +283,7 @@ public class ListViewHelper
             lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
     }
 
-    public bool ListViewSearch(ListView lv, string findText, LISTVIEW_ACTION action = LISTVIEW_ACTION.SEARCH, ListViewItem lvItem = null)
+    public bool ListViewSearch(ChizlListView lv, string findText, LISTVIEW_ACTION action = LISTVIEW_ACTION.SEARCH, ListViewItem lvItem = null)
     {
         bool retVal = false;
         ListViewItem foundItem = null;
@@ -445,6 +445,28 @@ public class ListViewColumnSorter : IComparer
         get
         {
             return OrderOfSort;
+        }
+    }
+}
+
+public class ChizlListView : ListView
+{
+    public ChizlListView()
+    {
+        //Activate double buffering
+        this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+
+        //Enable the OnNotifyMessage event so we get a chance to filter out 
+        // Windows messages before they get to the form's WndProc
+        this.SetStyle(ControlStyles.EnableNotifyMessage, true);
+    }
+
+    protected override void OnNotifyMessage(Message m)
+    {
+        //Filter out the WM_ERASEBKGND message
+        if (m.Msg != 0x14)
+        {
+            base.OnNotifyMessage(m);
         }
     }
 }
