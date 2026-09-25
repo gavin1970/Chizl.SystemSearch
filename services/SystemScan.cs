@@ -368,6 +368,7 @@ namespace Chizl.SystemSearch
             if (!GlobalSettings.ScanSettings.AllowDir(folder))
                 return retVal;
 
+            // ## LOOP ISSUE on folders with bad attributes resolved.
             // resolves problem with reparse points, which can cause infinite loops.
             if ((new DirectoryInfo(folder).Attributes & FileAttributes.ReparsePoint) != 0)
                 return retVal;
