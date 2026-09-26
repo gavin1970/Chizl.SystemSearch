@@ -117,6 +117,7 @@ namespace Chizl.SystemSearch
 
             try
             {
+                var startTime = DateTime.UtcNow;
                 // build the search criteria commands, this will help with the
                 // search, and prevent us from having to parse the criteria multiple times.
                 var buildSearchCriteria = new BuildSearchCmd(ref searchCriteria);
@@ -131,6 +132,10 @@ namespace Chizl.SystemSearch
                 // criteria, but we still need to verify them against the criteria, as some of the
                 // criteria is not able to be pre-filtered in the cache.
                 retVal = DeepDive(drives, buildSearchCriteria);
+
+                //send status update.
+                var totalTime = (DateTime.UtcNow - startTime);
+                SearchMessage.SendMsg(SearchMessageType.StatusMessage, $"Search took {totalTime.Seconds:0}.{totalTime.Milliseconds:00} sec.");
 
                 // send total count message, to ensure accuratness
                 SearchMessage.SendMsg(SearchMessageType.ScanComplete, $"Cached: [{SystemScan.ScannedFolders.FormatByComma()}] Folders, [{SystemScan.ScannedFiles.FormatByComma()}] Files.");

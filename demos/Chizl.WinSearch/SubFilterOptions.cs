@@ -125,7 +125,7 @@ namespace Chizl.WinSearch
         #region ListView Setup/Controls
         private void ListView_ColumnClick(object sender, ColumnClickEventArgs e)
         {
-            var lv = (ListView)sender;
+            var lv = (ChizlListView)sender;
             ColumnClickEventArgs colClickEvtArgs = e;
 
             if (e.Column == 2)
