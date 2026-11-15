@@ -833,8 +833,13 @@ namespace Chizl.SearchSystemUI
         }
         private void StartupTimer_Tick(object sender, EventArgs e)
         {
-            while (_msgQueue.TryDequeue(out SearchEventArgs msg) && (!_scanAborted || _msgQueue.Count < 10))
+            while (_msgQueue.TryDequeue(out SearchEventArgs msg))
+            {
+                if (_scanAborted || _msgQueue.Count >= 10)
+                    continue;
+
                 ShowMsg(msg);
+            }
         }
         private void IOFinder_EventMessaging(object sender, SearchEventArgs e)
         {
